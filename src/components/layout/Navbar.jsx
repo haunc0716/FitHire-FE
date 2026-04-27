@@ -9,8 +9,8 @@ const Navbar = () => {
     { name: 'Trang chủ', path: '/' },
     { name: 'Tính năng', path: '/features' },
     { name: 'Bảng giá', path: '/pricing' },
-    { name: 'Quy trình', path: '#' },
-    { name: 'Hỗ trợ', path: '#' },
+    { name: 'Quy trình', path: '/process' },
+    { name: 'Hỗ trợ', path: '/support' },
   ];
 
   return (

@@ -1,4 +1,5 @@
 import React from 'react';
+import { PlayCircle } from 'lucide-react';
 
 const HeroSection = () => {
   return (
@@ -25,7 +26,7 @@ const HeroSection = () => {
               Dùng thử miễn phí
             </button>
             <button className="px-8 py-4 bg-white border border-slate-200 text-slate-900 rounded font-button text-lg flex items-center justify-center gap-2 hover:bg-slate-50 transition-all">
-              <span className="material-symbols-outlined text-primary">play_circle</span>
+              <PlayCircle className="text-primary w-6 h-6" />
               Xem Demo
             </button>
           </div>

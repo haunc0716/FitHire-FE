@@ -1,4 +1,5 @@
 import React from 'react';
+import { CheckCircle2, XCircle, Activity, BadgeCheck } from 'lucide-react';
 
 const PricingCards = () => {
   return (
@@ -15,15 +16,15 @@ const PricingCards = () => {
         </div>
         <ul className="space-y-4 mb-10 flex-grow">
           <li className="flex items-center gap-3 text-sm text-slate-600">
-            <span className="material-symbols-outlined text-violet-500 text-xl" style={{ fontVariationSettings: "'FILL' 1" }}>check_circle</span>
+            <CheckCircle2 className="w-5 h-5 text-violet-500" />
             3 lượt quét CV
           </li>
           <li className="flex items-center gap-3 text-sm text-slate-600">
-            <span className="material-symbols-outlined text-violet-500 text-xl" style={{ fontVariationSettings: "'FILL' 1" }}>check_circle</span>
+            <CheckCircle2 className="w-5 h-5 text-violet-500" />
             1 buổi phỏng vấn (Văn bản)
           </li>
           <li className="flex items-center gap-3 text-sm text-slate-300">
-            <span className="material-symbols-outlined text-xl">cancel</span>
+            <XCircle className="w-5 h-5 text-slate-300" />
             Mô phỏng giọng nói
           </li>
         </ul>
@@ -79,7 +80,7 @@ const PricingCards = () => {
             5 buổi phỏng vấn giọng nói
           </li>
           <li className="flex items-center gap-3 text-sm font-bold text-violet-600">
-            <span className="material-symbols-outlined text-xl">monitoring</span>
+            <Activity className="w-5 h-5 text-violet-600" />
             Biểu đồ kỹ năng Radar cá nhân
           </li>
         </ul>
@@ -98,15 +99,15 @@ const PricingCards = () => {
         </div>
         <ul className="space-y-4 mb-10 flex-grow">
           <li className="flex items-center gap-3 text-sm text-slate-300">
-            <span className="material-symbols-outlined text-violet-400 text-xl">verified</span>
+            <BadgeCheck className="w-5 h-5 text-violet-400" />
             Quét CV không giới hạn
           </li>
           <li className="flex items-center gap-3 text-sm text-slate-300">
-            <span className="material-symbols-outlined text-violet-400 text-xl">verified</span>
+            <BadgeCheck className="w-5 h-5 text-violet-400" />
             Phỏng vấn AI không giới hạn
           </li>
           <li className="flex items-center gap-3 text-sm text-slate-300">
-            <span className="material-symbols-outlined text-violet-400 text-xl">verified</span>
+            <BadgeCheck className="w-5 h-5 text-violet-400" />
             Ưu tiên phản hồi từ AI
           </li>
         </ul>

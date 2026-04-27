@@ -1,4 +1,5 @@
 import React from 'react';
+import { FileText, CheckCircle2, Video, GitBranch, Gauge, Users, TrendingUp, ShieldCheck } from 'lucide-react';
 
 const BentoFeatures = () => {
   return (
@@ -8,17 +9,17 @@ const BentoFeatures = () => {
         <div className="flex flex-col md:flex-row gap-12 h-full">
           <div className="flex-1 flex flex-col justify-center">
             <div className="w-14 h-14 bg-primary/5 rounded-2xl flex items-center justify-center text-primary mb-8 group-hover:bg-primary group-hover:text-white transition-colors duration-500">
-              <span className="material-symbols-outlined text-3xl" data-icon="description">description</span>
+              <FileText className="w-8 h-8" />
             </div>
             <h2 className="font-h2 text-h2 mb-6">Tối ưu hóa CV</h2>
             <p className="font-body-md text-on-surface-variant mb-8 leading-relaxed">AI của chúng tôi phân tích CV của bạn so với hàng ngàn hồ sơ thành công để đề xuất các từ khóa tác động cao và điều chỉnh định dạng giúp vượt qua bộ lọc ATS.</p>
             <ul className="space-y-4">
               <li className="flex items-center gap-3 text-body-md font-medium">
-                <span className="material-symbols-outlined text-primary text-xl" data-icon="check_circle" style={{ fontVariationSettings: "'FILL' 1" }}>check_circle</span>
+                <CheckCircle2 className="w-5 h-5 text-primary" />
                 Bản đồ từ khóa ngữ nghĩa
               </li>
               <li className="flex items-center gap-3 text-body-md font-medium">
-                <span className="material-symbols-outlined text-primary text-xl" data-icon="check_circle" style={{ fontVariationSettings: "'FILL' 1" }}>check_circle</span>
+                <CheckCircle2 className="w-5 h-5 text-primary" />
                 Điểm số tác động định lượng
               </li>
             </ul>
@@ -34,7 +35,7 @@ const BentoFeatures = () => {
       {/* Mock Interview */}
       <div className="md:col-span-4 premium-card rounded-xl p-10 group">
         <div className="w-14 h-14 bg-secondary/5 rounded-2xl flex items-center justify-center text-secondary mb-8 group-hover:bg-secondary group-hover:text-white transition-colors duration-500">
-          <span className="material-symbols-outlined text-3xl" data-icon="videocam">videocam</span>
+          <Video className="w-8 h-8" />
         </div>
         <h3 className="font-h3 text-h3 mb-6">Phỏng vấn thử</h3>
         <p className="font-body-md text-on-surface-variant mb-10 leading-relaxed">Thực hành với người phỏng vấn AI đầy thấu cảm. Nhận phản hồi thời gian thực về tông giọng, ngôn ngữ cơ thể và cấu trúc câu trả lời.</p>
@@ -53,7 +54,7 @@ const BentoFeatures = () => {
       {/* Cultural Fit */}
       <div className="md:col-span-5 premium-card rounded-xl p-10 group">
         <div className="w-14 h-14 bg-tertiary-container/5 rounded-2xl flex items-center justify-center text-tertiary mb-8 group-hover:bg-tertiary group-hover:text-white transition-colors duration-500">
-          <span className="material-symbols-outlined text-3xl" data-icon="hub">hub</span>
+          <GitBranch className="w-8 h-8" />
         </div>
         <h3 className="font-h3 text-h3 mb-6">Phân tích sự phù hợp văn hóa</h3>
         <p className="font-body-md text-on-surface-variant mb-10 leading-relaxed">Đánh giá các giá trị của bạn so với môi trường làm việc tiềm năng bằng hệ thống bản đồ biểu đồ radar độc quyền của chúng tôi.</p>
@@ -72,22 +73,22 @@ const BentoFeatures = () => {
       {/* More Features Grid */}
       <div className="md:col-span-7 grid grid-cols-1 sm:grid-cols-2 gap-8">
         <div className="premium-card rounded-xl p-8 group">
-          <span className="material-symbols-outlined text-primary text-3xl mb-6 block" data-icon="speed">speed</span>
+          <Gauge className="text-primary w-8 h-8 mb-6" />
           <h4 className="font-bold text-lg mb-3">Phản hồi tức thì</h4>
           <p className="text-sm text-on-surface-variant leading-relaxed">Nhận báo cáo toàn diện trong vòng 60 giây sau khi nộp bất kỳ yêu cầu nào.</p>
         </div>
         <div className="premium-card rounded-xl p-8 group">
-          <span className="material-symbols-outlined text-secondary text-3xl mb-6 block" data-icon="groups">groups</span>
+          <Users className="text-secondary w-8 h-8 mb-6" />
           <h4 className="font-bold text-lg mb-3">Cố vấn chuyên gia</h4>
           <p className="text-sm text-on-surface-variant leading-relaxed">Kết nối với các chuyên gia trong ngành để được xác thực trực tiếp bởi con người.</p>
         </div>
         <div className="premium-card rounded-xl p-8 group">
-          <span className="material-symbols-outlined text-tertiary text-3xl mb-6 block" data-icon="insights">insights</span>
+          <TrendingUp className="text-tertiary w-8 h-8 mb-6" />
           <h4 className="font-bold text-lg mb-3">Xu hướng thị trường</h4>
           <p className="text-sm text-on-surface-variant leading-relaxed">Cập nhật mức lương thực tế và theo dõi nhu cầu kỹ năng trong thời gian thực.</p>
         </div>
         <div className="premium-card rounded-xl p-8 group">
-          <span className="material-symbols-outlined text-error text-3xl mb-6 block" data-icon="security">security</span>
+          <ShieldCheck className="text-error w-8 h-8 mb-6" />
           <h4 className="font-bold text-lg mb-3">Bảo mật tối đa</h4>
           <p className="text-sm text-on-surface-variant leading-relaxed">Dữ liệu của bạn được mã hóa và không bao giờ được bán cho bên thứ ba.</p>
         </div>
