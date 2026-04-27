@@ -1,99 +1,107 @@
 import React from 'react';
-import { FileText, CheckCircle2, Video, GitBranch, Gauge, Users, TrendingUp, ShieldCheck } from 'lucide-react';
+import { FileText, CheckCircle2, Video, GitBranch, Gauge, Users, TrendingUp, ShieldCheck, ArrowRight } from 'lucide-react';
+import { motion } from 'framer-motion';
 
 const BentoFeatures = () => {
+  const container = {
+    hidden: { opacity: 0 },
+    show: {
+      opacity: 1,
+      transition: { staggerChildren: 0.2 }
+    }
+  };
+
+  const item = {
+    hidden: { opacity: 0, y: 20 },
+    show: { opacity: 1, y: 0 }
+  };
+
   return (
-    <div className="grid grid-cols-1 md:grid-cols-12 gap-8">
+    <motion.div 
+      variants={container}
+      initial="hidden"
+      whileInView="show"
+      viewport={{ once: true, margin: "-100px" }}
+      className="grid grid-cols-1 md:grid-cols-12 gap-8"
+    >
       {/* CV Optimization */}
-      <div className="md:col-span-8 premium-card rounded-xl p-10 overflow-hidden relative group">
+      <motion.div variants={item} className="md:col-span-8 premium-card rounded-[2rem] p-12 overflow-hidden relative group">
+        <div className="absolute top-0 right-0 w-64 h-64 bg-primary/5 rounded-full blur-[100px] -z-10 group-hover:bg-primary/10 transition-colors" />
         <div className="flex flex-col md:flex-row gap-12 h-full">
           <div className="flex-1 flex flex-col justify-center">
-            <div className="w-14 h-14 bg-primary/5 rounded-2xl flex items-center justify-center text-primary mb-8 group-hover:bg-primary group-hover:text-white transition-colors duration-500">
+            <div className="w-16 h-16 bg-white shadow-xl shadow-primary/10 rounded-2xl flex items-center justify-center text-primary mb-10 group-hover:scale-110 transition-transform duration-500">
               <FileText className="w-8 h-8" />
             </div>
-            <h2 className="font-h2 text-h2 mb-6">Tối ưu hóa CV</h2>
-            <p className="font-body-md text-on-surface-variant mb-8 leading-relaxed">AI của chúng tôi phân tích CV của bạn so với hàng ngàn hồ sơ thành công để đề xuất các từ khóa tác động cao và điều chỉnh định dạng giúp vượt qua bộ lọc ATS.</p>
-            <ul className="space-y-4">
-              <li className="flex items-center gap-3 text-body-md font-medium">
-                <CheckCircle2 className="w-5 h-5 text-primary" />
-                Bản đồ từ khóa ngữ nghĩa
-              </li>
-              <li className="flex items-center gap-3 text-body-md font-medium">
-                <CheckCircle2 className="w-5 h-5 text-primary" />
-                Điểm số tác động định lượng
-              </li>
-            </ul>
+            <h2 className="font-h2 text-4xl mb-6 tracking-tight">Tối ưu hóa CV Đẳng cấp</h2>
+            <p className="font-body-md text-slate-500 text-lg mb-8 leading-relaxed">Thuật toán phân tích ngữ nghĩa vượt trội giúp hồ sơ của bạn không chỉ vượt qua ATS mà còn chinh phục ánh nhìn của các nhà tuyển dụng khó tính nhất.</p>
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <div className="flex items-center gap-3 font-semibold text-slate-700 bg-white/50 p-3 rounded-xl border border-white">
+                <CheckCircle2 className="w-5 h-5 text-emerald-500" />
+                Chuẩn ATS Quốc tế
+              </div>
+              <div className="flex items-center gap-3 font-semibold text-slate-700 bg-white/50 p-3 rounded-xl border border-white">
+                <CheckCircle2 className="w-5 h-5 text-emerald-500" />
+                Impact Score AI
+              </div>
+            </div>
           </div>
-          <div className="flex-1 relative min-h-[340px]">
-            <div className="absolute inset-0 bg-slate-50 rounded-2xl flex items-center justify-center p-4">
-              <img alt="Phân tích CV bằng AI" className="w-full h-full object-cover rounded-xl shadow-2xl group-hover:scale-[1.03] transition-transform duration-700" src="https://lh3.googleusercontent.com/aida-public/AB6AXuDwPJgGJks3daojhu40cxH6B3-VpQBEzPozON-0bDjE3HnoIVZeMtaEQlty0bx6jH94vwFZSYTmgLZnw-4KrAJzNxSQFzFJUu67xrxVVPj-iBX0GIK4ILZKwnm9hdL4ehmuYprPOf6xG7kTb5uiKgZpnkKZuiX0nDucVc7RJ-NQzhlHcxZY3rIbtSCvYJ_UTlvhXM-fuMUK1V2Op8-75cc6x8E_cb6S2X9JP6DaHX_zkSYlHLcwZ-0Pkkty6JSFurPp26GBqx06ULU" />
+          <div className="flex-1 relative min-h-[300px]">
+            <div className="absolute inset-0 bg-slate-100/50 rounded-3xl p-6 group-hover:bg-primary/5 transition-colors duration-500">
+              <img alt="Phân tích CV" className="w-full h-full object-cover rounded-2xl shadow-2xl group-hover:rotate-1 transition-transform duration-700" src="https://lh3.googleusercontent.com/aida-public/AB6AXuDwPJgGJks3daojhu40cxH6B3-VpQBEzPozON-0bDjE3HnoIVZeMtaEQlty0bx6jH94vwFZSYTmgLZnw-4KrAJzNxSQFzFJUu67xrxVVPj-iBX0GIK4ILZKwnm9hdL4ehmuYprPOf6xG7kTb5uiKgZpnkKZuiX0nDucVc7RJ-NQzhlHcxZY3rIbtSCvYJ_UTlvhXM-fuMUK1V2Op8-75cc6x8E_cb6S2X9JP6DaHX_zkSYlHLcwZ-0Pkkty6JSFurPp26GBqx06ULU" />
             </div>
           </div>
         </div>
-      </div>
+      </motion.div>
 
       {/* Mock Interview */}
-      <div className="md:col-span-4 premium-card rounded-xl p-10 group">
-        <div className="w-14 h-14 bg-secondary/5 rounded-2xl flex items-center justify-center text-secondary mb-8 group-hover:bg-secondary group-hover:text-white transition-colors duration-500">
+      <motion.div variants={item} className="md:col-span-4 premium-card rounded-[2rem] p-12 group">
+        <div className="w-16 h-16 bg-white shadow-xl shadow-secondary/10 rounded-2xl flex items-center justify-center text-secondary mb-10 group-hover:scale-110 transition-transform duration-500">
           <Video className="w-8 h-8" />
         </div>
-        <h3 className="font-h3 text-h3 mb-6">Phỏng vấn thử</h3>
-        <p className="font-body-md text-on-surface-variant mb-10 leading-relaxed">Thực hành với người phỏng vấn AI đầy thấu cảm. Nhận phản hồi thời gian thực về tông giọng, ngôn ngữ cơ thể và cấu trúc câu trả lời.</p>
-        <div className="aspect-[4/3] bg-slate-50 rounded-2xl overflow-hidden relative">
-          <img alt="Phỏng vấn trực tuyến" className="w-full h-full object-cover grayscale group-hover:grayscale-0 transition-all duration-700 scale-110 group-hover:scale-100" src="https://lh3.googleusercontent.com/aida-public/AB6AXuA9OLFvw7lGdpnbQ3q0-jSZ8jXfGMyT4Q_lXZ3N-pzg_Jzsz1_TQqkm2HWtS0uIByUdwmLWlnJ8iE_ws_T3SdIJltAgfwd-Ls3l7Q13ydTL5EneTSJnP4-FXKvf1cwAG_hiv8NlAD0rVMU8WpXC8EAFkGS02JWgHhBCvpD6AbpGEsN9xSYUPkgwTCzSrWka7Ea1sCXW8uAIJbuXKE1UA9bD1Y90PKTgJWcQDUdX5cl9QnAimM2ereSBvUIkF04__3f34gsNmaJkMYo" />
-          <div className="absolute bottom-6 left-6 right-6 flex gap-3">
-            <div className="h-1.5 flex-1 bg-white/40 rounded-full overflow-hidden">
-              <div className="h-full bg-secondary w-2/3"></div>
-            </div>
-            <div className="h-1.5 flex-1 bg-white/40 rounded-full"></div>
-            <div className="h-1.5 flex-1 bg-white/40 rounded-full"></div>
-          </div>
+        <h3 className="font-h3 text-3xl mb-6">Phỏng vấn giả lập</h3>
+        <p className="font-body-md text-slate-500 text-lg mb-10 leading-relaxed">Luyện tập trong không gian ảo với AI. Nhận phân tích ngôn ngữ cơ thể và tư vấn chiến thuật trả lời thông minh.</p>
+        <div className="aspect-[4/3] bg-slate-100/50 rounded-3xl overflow-hidden relative border border-white shadow-inner group-hover:bg-secondary/5 transition-colors">
+          <img alt="Mock Interview" className="w-full h-full object-cover grayscale opacity-60 group-hover:grayscale-0 group-hover:opacity-100 transition-all duration-700" src="https://lh3.googleusercontent.com/aida-public/AB6AXuA9OLFvw7lGdpnbQ3q0-jSZ8jXfGMyT4Q_lXZ3N-pzg_Jzsz1_TQqkm2HWtS0uIByUdwmLWlnJ8iE_ws_T3SdIJltAgfwd-Ls3l7Q13ydTL5EneTSJnP4-FXKvf1cwAG_hiv8NlAD0rVMU8WpXC8EAFkGS02JWgHhBCvpD6AbpGEsN9xSYUPkgwTCzSrWka7Ea1sCXW8uAIJbuXKE1UA9bD1Y90PKTgJWcQDUdX5cl9QnAimM2ereSBvUIkF04__3f34gsNmaJkMYo" />
+          <div className="absolute inset-0 bg-gradient-to-t from-secondary/40 to-transparent opacity-0 group-hover:opacity-100 transition-opacity" />
         </div>
-      </div>
+      </motion.div>
 
       {/* Cultural Fit */}
-      <div className="md:col-span-5 premium-card rounded-xl p-10 group">
-        <div className="w-14 h-14 bg-tertiary-container/5 rounded-2xl flex items-center justify-center text-tertiary mb-8 group-hover:bg-tertiary group-hover:text-white transition-colors duration-500">
+      <motion.div variants={item} className="md:col-span-5 premium-card rounded-[2rem] p-12 group">
+        <div className="w-16 h-16 bg-white shadow-xl shadow-slate-100 rounded-2xl flex items-center justify-center text-slate-700 mb-10 group-hover:scale-110 transition-transform duration-500">
           <GitBranch className="w-8 h-8" />
         </div>
-        <h3 className="font-h3 text-h3 mb-6">Phân tích sự phù hợp văn hóa</h3>
-        <p className="font-body-md text-on-surface-variant mb-10 leading-relaxed">Đánh giá các giá trị của bạn so với môi trường làm việc tiềm năng bằng hệ thống bản đồ biểu đồ radar độc quyền của chúng tôi.</p>
-        <div className="flex items-center justify-center py-6">
-          <div className="relative w-56 h-56">
-            <div className="absolute inset-0 border border-slate-100 rounded-full"></div>
-            <div className="absolute inset-8 border border-slate-100 rounded-full"></div>
-            <div className="absolute inset-16 border border-slate-100 rounded-full"></div>
-            <div className="absolute inset-0 flex items-center justify-center">
-              <div className="w-40 h-40 bg-primary/10 rounded-full group-hover:scale-110 group-hover:rotate-12 transition-all duration-1000" style={{ clipPath: "polygon(50% 0%, 100% 38%, 81% 91%, 19% 91%, 0% 38%)" }}></div>
-            </div>
-          </div>
+        <h3 className="font-h3 text-3xl mb-6">Bản đồ Văn hóa</h3>
+        <p className="font-body-md text-slate-500 text-lg mb-10 leading-relaxed">Tìm thấy nơi thuộc về bạn. Hệ thống đánh giá Cultural Fit giúp kết nối bạn với những công ty có cùng lý tưởng sống.</p>
+        <div className="flex items-center justify-center py-4">
+          <motion.div 
+            animate={{ rotate: 360 }}
+            transition={{ duration: 30, repeat: Infinity, ease: "linear" }}
+            className="relative w-48 h-48 border border-slate-100 rounded-full flex items-center justify-center"
+          >
+            <div className="absolute inset-4 border border-primary/10 rounded-full" />
+            <div className="w-24 h-24 bg-primary/20 rounded-full blur-xl animate-pulse" />
+            <GitBranch className="w-10 h-10 text-primary relative z-10" />
+          </motion.div>
         </div>
-      </div>
+      </motion.div>
 
-      {/* More Features Grid */}
-      <div className="md:col-span-7 grid grid-cols-1 sm:grid-cols-2 gap-8">
-        <div className="premium-card rounded-xl p-8 group">
-          <Gauge className="text-primary w-8 h-8 mb-6" />
-          <h4 className="font-bold text-lg mb-3">Phản hồi tức thì</h4>
-          <p className="text-sm text-on-surface-variant leading-relaxed">Nhận báo cáo toàn diện trong vòng 60 giây sau khi nộp bất kỳ yêu cầu nào.</p>
-        </div>
-        <div className="premium-card rounded-xl p-8 group">
-          <Users className="text-secondary w-8 h-8 mb-6" />
-          <h4 className="font-bold text-lg mb-3">Cố vấn chuyên gia</h4>
-          <p className="text-sm text-on-surface-variant leading-relaxed">Kết nối với các chuyên gia trong ngành để được xác thực trực tiếp bởi con người.</p>
-        </div>
-        <div className="premium-card rounded-xl p-8 group">
-          <TrendingUp className="text-tertiary w-8 h-8 mb-6" />
-          <h4 className="font-bold text-lg mb-3">Xu hướng thị trường</h4>
-          <p className="text-sm text-on-surface-variant leading-relaxed">Cập nhật mức lương thực tế và theo dõi nhu cầu kỹ năng trong thời gian thực.</p>
-        </div>
-        <div className="premium-card rounded-xl p-8 group">
-          <ShieldCheck className="text-error w-8 h-8 mb-6" />
-          <h4 className="font-bold text-lg mb-3">Bảo mật tối đa</h4>
-          <p className="text-sm text-on-surface-variant leading-relaxed">Dữ liệu của bạn được mã hóa và không bao giờ được bán cho bên thứ ba.</p>
-        </div>
-      </div>
-    </div>
+      {/* Quick Stats Grid */}
+      <motion.div variants={item} className="md:col-span-7 grid grid-cols-1 sm:grid-cols-2 gap-8">
+        {[
+          { icon: Gauge, color: "text-primary", title: "Phản hồi Siêu tốc", desc: "Nhận báo cáo phân tích sâu chỉ trong 60 giây." },
+          { icon: Users, color: "text-secondary", title: "Cộng đồng Tinh hoa", desc: "Kết nối với mạng lưới chuyên gia toàn cầu." },
+          { icon: TrendingUp, color: "text-emerald-500", title: "Dữ liệu Thị trường", desc: "Cập nhật xu hướng tuyển dụng thời gian thực." },
+          { icon: ShieldCheck, color: "text-slate-900", title: "Bảo mật Tuyệt đối", desc: "Dữ liệu của bạn được bảo vệ bởi chuẩn mã hóa cao nhất." }
+        ].map((stat, i) => (
+          <div key={i} className="premium-card rounded-3xl p-8 group cursor-default">
+            <stat.icon className={`${stat.color} w-10 h-10 mb-6 group-hover:scale-110 transition-transform`} />
+            <h4 className="font-bold text-xl mb-3">{stat.title}</h4>
+            <p className="text-slate-500 leading-relaxed">{stat.desc}</p>
+          </div>
+        ))}
+      </motion.div>
+    </motion.div>
   );
 };
 

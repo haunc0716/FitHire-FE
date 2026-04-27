@@ -4,13 +4,6 @@ import { Search } from 'lucide-react';
 const SupportHero = () => {
   return (
     <section className="text-center mb-24">
-      <div className="inline-flex items-center gap-2 px-3 py-1 bg-primary/10 text-primary rounded-full font-label-caps text-[10px] mb-6 uppercase tracking-widest">
-        <span className="relative flex h-2 w-2">
-          <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-primary opacity-75"></span>
-          <span className="relative inline-flex rounded-full h-2 w-2 bg-primary"></span>
-        </span>
-        Chúng tôi có thể giúp gì cho bạn?
-      </div>
       <h1 className="font-h1 text-h1 text-on-background mb-6 max-w-3xl mx-auto leading-[1.1]">Trung tâm Hỗ trợ FitHire</h1>
       <p className="font-body-lg text-body-lg text-on-surface-variant max-w-2xl mx-auto opacity-80">
         Tìm câu trả lời cho các câu hỏi thường gặp, tham gia cộng đồng chuyên gia của chúng tôi hoặc trò chuyện với đội ngũ hỗ trợ.

@@ -1,48 +1,118 @@
 import React from 'react';
-import { PlayCircle } from 'lucide-react';
+import { PlayCircle, Sparkles } from 'lucide-react';
+import { motion } from 'framer-motion';
 
 const HeroSection = () => {
   return (
-    <main className="relative pt-40 pb-24 overflow-hidden hero-gradient">
-      <div className="max-w-[1440px] mx-auto px-6 md:px-12 grid grid-cols-1 lg:grid-cols-12 gap-16 items-center">
+    <main className="relative pt-40 pb-32 overflow-hidden hero-gradient">
+      {/* Decorative background blobs */}
+      <div className="absolute top-0 left-0 w-full h-full overflow-hidden -z-10">
+        <motion.div 
+          animate={{ 
+            scale: [1, 1.2, 1],
+            rotate: [0, 90, 0],
+            x: [0, 50, 0],
+            y: [0, 30, 0]
+          }}
+          transition={{ duration: 20, repeat: Infinity, ease: "linear" }}
+          className="absolute -top-[10%] -left-[10%] w-[40%] h-[40%] bg-primary/10 rounded-full blur-[120px]"
+        />
+        <motion.div 
+          animate={{ 
+            scale: [1.2, 1, 1.2],
+            rotate: [90, 0, 90],
+            x: [0, -50, 0],
+            y: [0, -30, 0]
+          }}
+          transition={{ duration: 15, repeat: Infinity, ease: "linear" }}
+          className="absolute -bottom-[10%] -right-[10%] w-[40%] h-[40%] bg-secondary/10 rounded-full blur-[120px]"
+        />
+      </div>
+
+      <div className="max-w-[1440px] mx-auto px-6 md:px-12 grid grid-cols-1 lg:grid-cols-12 gap-16 items-center relative">
         {/* Hero Content */}
-        <div className="lg:col-span-6 z-10">
-          <div className="inline-flex items-center gap-2 px-4 py-1.5 bg-white shadow-sm border border-slate-100 text-slate-600 rounded-full text-[13px] font-semibold mb-8">
-            <span className="flex h-2 w-2 relative">
-              <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-primary opacity-75"></span>
-              <span className="relative inline-flex rounded-full h-2 w-2 bg-primary"></span>
-            </span>
-            NỀN TẢNG TUYỂN DỤNG THẾ HỆ MỚI
-          </div>
-          <h1 className="font-h1 text-5xl md:text-6xl text-slate-900 mb-8 leading-[1.1] tracking-tight">
-            Nâng tầm hồ sơ – <br />
-            <span className="text-transparent bg-clip-text bg-gradient-to-r from-primary to-secondary">Tự tin gõ cửa thành công</span>
+        <motion.div 
+          initial={{ opacity: 0, x: -50 }}
+          whileInView={{ opacity: 1, x: 0 }}
+          transition={{ duration: 0.8 }}
+          viewport={{ once: true }}
+          className="lg:col-span-6 z-10"
+        >
+          <h1 className="font-h1 text-5xl md:text-7xl text-slate-900 mb-8 leading-[1.05] tracking-tight">
+            Nâng tầm hồ sơ <br />
+            <motion.span 
+              initial={{ backgroundPosition: "0% 50%" }}
+              animate={{ backgroundPosition: ["0% 50%", "100% 50%", "0% 50%"] }}
+              transition={{ duration: 5, repeat: Infinity }}
+              className="text-gradient"
+            >
+              Tự tin vươn xa
+            </motion.span>
           </h1>
-          <p className="font-body-lg text-lg text-slate-600 mb-10 max-w-xl leading-relaxed">
-            Ứng dụng AI tiên tiến nhất để tối ưu hóa CV, rèn luyện kỹ năng phỏng vấn và khám phá môi trường làm việc lý tưởng dành riêng cho bạn.
+
+          <p className="font-body-lg text-xl text-slate-600 mb-12 max-w-xl leading-relaxed">
+            Sử dụng trí tuệ nhân tạo thế hệ mới để kiến tạo hành trình sự nghiệp cá nhân hóa, giúp bạn vượt qua mọi giới hạn tuyển dụng.
           </p>
-          <div className="flex flex-col sm:flex-row gap-5">
-            <button className="px-8 py-4 bg-primary text-white rounded font-button text-lg hover:scale-[1.02] hover:shadow-2xl hover:shadow-primary/30 transition-all">
-              Dùng thử miễn phí
-            </button>
-            <button className="px-8 py-4 bg-white border border-slate-200 text-slate-900 rounded font-button text-lg flex items-center justify-center gap-2 hover:bg-slate-50 transition-all">
+
+          <div className="flex flex-col sm:flex-row gap-6">
+            <motion.button 
+              whileHover={{ scale: 1.05, boxShadow: "0 20px 40px rgba(139, 92, 246, 0.3)" }}
+              whileTap={{ scale: 0.95 }}
+              className="px-10 py-5 primary-gradient text-white rounded-xl font-bold text-lg shadow-xl shadow-primary/20 transition-all"
+            >
+              Bắt đầu hành trình
+            </motion.button>
+            <motion.button 
+              whileHover={{ scale: 1.05, backgroundColor: "rgba(255,255,255,1)" }}
+              whileTap={{ scale: 0.95 }}
+              className="px-10 py-5 bg-white/80 backdrop-blur-sm border border-slate-200 text-slate-900 rounded-xl font-bold text-lg flex items-center justify-center gap-3 transition-all"
+            >
               <PlayCircle className="text-primary w-6 h-6" />
               Xem Demo
-            </button>
+            </motion.button>
           </div>
-        </div>
+        </motion.div>
+
         {/* Hero Illustration */}
-        <div className="lg:col-span-6 relative">
+        <motion.div 
+          initial={{ opacity: 0, scale: 0.8, rotate: -5 }}
+          whileInView={{ opacity: 1, scale: 1, rotate: 0 }}
+          transition={{ duration: 1 }}
+          viewport={{ once: true }}
+          className="lg:col-span-6 relative"
+        >
           <div className="relative w-full aspect-[4/5] max-w-lg mx-auto">
-            {/* Abstract Elements */}
-            <div className="absolute -top-16 -right-16 w-80 h-80 bg-primary/5 rounded-full blur-[100px]"></div>
-            <div className="absolute -bottom-16 -left-16 w-80 h-80 bg-secondary/5 rounded-full blur-[100px]"></div>
-            {/* Main Image */}
-            <div className="relative z-10 w-full h-full rounded-2xl overflow-hidden shadow-[0_32px_64px_-16px_rgba(0,0,0,0.1)] border border-white">
-              <img alt="Professional working" className="w-full h-full object-cover" src="https://lh3.googleusercontent.com/aida-public/AB6AXuAIbuITMYt-Igm5DIFKAM1IKKknIThZnoEwafiBDsLVaI2udRk-RHjR4hfiwl2s64aVXwdaoU6HMI4sNMXARqvp8NT6rw3zRAsIMO5r-72LG10DMK9cpVubDaLfVu3f5Os92z4duiOPusWPPt0jzrrmaHyvlovRdEQQKoPS76CEr1mrFIMytspXvO7cZXCGC9hh_bVbzL131Y24CEaM2GNFu4hY2uPd2ZRKAI2x_bb3uyjkDHNJyNIVnNGwaYcHXcLh9du_woTINtI" />
+            {/* Animated Ring */}
+            <motion.div 
+              animate={{ rotate: 360 }}
+              transition={{ duration: 20, repeat: Infinity, ease: "linear" }}
+              className="absolute -inset-8 border-2 border-dashed border-primary/20 rounded-full"
+            />
+            
+            {/* Main Image Container */}
+            <div className="relative z-10 w-full h-full rounded-3xl overflow-hidden shadow-[0_40px_80px_-15px_rgba(139,92,246,0.2)] border-4 border-white/50 backdrop-blur-sm">
+              <img alt="Professional working" className="w-full h-full object-cover animate-float" src="https://lh3.googleusercontent.com/aida-public/AB6AXuAIbuITMYt-Igm5DIFKAM1IKKknIThZnoEwafiBDsLVaI2udRk-RHjR4hfiwl2s64aVXwdaoU6HMI4sNMXARqvp8NT6rw3zRAsIMO5r-72LG10DMK9cpVubDaLfVu3f5Os92z4duiOPusWPPt0jzrrmaHyvlovRdEQQKoPS76CEr1mrFIMytspXvO7cZXCGC9hh_bVbzL131Y24CEaM2GNFu4hY2uPd2ZRKAI2x_bb3uyjkDHNJyNIVnNGwaYcHXcLh9du_woTINtI" />
+              <div className="absolute inset-0 bg-gradient-to-tr from-primary/20 to-transparent pointer-events-none" />
             </div>
+
+            {/* Floating Badges */}
+            <motion.div 
+              animate={{ y: [0, -10, 0] }}
+              transition={{ duration: 3, repeat: Infinity }}
+              className="absolute -top-10 -right-10 glass-card p-6 rounded-2xl z-20 shadow-xl border-white/40"
+            >
+              <div className="flex items-center gap-3">
+                <div className="w-10 h-10 bg-emerald-500 rounded-full flex items-center justify-center text-white">
+                  <Sparkles className="w-5 h-5" />
+                </div>
+                <div>
+                  <div className="text-xs text-slate-500 font-bold uppercase tracking-wider">AI Score</div>
+                  <div className="text-xl font-extrabold text-slate-900">98% Fit</div>
+                </div>
+              </div>
+            </motion.div>
           </div>
-        </div>
+        </motion.div>
       </div>
     </main>
   );

@@ -1,5 +1,5 @@
 import React from 'react';
-import { Users, Facebook, BookOpen, ArrowRight } from 'lucide-react';
+import { Users, Globe, BookOpen, ArrowRight } from 'lucide-react';
 
 const SupportChannels = () => {
   return (
@@ -18,7 +18,7 @@ const SupportChannels = () => {
       {/* Facebook Community */}
       <div className="glass-card p-8 rounded-2xl hover:-translate-y-1 transition-all duration-300 border-primary/10">
         <div className="w-14 h-14 bg-primary-container text-primary rounded-2xl flex items-center justify-center mb-6">
-          <Facebook className="w-8 h-8" />
+          <Globe className="w-8 h-8" />
         </div>
         <h3 className="font-h3 text-h3 mb-3">Nhóm Facebook</h3>
         <p className="text-on-surface-variant mb-8 leading-relaxed">Kết nối với hàng ngàn đồng nghiệp và chia sẻ kinh nghiệm thực tập của bạn.</p>
