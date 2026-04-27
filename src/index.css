@@ -1,1 +1,116 @@
 @import "tailwindcss";
+
+@theme {
+  --color-inverse-primary: #d0bcff;
+  --color-surface-container-lowest: #ffffff;
+  --color-on-primary-container: #fffbff;
+  --color-inverse-surface: #2e3132;
+  --color-outline-variant: #cbc3d7;
+  --color-tertiary-container: #74747e;
+  --color-outline: #7b7486;
+  --color-on-secondary: #ffffff;
+  --color-primary-container: #8455ef;
+  --color-error: #ba1a1a;
+  --color-on-primary: #ffffff;
+  --color-surface: #f8f9fa;
+  --color-surface-variant: #e1e3e4;
+  --color-secondary-fixed-dim: #adc6ff;
+  --color-surface-dim: #d9dadb;
+  --color-on-secondary-fixed-variant: #004395;
+  --color-secondary-fixed: #d8e2ff;
+  --color-tertiary: #5b5b65;
+  --color-secondary-container: #2170e4;
+  --color-on-tertiary-fixed-variant: #46464f;
+  --color-on-error-container: #93000a;
+  --color-error-container: #ffdad6;
+  --color-on-tertiary-container: #fffbff;
+  --color-on-primary-fixed-variant: #5516be;
+  --color-on-tertiary: #ffffff;
+  --color-secondary: #0058be;
+  --color-surface-tint: #6d3bd7;
+  --color-surface-container-low: #f3f4f5;
+  --color-background: #f8f9fa;
+  --color-on-surface: #191c1d;
+  --color-tertiary-fixed: #e3e1ed;
+  --color-surface-container-highest: #e1e3e4;
+  --color-on-secondary-fixed: #001a42;
+  --color-on-error: #ffffff;
+  --color-surface-container: #edeeef;
+  --color-on-primary-fixed: #23005c;
+  --color-on-secondary-container: #fefcff;
+  --color-inverse-on-surface: #f0f1f2;
+  --color-on-tertiary-fixed: #1a1b23;
+  --color-tertiary-fixed-dim: #c7c5d1;
+  --color-primary-fixed-dim: #d0bcff;
+  --color-surface-bright: #f8f9fa;
+  --color-on-surface-variant: #494454;
+  --color-primary: #8B5CF6;
+  --color-primary-fixed: #e9ddff;
+  --color-surface-container-high: #e7e8e9;
+  --color-on-background: #191c1d;
+
+  --radius-lg: 8px;
+  --radius-xl: 12px;
+  --radius-2xl: 24px;
+  --radius-full: 9999px;
+
+
+
+  --font-h3: "Plus Jakarta Sans", sans-serif;
+  --font-label-caps: "Plus Jakarta Sans", sans-serif;
+  --font-h1: "Plus Jakarta Sans", sans-serif;
+  --font-h2: "Plus Jakarta Sans", sans-serif;
+  --font-button: "Plus Jakarta Sans", sans-serif;
+  --font-body-lg: "Plus Jakarta Sans", sans-serif;
+  --font-body-md: "Plus Jakarta Sans", sans-serif;
+
+  --text-h3: 24px;
+  --text-h3--line-height: 1.4;
+  --text-h3--font-weight: 700;
+
+  --text-label-caps: 12px;
+  --text-label-caps--line-height: 1.0;
+  --text-label-caps--letter-spacing: 0.05em;
+  --text-label-caps--font-weight: 600;
+
+  --text-h1: 48px;
+  --text-h1--line-height: 1.2;
+  --text-h1--letter-spacing: -0.02em;
+  --text-h1--font-weight: 800;
+
+  --text-h2: 32px;
+  --text-h2--line-height: 1.3;
+  --text-h2--letter-spacing: -0.01em;
+  --text-h2--font-weight: 700;
+
+  --text-button: 16px;
+  --text-button--line-height: 1.0;
+  --text-button--font-weight: 600;
+
+  --text-body-lg: 18px;
+  --text-body-lg--line-height: 1.6;
+  --text-body-lg--font-weight: 400;
+
+  --text-body-md: 16px;
+  --text-body-md--line-height: 1.6;
+  --text-body-md--font-weight: 400;
+}
+
+.material-symbols-outlined {
+  font-family: 'Material Symbols Outlined';
+  font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+}
+.glass-card {
+  background: rgba(255, 255, 255, 0.7);
+  backdrop-filter: blur(12px);
+  border: 1px solid rgba(255, 255, 255, 0.3);
+}
+.hero-gradient {
+  background: radial-gradient(circle at top right, rgba(139, 92, 246, 0.1), transparent 40%),
+              radial-gradient(circle at bottom left, rgba(33, 112, 228, 0.05), transparent 40%),
+              #fbfcfe;
+}
+.nav-blur {
+  background: rgba(255, 255, 255, 0.7);
+  backdrop-filter: saturate(180%) blur(20px);
+}
