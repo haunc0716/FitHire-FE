@@ -41,6 +41,40 @@
   }
 
   .clean-border {
-    @apply border border-zinc-100 p-12 hover:border-zinc-900 transition-all;
+    @apply border border-zinc-100 p-12 transition-all duration-500 relative overflow-hidden bg-white;
   }
+  .clean-border:hover {
+    @apply border-zinc-900 shadow-[0_32px_64px_-15px_rgba(0,0,0,0.1)];
+  }
+
+  /* Premium Effects - Pure Monochrome */
+  .glass-card {
+    @apply bg-white/70 backdrop-blur-xl border border-zinc-100 shadow-xl;
+  }
+
+  .image-reveal-container {
+    @apply relative overflow-hidden rounded-lg bg-zinc-50;
+  }
+  
+  .image-reveal-container img {
+    @apply transition-transform duration-1000 ease-out grayscale;
+  }
+  
+  .image-reveal-container:hover img {
+    @apply scale-105 grayscale-0;
+  }
+
+  .text-glow {
+    text-shadow: 0 0 30px rgba(0,0,0,0.05);
+  }
+}
+
+@keyframes float {
+  0% { transform: translateY(0px); }
+  50% { transform: translateY(-10px); }
+  100% { transform: translateY(0px); }
+}
+
+.animate-float {
+  animation: float 5s ease-in-out infinite;
 }
