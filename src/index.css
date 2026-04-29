@@ -9,7 +9,7 @@
   --color-on-background: #191c1d;
   --color-on-surface-variant: #494454;
   --color-error: #ba1a1a;
-  
+
   --radius-lg: 8px;
   --radius-xl: 12px;
   --radius-2xl: 24px;
@@ -24,7 +24,7 @@
   --text-h1: 48px;
   --text-h1--line-height: 1.2;
   --text-h1--font-weight: 800;
-  
+
   --text-h2: 32px;
   --text-h2--line-height: 1.3;
   --text-h2--font-weight: 700;
@@ -35,20 +35,45 @@
 }
 
 @keyframes float {
-  0% { transform: translateY(0px) rotate(0deg); }
-  50% { transform: translateY(-20px) rotate(2deg); }
-  100% { transform: translateY(0px) rotate(0deg); }
+  0% {
+    transform: translateY(0px) rotate(0deg);
+  }
+
+  50% {
+    transform: translateY(-20px) rotate(2deg);
+  }
+
+  100% {
+    transform: translateY(0px) rotate(0deg);
+  }
 }
 
 @keyframes gradient-move {
-  0% { background-position: 0% 50%; }
-  50% { background-position: 100% 50%; }
-  100% { background-position: 0% 50%; }
+  0% {
+    background-position: 0% 50%;
+  }
+
+  50% {
+    background-position: 100% 50%;
+  }
+
+  100% {
+    background-position: 0% 50%;
+  }
 }
 
 @keyframes pulse-soft {
-  0%, 100% { opacity: 1; transform: scale(1); }
-  50% { opacity: 0.8; transform: scale(1.05); }
+
+  0%,
+  100% {
+    opacity: 1;
+    transform: scale(1);
+  }
+
+  50% {
+    opacity: 0.8;
+    transform: scale(1.05);
+  }
 }
 
 .animate-float {
@@ -74,8 +99,8 @@
 
 .hero-gradient {
   background: radial-gradient(circle at 10% 20%, rgba(139, 92, 246, 0.05) 0%, transparent 40%),
-              radial-gradient(circle at 90% 80%, rgba(33, 112, 228, 0.03) 0%, transparent 40%),
-              #ffffff;
+    radial-gradient(circle at 90% 80%, rgba(33, 112, 228, 0.03) 0%, transparent 40%),
+    #ffffff;
 }
 
 .premium-card {

@@ -17,7 +17,7 @@ const BentoFeatures = () => {
   };
 
   return (
-    <motion.div 
+    <motion.div
       variants={container}
       initial="hidden"
       whileInView="show"
@@ -74,7 +74,7 @@ const BentoFeatures = () => {
         <h3 className="font-h3 text-3xl mb-6">Bản đồ Văn hóa</h3>
         <p className="font-body-md text-slate-500 text-lg mb-10 leading-relaxed">Tìm thấy nơi thuộc về bạn. Hệ thống đánh giá Cultural Fit giúp kết nối bạn với những công ty có cùng lý tưởng sống.</p>
         <div className="flex items-center justify-center py-4">
-          <motion.div 
+          <motion.div
             animate={{ rotate: 360 }}
             transition={{ duration: 30, repeat: Infinity, ease: "linear" }}
             className="relative w-48 h-48 border border-slate-100 rounded-full flex items-center justify-center"
