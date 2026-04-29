@@ -3,36 +3,40 @@ import { Mail, Phone } from 'lucide-react';
 
 const SupportContact = () => {
   return (
-    <section className="mt-24 grid md:grid-cols-2 gap-12 items-center bg-primary/[0.03] p-8 md:p-16 rounded-[2rem] border border-primary/5">
-      <div>
-        <h2 className="font-h2 text-h2 mb-6">Vẫn cần trợ giúp?</h2>
-        <p className="text-body-lg text-on-surface-variant mb-10 leading-relaxed">Đội ngũ cố vấn nghề nghiệp của chúng tôi luôn sẵn sàng hỗ trợ bạn từ Thứ Hai đến Thứ Sáu để điều hướng hành trình chuyên nghiệp của bạn.</p>
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
-          <div className="flex items-center gap-4 bg-white p-4 rounded-xl shadow-sm border border-slate-100">
-            <div className="w-10 h-10 bg-primary/10 text-primary rounded-lg flex items-center justify-center">
-              <Mail className="w-5 h-5" />
+    <section className="bg-zinc-950 p-12 md:p-24 text-white">
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-24 items-center">
+        <div>
+          <span className="text-[10px] font-bold uppercase tracking-[0.3em] text-zinc-500 block mb-8">Get in touch</span>
+          <h2 className="font-display text-5xl md:text-7xl font-bold mb-12">LIÊN HỆ <br /><span className="text-zinc-700">CHÚNG TÔI.</span></h2>
+          
+          <div className="space-y-12">
+            <div className="flex items-start gap-8">
+              <div className="w-12 h-12 border border-zinc-800 flex items-center justify-center text-zinc-500">
+                <Mail className="w-5 h-5" />
+              </div>
+              <div>
+                <p className="text-[10px] font-bold uppercase tracking-widest text-zinc-500 mb-2">Email</p>
+                <p className="text-2xl font-bold">support@fithire.edu</p>
+              </div>
             </div>
-            <div>
-              <p className="text-[10px] font-bold uppercase text-slate-400 tracking-wider">Email cho chúng tôi</p>
-              <p className="font-semibold text-sm">support@fithire.edu</p>
-            </div>
-          </div>
-          <div className="flex items-center gap-4 bg-white p-4 rounded-xl shadow-sm border border-slate-100">
-            <div className="w-10 h-10 bg-primary/10 text-primary rounded-lg flex items-center justify-center">
-              <Phone className="w-5 h-5" />
-            </div>
-            <div>
-              <p className="text-[10px] font-bold uppercase text-slate-400 tracking-wider">Gọi cho chúng tôi</p>
-              <p className="font-semibold text-sm">+1 (555) 012-3456</p>
+            <div className="flex items-start gap-8">
+              <div className="w-12 h-12 border border-zinc-800 flex items-center justify-center text-zinc-500">
+                <Phone className="w-5 h-5" />
+              </div>
+              <div>
+                <p className="text-[10px] font-bold uppercase tracking-widest text-zinc-500 mb-2">Điện thoại</p>
+                <p className="text-2xl font-bold">+84 123 456 789</p>
+              </div>
             </div>
           </div>
         </div>
-      </div>
-      <div className="relative group">
-        <div className="absolute -inset-4 bg-primary/10 rounded-[2.5rem] blur-2xl group-hover:bg-primary/20 transition-all duration-500"></div>
-        <div className="relative rounded-3xl overflow-hidden aspect-[4/3] shadow-2xl">
-          <img alt="Modern bright coworking space" className="w-full h-full object-cover transform group-hover:scale-105 transition-transform duration-700" src="https://lh3.googleusercontent.com/aida-public/AB6AXuA4scvtksR-dTHm5LGE6UdqxcDr_orCSGvu_i_KI9SwlvThn0fqKGVMWTdigwMIcL_LZVsfDZibdM64So6Mb9Epb5Qp6nTyAF6GTcgQ77X8IqefLlHM6Vak33XQYmj19FFe77iXiHak1Ej5nlUZRNhxsZqen8BRUTSWzL1ewV8oW91c4Z3ZARLDL3p16wKu65TOFGq8aYsSli_mdmNkOwisWhEf8HB4hFBzSUT5o5Y4IjxFt_cYAqfXB3T02C8gDxtSjFS_NF0kh8w" />
-          <div className="absolute inset-0 bg-gradient-to-t from-primary/30 to-transparent"></div>
+
+        <div className="aspect-square bg-zinc-900 border border-zinc-800 p-2 overflow-hidden">
+          <img
+            alt="Support Team"
+            className="w-full h-full object-cover grayscale opacity-50 hover:opacity-100 transition-all duration-1000"
+            src="/images/team-collab.png"
+          />
         </div>
       </div>
     </section>

@@ -1,11 +1,25 @@
 import React from 'react';
+import { motion } from 'framer-motion';
 
 const PricingHero = () => {
   return (
-    <section className="max-w-7xl mx-auto px-6 text-center mb-20">
-      <h1 className="text-5xl md:text-6xl font-extrabold text-slate-900 mb-8 tracking-tight">Đầu tư cho sự nghiệp <span className="text-violet-600">tương lai của bạn.</span></h1>
-      <p className="text-slate-500 text-lg max-w-3xl mx-auto leading-relaxed">
-        Minh bạch chi phí cho sinh viên và nhân sự trẻ. Từ quét CV cơ bản đến các buổi phỏng vấn giả định không giới hạn với AI.
+    <section className="mb-24">
+      <motion.div
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        className="flex items-center gap-4 mb-8"
+      >
+        <div className="w-12 h-[1px] bg-zinc-900" />
+        <span className="text-[10px] font-bold uppercase tracking-[0.3em] text-zinc-900">
+          Investment
+        </span>
+      </motion.div>
+      <h1 className="heading-xl mb-8">
+        BẢNG GIÁ <br />
+        <span className="text-zinc-400">MINH BẠCH.</span>
+      </h1>
+      <p className="text-muted text-xl max-w-2xl leading-relaxed">
+        Chúng tôi cung cấp các gói dịch vụ linh hoạt phù hợp với nhu cầu của sinh viên và các doanh nghiệp khởi nghiệp.
       </p>
     </section>
   );

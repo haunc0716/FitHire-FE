@@ -2,15 +2,19 @@ import React from 'react';
 
 const CTASection = () => {
   return (
-    <section className="py-24 bg-slate-50">
-      <div className="max-w-[1440px] mx-auto px-6 md:px-12 text-center">
-        <div className="max-w-3xl mx-auto">
-          <h2 className="font-h2 text-3xl text-slate-900 mb-4 tracking-tight">Sẵn sàng để bước tiếp trong sự nghiệp?</h2>
-          <p className="text-slate-500 text-lg mb-10">Gia nhập cộng đồng 10,000+ chuyên gia đang sử dụng FitHire để tối ưu hóa lộ trình thăng tiến của mình.</p>
-          <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
-            <button className="px-10 py-4 bg-primary text-white rounded font-button text-base hover:shadow-xl hover:shadow-primary/20 transition-all">Bắt đầu miễn phí ngay</button>
-            <button className="px-10 py-4 bg-transparent text-slate-600 font-button text-base hover:text-primary transition-all">Liên hệ tư vấn doanh nghiệp</button>
-          </div>
+    <section className="bg-zinc-950 py-24">
+      <div className="max-w-7xl mx-auto px-6 text-center">
+        <h2 className="text-h2 text-white mb-8">SẴN SÀNG CHO BƯỚC TIẾP THEO?</h2>
+        <p className="text-zinc-500 mb-12 max-w-xl mx-auto">
+          Tham gia cùng hàng nghìn sinh viên và chuyên gia đã tối ưu hóa sự nghiệp cùng FitHire.
+        </p>
+        <div className="flex flex-col sm:flex-row justify-center gap-6">
+          <button className="bg-white text-zinc-950 px-10 py-4 font-bold uppercase tracking-widest hover:bg-zinc-200 transition-colors">
+            Đăng ký miễn phí
+          </button>
+          <button className="border border-zinc-700 text-white px-10 py-4 font-bold uppercase tracking-widest hover:border-white transition-colors">
+            Liên hệ ngay
+          </button>
         </div>
       </div>
     </section>

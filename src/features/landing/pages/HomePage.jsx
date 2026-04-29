@@ -7,7 +7,7 @@ import CTASection from '../components/CTASection';
 
 const HomePage = () => {
   return (
-    <div className="bg-background text-on-background font-body-md selection:bg-primary-fixed selection:text-on-primary-fixed">
+    <div className="bg-white text-zinc-900 font-body antialiased">
       <Navbar />
       <HeroSection />
       <FeaturesGrid />
