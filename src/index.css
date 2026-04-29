@@ -1,1 +1,64 @@
 @import "tailwindcss";
+
+@theme {
+  --color-primary: #000000;
+  --font-display: "Space Grotesk", sans-serif;
+  --font-body: "Inter", sans-serif;
+}
+
+@layer base {
+  * {
+    @apply border-zinc-200;
+  }
+  body {
+    @apply bg-white text-zinc-900 font-body antialiased selection:bg-zinc-900 selection:text-white;
+  }
+}
+
+@layer components {
+  /* Restored Grand Layout */
+  .section-container {
+    @apply max-w-7xl mx-auto px-6 py-28;
+  }
+
+  /* Bold Premium Typography */
+  .text-h1 {
+    @apply font-display text-5xl md:text-7xl font-bold tracking-tight leading-[1.1];
+  }
+  .text-h2 {
+    @apply font-display text-3xl md:text-5xl font-bold tracking-tight;
+  }
+  .text-p {
+    @apply text-zinc-500 text-lg leading-relaxed;
+  }
+
+  /* Refined Components */
+  .btn-primary {
+    @apply bg-zinc-950 text-white px-8 py-4 text-[11px] font-bold uppercase tracking-widest hover:bg-zinc-800 transition-all duration-300;
+  }
+  .btn-secondary {
+    @apply border border-zinc-200 text-zinc-900 px-8 py-4 text-[11px] font-bold uppercase tracking-widest hover:border-zinc-950 transition-all duration-300;
+  }
+
+  .clean-border {
+    @apply border border-zinc-100 p-12 transition-all duration-500 relative overflow-hidden bg-white;
+  }
+
+  /* Premium Motion Utilities */
+  .glass-card {
+    @apply bg-white/70 backdrop-blur-md border border-white/20 shadow-xl;
+  }
+
+  .image-reveal-container {
+    @apply relative overflow-hidden rounded-md bg-zinc-50 border border-zinc-100;
+  }
+}
+
+@keyframes float-slow {
+  0%, 100% { transform: translateY(0px); }
+  50% { transform: translateY(-12px); }
+}
+
+.animate-float-slow {
+  animation: float-slow 6s ease-in-out infinite;
+}
