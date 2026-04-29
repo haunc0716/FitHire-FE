@@ -1,87 +1,110 @@
 import React from 'react';
-import { motion } from 'framer-motion';
+import { motion, useScroll, useTransform } from 'framer-motion';
 
 const HeroSection = () => {
+  const { scrollY } = useScroll();
+  const y1 = useTransform(scrollY, [0, 500], [0, -60]);
+  const y2 = useTransform(scrollY, [0, 500], [0, 60]);
+
+  const containerVariants = {
+    hidden: { opacity: 0 },
+    visible: {
+      opacity: 1,
+      transition: { staggerChildren: 0.1, delayChildren: 0.1 }
+    }
+  };
+
+  const itemVariants = {
+    hidden: { opacity: 0, y: 20 },
+    visible: { opacity: 1, y: 0, transition: { duration: 0.8, ease: [0.22, 1, 0.36, 1] } }
+  };
+
   return (
-    <section className="bg-white pt-40 pb-32 border-b border-zinc-100 relative overflow-hidden">
-      <div className="max-w-7xl mx-auto px-6 relative z-10">
+    <section className="bg-white pt-24 pb-28 border-b border-zinc-100 relative overflow-hidden">
+      {/* Parallax background elements */}
+      <motion.div style={{ y: y1 }} className="absolute top-1/4 right-1/4 w-[400px] h-[400px] bg-zinc-50 rounded-full blur-[120px] opacity-60" />
+      
+      <motion.div 
+        variants={containerVariants}
+        initial="hidden"
+        animate="visible"
+        className="max-w-7xl mx-auto px-6 relative z-10"
+      >
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-20 items-center">
           
-          {/* Left Column: Content */}
+          {/* Left Column: Bold Content */}
           <div className="text-left">
-            <motion.div
-              initial={{ opacity: 0, x: -20 }}
-              animate={{ opacity: 1, x: 0 }}
-              className="inline-flex items-center gap-2 px-3 py-1 border border-zinc-950 bg-white rounded-md mb-8"
-            >
-              <span className="text-[9px] font-bold uppercase tracking-[0.2em] text-zinc-950">AI Hiring Engine v2.0</span>
-            </motion.div>
-
-            <h1 className="text-h1 mb-8 !leading-[1.1] tracking-tight text-zinc-950">
+            <motion.h1 variants={itemVariants} className="text-h1 mb-8 text-zinc-950">
               KIẾN TẠO <br />
               <span className="text-zinc-400 font-normal italic">SỰ NGHIỆP</span> <br />
               ĐỘT PHÁ.
-            </h1>
+            </motion.h1>
 
-            <p className="text-p max-w-lg mb-12 text-zinc-500">
-              Nền tảng AI chuyên sâu giúp bạn tối ưu hồ sơ và rèn luyện kỹ năng phỏng vấn theo lộ trình cá nhân hóa. 
-              Dựa trên dữ liệu thực tế và phân tích hành vi.
-            </p>
+            <motion.p variants={itemVariants} className="text-p max-w-lg mb-12 text-zinc-500">
+              Nền tảng AI chuyên sâu giúp bạn tối ưu hồ sơ và rèn luyện kỹ năng phỏng vấn theo lộ trình cá nhân hóa chuyên nghiệp.
+            </motion.p>
 
-            <div className="flex flex-col sm:flex-row gap-4">
-              <button className="btn-primary !bg-zinc-950 hover:!bg-zinc-800 !px-10">
+            <motion.div variants={itemVariants} className="flex flex-col sm:flex-row gap-4">
+              <motion.button 
+                whileHover={{ scale: 1.05 }}
+                whileTap={{ scale: 0.95 }}
+                className="btn-primary !px-12"
+              >
                 Bắt đầu ngay
-              </button>
-              <button className="btn-secondary !border-zinc-200">
+              </motion.button>
+              <motion.button 
+                whileHover={{ scale: 1.05 }}
+                whileTap={{ scale: 0.95 }}
+                className="btn-secondary !px-12"
+              >
                 Xem Demo
-              </button>
-            </div>
+              </motion.button>
+            </motion.div>
 
-            {/* Subtle stats row */}
-            <div className="mt-16 pt-16 border-t border-zinc-100 flex gap-12">
+            <motion.div variants={itemVariants} className="mt-16 pt-16 border-t border-zinc-100 flex gap-12">
               <div>
-                <p className="text-2xl font-bold text-zinc-950">10k+</p>
-                <p className="text-[10px] font-bold uppercase tracking-widest text-zinc-400">Users</p>
+                <p className="text-2xl font-bold text-zinc-950">15k+</p>
+                <p className="text-[10px] font-bold uppercase tracking-widest text-zinc-400">Success Stories</p>
               </div>
+              <div className="w-px h-10 bg-zinc-100" />
               <div>
                 <p className="text-2xl font-bold text-zinc-950">98%</p>
-                <p className="text-[10px] font-bold uppercase tracking-widest text-zinc-400">Success</p>
+                <p className="text-[10px] font-bold uppercase tracking-widest text-zinc-400">Match Rate</p>
               </div>
-            </div>
+            </motion.div>
           </div>
 
-          {/* Right Column: Monochrome Image */}
+          {/* Right Column: Parallax Image Reveal */}
           <motion.div
-            initial={{ opacity: 0, x: 40 }}
-            animate={{ opacity: 1, x: 0 }}
-            transition={{ duration: 1, ease: [0.23, 1, 0.32, 1] }}
-            className="relative"
+            style={{ y: y2 }}
+            initial={{ opacity: 0, scale: 0.95 }}
+            animate={{ opacity: 1, scale: 1 }}
+            transition={{ duration: 1.2, ease: [0.22, 1, 0.36, 1], delay: 0.3 }}
+            className="relative group cursor-pointer"
           >
-            <div className="relative z-10 border border-zinc-100 shadow-2xl bg-white rounded-xl overflow-hidden group">
+            <div className="relative z-10 border border-zinc-100 shadow-2xl bg-white rounded-xl overflow-hidden">
               <img 
-                alt="FitHire Monochrome Interface" 
-                className="w-full h-auto transition-transform duration-1000 group-hover:scale-[1.02]" 
-                src="/images/hero-monochrome.png" 
+                alt="FitHire Refined Interface" 
+                className="w-full h-auto transition-all duration-1000 ease-out grayscale group-hover:grayscale-0 group-hover:scale-[1.02]" 
+                src="/images/hero-refined.png" 
               />
-              {/* Subtle overlay for contrast */}
-              <div className="absolute inset-0 bg-black/[0.02] pointer-events-none" />
+              <div className="absolute inset-0 bg-black/0 group-hover:bg-black/[0.02] transition-colors duration-700 pointer-events-none" />
             </div>
 
-            {/* Small floating detail card */}
+            {/* Detail badge */}
             <motion.div
-              animate={{ y: [0, -10, 0] }}
-              transition={{ duration: 4, repeat: Infinity, ease: "easeInOut" }}
-              className="absolute -bottom-6 -right-6 bg-zinc-950 text-white p-6 rounded-lg shadow-2xl hidden xl:block border border-zinc-800"
+              style={{ y: y1 }}
+              className="absolute -bottom-6 -right-6 bg-zinc-950 text-white p-6 rounded-lg shadow-2xl hidden xl:block border border-zinc-800 z-20"
             >
               <div className="flex items-center gap-3">
                 <div className="w-1.5 h-1.5 bg-white rounded-full animate-pulse" />
-                <span className="text-[10px] font-bold uppercase tracking-widest">Monochrome Engine</span>
+                <span className="text-[10px] font-bold uppercase tracking-widest">Active Intelligence</span>
               </div>
             </motion.div>
           </motion.div>
 
         </div>
-      </div>
+      </motion.div>
     </section>
   );
 };

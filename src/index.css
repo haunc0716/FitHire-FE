@@ -11,19 +11,19 @@
     @apply border-zinc-200;
   }
   body {
-    @apply bg-white text-zinc-900 font-body antialiased;
+    @apply bg-white text-zinc-900 font-body antialiased selection:bg-zinc-900 selection:text-white;
   }
 }
 
 @layer components {
-  /* Layout */
+  /* Restored Grand Layout */
   .section-container {
-    @apply max-w-7xl mx-auto px-6 py-24;
+    @apply max-w-7xl mx-auto px-6 py-28;
   }
 
-  /* Typography */
+  /* Bold Premium Typography */
   .text-h1 {
-    @apply font-display text-5xl md:text-7xl font-bold tracking-tight leading-tight;
+    @apply font-display text-5xl md:text-7xl font-bold tracking-tight leading-[1.1];
   }
   .text-h2 {
     @apply font-display text-3xl md:text-5xl font-bold tracking-tight;
@@ -32,49 +32,33 @@
     @apply text-zinc-500 text-lg leading-relaxed;
   }
 
-  /* Components */
+  /* Refined Components */
   .btn-primary {
-    @apply bg-zinc-900 text-white px-8 py-4 text-sm font-bold uppercase tracking-widest hover:bg-zinc-800 transition-colors;
+    @apply bg-zinc-950 text-white px-8 py-4 text-[11px] font-bold uppercase tracking-widest hover:bg-zinc-800 transition-all duration-300;
   }
   .btn-secondary {
-    @apply border-2 border-zinc-900 text-zinc-900 px-8 py-4 text-sm font-bold uppercase tracking-widest hover:bg-zinc-900 hover:text-white transition-colors;
+    @apply border border-zinc-200 text-zinc-900 px-8 py-4 text-[11px] font-bold uppercase tracking-widest hover:border-zinc-950 transition-all duration-300;
   }
 
   .clean-border {
     @apply border border-zinc-100 p-12 transition-all duration-500 relative overflow-hidden bg-white;
   }
-  .clean-border:hover {
-    @apply border-zinc-900 shadow-[0_32px_64px_-15px_rgba(0,0,0,0.1)];
-  }
 
-  /* Premium Effects - Pure Monochrome */
+  /* Premium Motion Utilities */
   .glass-card {
-    @apply bg-white/70 backdrop-blur-xl border border-zinc-100 shadow-xl;
+    @apply bg-white/70 backdrop-blur-md border border-white/20 shadow-xl;
   }
 
   .image-reveal-container {
-    @apply relative overflow-hidden rounded-lg bg-zinc-50;
-  }
-  
-  .image-reveal-container img {
-    @apply transition-transform duration-1000 ease-out grayscale;
-  }
-  
-  .image-reveal-container:hover img {
-    @apply scale-105 grayscale-0;
-  }
-
-  .text-glow {
-    text-shadow: 0 0 30px rgba(0,0,0,0.05);
+    @apply relative overflow-hidden rounded-md bg-zinc-50 border border-zinc-100;
   }
 }
 
-@keyframes float {
-  0% { transform: translateY(0px); }
-  50% { transform: translateY(-10px); }
-  100% { transform: translateY(0px); }
+@keyframes float-slow {
+  0%, 100% { transform: translateY(0px); }
+  50% { transform: translateY(-12px); }
 }
 
-.animate-float {
-  animation: float 5s ease-in-out infinite;
+.animate-float-slow {
+  animation: float-slow 6s ease-in-out infinite;
 }
