@@ -2,31 +2,33 @@ import React from 'react';
 
 const ComparisonTable = () => {
   const rows = [
-    { name: 'Phân tích CV AI', free: '3 / tháng', plus: '15 / tháng', pro: 'Vô hạn' },
-    { name: 'Phỏng vấn giả lập', free: '1 (Văn bản)', plus: '5 (Giọng nói)', pro: 'Vô hạn' },
-    { name: 'Hỗ trợ khách hàng', free: 'Cộng đồng', plus: 'Ưu tiên', pro: '24/7' },
-    { name: 'Báo cáo hiệu suất', free: 'Cơ bản', plus: 'Chi tiết', pro: 'Chuyên sâu' },
+    { name: 'Scan CV', free: '3 / tháng', luotLe: '-', plus: '15 / tháng', pro: 'Không giới hạn' },
+    { name: 'Mock Interview', free: '1 / tháng', luotLe: '1 / lượt', plus: '10 / tháng', pro: 'Không giới hạn' },
+    { name: 'CV Generation', free: '-', luotLe: '-', plus: '5 / tháng', pro: 'Không giới hạn' },
+    { name: 'Culture Fit', free: '-', luotLe: '-', plus: '5 / tháng', pro: 'Không giới hạn' },
   ];
 
   return (
     <section className="mb-32">
-      <div className="border border-zinc-200 overflow-hidden">
-        <table className="w-full text-left border-collapse">
+      <div className="overflow-x-auto rounded-3xl border border-zinc-200">
+        <table className="w-full min-w-[760px] border-collapse text-left">
           <thead>
-            <tr className="bg-zinc-50 border-b border-zinc-200">
-              <th className="p-8 text-[10px] font-bold uppercase tracking-widest text-zinc-900">Tính năng</th>
-              <th className="p-8 text-[10px] font-bold uppercase tracking-widest text-zinc-400 text-center">Free</th>
-              <th className="p-8 text-[10px] font-bold uppercase tracking-widest text-zinc-900 text-center bg-zinc-100">Plus</th>
-              <th className="p-8 text-[10px] font-bold uppercase tracking-widest text-zinc-400 text-center">Pro</th>
+            <tr className="border-b border-zinc-200 bg-zinc-50">
+              <th className="p-6 text-xs font-bold uppercase tracking-widest text-zinc-900">Tính năng</th>
+              <th className="p-6 text-center text-xs font-bold uppercase tracking-widest text-zinc-500">Free</th>
+              <th className="p-6 text-center text-xs font-bold uppercase tracking-widest text-cyan-700">Lượt lẻ</th>
+              <th className="p-6 text-center text-xs font-bold uppercase tracking-widest text-emerald-700">Plus</th>
+              <th className="p-6 text-center text-xs font-bold uppercase tracking-widest text-teal-700">Pro</th>
             </tr>
           </thead>
           <tbody className="divide-y divide-zinc-100">
-            {rows.map((row, i) => (
-              <tr key={i} className="hover:bg-zinc-50 transition-colors">
-                <td className="p-8 font-bold text-sm text-zinc-900">{row.name}</td>
-                <td className="p-8 text-sm text-zinc-500 text-center">{row.free}</td>
-                <td className="p-8 text-sm font-bold text-zinc-900 text-center bg-zinc-50/50">{row.plus}</td>
-                <td className="p-8 text-sm text-zinc-500 text-center">{row.pro}</td>
+            {rows.map((row) => (
+              <tr key={row.name} className="hover:bg-zinc-50/80 transition-colors">
+                <td className="p-6 font-semibold text-zinc-900">{row.name}</td>
+                <td className="p-6 text-center text-zinc-500">{row.free}</td>
+                <td className="p-6 text-center text-cyan-700">{row.luotLe}</td>
+                <td className="p-6 text-center text-emerald-700">{row.plus}</td>
+                <td className="p-6 text-center text-teal-700">{row.pro}</td>
               </tr>
             ))}
           </tbody>
@@ -37,3 +39,4 @@ const ComparisonTable = () => {
 };
 
 export default ComparisonTable;
+
