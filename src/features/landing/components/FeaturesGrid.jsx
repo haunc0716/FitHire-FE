@@ -53,11 +53,11 @@ const FeaturesGrid = () => {
           initial={{ opacity: 0, y: 20 }}
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true }}
-          className="text-h2 mb-8"
+          className="text-h2 mb-8 uppercase"
         >
-          TÍNH NĂNG CHÍNH.
+          TÍNH NĂNG <span className="text-primary italic font-normal">CHÍNH.</span>
         </motion.h2>
-        <div className="w-12 h-[2px] bg-zinc-900 mx-auto" />
+        <div className="w-12 h-[2px] bg-primary mx-auto" />
       </div>
 
       <motion.div
@@ -65,16 +65,16 @@ const FeaturesGrid = () => {
         initial="hidden"
         whileInView="visible"
         viewport={{ once: true, margin: "-100px" }}
-        className="grid grid-cols-1 md:grid-cols-3 gap-px bg-zinc-200 border border-zinc-200 shadow-2xl shadow-zinc-900/5"
+        className="grid grid-cols-1 md:grid-cols-3 gap-px bg-emerald-100 border border-emerald-100 shadow-2xl shadow-emerald-900/5"
       >
         {features.map((feat, i) => (
           <motion.div
             key={i}
             variants={itemVariants}
-            whileHover={{ backgroundColor: "#09090b", color: "#ffffff" }}
+            whileHover={{ backgroundColor: "var(--color-primary)", color: "#ffffff" }}
             className="bg-white p-12 transition-colors duration-700 group cursor-default"
           >
-            <div className="w-16 h-16 border border-zinc-900 flex items-center justify-center mb-10 group-hover:bg-white group-hover:text-zinc-950 transition-all duration-500">
+            <div className="w-16 h-16 border border-primary flex items-center justify-center mb-10 group-hover:bg-white group-hover:text-primary transition-all duration-500">
               <feat.icon className="w-6 h-6" />
             </div>
             <h3 className="font-display text-2xl font-bold mb-6 uppercase tracking-wider">{feat.title}</h3>

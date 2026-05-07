@@ -9,15 +9,15 @@ const SupportChannels = () => {
   ];
 
   return (
-    <div className="grid grid-cols-1 md:grid-cols-3 gap-px bg-zinc-200 border border-zinc-200 mb-32">
+    <div className="grid grid-cols-1 md:grid-cols-3 gap-px bg-emerald-100 border border-emerald-100 mb-32">
       {channels.map((ch, i) => (
-        <a key={i} href="#" className="bg-white p-12 group hover:bg-zinc-50 transition-colors">
+        <a key={i} href="#" className="bg-white p-12 group hover:bg-emerald-50 transition-colors">
           <div className="flex justify-between items-start mb-12">
-            <ch.icon className="w-8 h-8 text-zinc-900" />
-            <ArrowUpRight className="w-4 h-4 text-zinc-300 group-hover:text-zinc-950 transition-colors" />
+            <ch.icon className="w-8 h-8 text-primary" />
+            <ArrowUpRight className="w-4 h-4 text-emerald-200 group-hover:text-primary transition-colors" />
           </div>
-          <h3 className="heading-md mb-4">{ch.title}</h3>
-          <p className="text-muted text-sm">{ch.desc}</p>
+          <h3 className="text-xl font-bold mb-4 text-zinc-900 group-hover:text-primary transition-colors">{ch.title}</h3>
+          <p className="text-emerald-950/60 text-sm">{ch.desc}</p>
         </a>
       ))}
     </div>

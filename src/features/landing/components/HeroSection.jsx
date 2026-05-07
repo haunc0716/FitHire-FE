@@ -20,9 +20,9 @@ const HeroSection = () => {
   };
 
   return (
-    <section className="bg-white pt-24 pb-28 border-b border-zinc-100 relative overflow-hidden">
+    <section className="bg-white pt-24 pb-28 border-b border-emerald-50 relative overflow-hidden">
       {/* Parallax background elements */}
-      <motion.div style={{ y: y1 }} className="absolute top-1/4 right-1/4 w-[400px] h-[400px] bg-zinc-50 rounded-full blur-[120px] opacity-60" />
+      <motion.div style={{ y: y1 }} className="absolute top-1/4 right-1/4 w-[400px] h-[400px] bg-emerald-50 rounded-full blur-[120px] opacity-60" />
       
       <motion.div 
         variants={containerVariants}
@@ -36,7 +36,7 @@ const HeroSection = () => {
           <div className="text-left">
             <motion.h1 variants={itemVariants} className="text-h1 mb-8 text-zinc-950">
               KIẾN TẠO <br />
-              <span className="text-zinc-400 font-normal italic">SỰ NGHIỆP</span> <br />
+              <span className="text-primary font-normal italic">SỰ NGHIỆP</span> <br />
               ĐỘT PHÁ.
             </motion.h1>
 
@@ -82,19 +82,19 @@ const HeroSection = () => {
             transition={{ duration: 1.2, ease: [0.22, 1, 0.36, 1], delay: 0.3 }}
             className="relative group cursor-pointer"
           >
-            <div className="relative z-10 border border-zinc-100 shadow-2xl bg-white rounded-xl overflow-hidden">
+            <div className="relative z-10 border border-emerald-100 shadow-2xl bg-white rounded-xl overflow-hidden">
               <img 
                 alt="FitHire Refined Interface" 
-                className="w-full h-auto transition-all duration-1000 ease-out grayscale group-hover:grayscale-0 group-hover:scale-[1.02]" 
-                src="/images/hero-refined.png" 
+                className="w-full h-auto transition-all duration-1000 ease-out group-hover:scale-[1.02]" 
+                src="/images/hero-human.png" 
               />
-              <div className="absolute inset-0 bg-black/0 group-hover:bg-black/[0.02] transition-colors duration-700 pointer-events-none" />
+              <div className="absolute inset-0 bg-emerald-900/0 group-hover:bg-emerald-900/[0.05] transition-colors duration-700 pointer-events-none" />
             </div>
 
             {/* Detail badge */}
             <motion.div
               style={{ y: y1 }}
-              className="absolute -bottom-6 -right-6 bg-zinc-950 text-white p-6 rounded-lg shadow-2xl hidden xl:block border border-zinc-800 z-20"
+              className="absolute -bottom-6 -right-6 bg-primary text-white p-6 rounded-lg shadow-2xl hidden xl:block border border-emerald-400/20 z-20"
             >
               <div className="flex items-center gap-3">
                 <div className="w-1.5 h-1.5 bg-white rounded-full animate-pulse" />

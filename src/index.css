@@ -1,7 +1,10 @@
 @import "tailwindcss";
 
 @theme {
-  --color-primary: #000000;
+  --color-primary: #059669;
+  --color-primary-dark: #047857;
+  --color-primary-light: #34d399;
+  --color-pale: #ecfdf5;
   --font-display: "Space Grotesk", sans-serif;
   --font-body: "Inter", sans-serif;
 }
@@ -23,21 +26,25 @@
 
   /* Bold Premium Typography */
   .text-h1 {
-    @apply font-display text-5xl md:text-7xl font-bold tracking-tight leading-[1.1];
+    @apply font-display text-5xl md:text-7xl font-bold tracking-tight leading-[1.1] text-zinc-950;
   }
   .text-h2 {
-    @apply font-display text-3xl md:text-5xl font-bold tracking-tight;
+    @apply font-display text-3xl md:text-5xl font-bold tracking-tight text-zinc-950;
   }
   .text-p {
-    @apply text-zinc-500 text-lg leading-relaxed;
+    @apply text-emerald-950/60 text-lg leading-relaxed;
   }
 
   /* Refined Components */
   .btn-primary {
-    @apply bg-zinc-950 text-white px-8 py-4 text-[11px] font-bold uppercase tracking-widest hover:bg-zinc-800 transition-all duration-300;
+    @apply bg-primary text-white px-8 py-4 text-[11px] font-bold uppercase tracking-widest hover:bg-primary-dark transition-all duration-300;
   }
   .btn-secondary {
-    @apply border border-zinc-200 text-zinc-900 px-8 py-4 text-[11px] font-bold uppercase tracking-widest hover:border-zinc-950 transition-all duration-300;
+    @apply border border-zinc-200 text-zinc-900 px-8 py-4 text-[11px] font-bold uppercase tracking-widest hover:border-primary hover:text-primary transition-all duration-300;
+  }
+
+  .bg-pale {
+    @apply bg-pale;
   }
 
   .clean-border {
@@ -46,7 +53,11 @@
 
   /* Premium Motion Utilities */
   .glass-card {
-    @apply bg-white/70 backdrop-blur-md border border-white/20 shadow-xl;
+    @apply bg-white/40 backdrop-blur-xl border border-white/40 shadow-2xl;
+  }
+
+  .glass-emerald {
+    @apply bg-emerald-50/40 backdrop-blur-xl border border-emerald-100/50 shadow-2xl;
   }
 
   .image-reveal-container {

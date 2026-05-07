@@ -29,7 +29,7 @@ const Navbar = () => {
       }`}
     >
       <div className="max-w-7xl mx-auto px-6 flex justify-between items-center">
-        <Link to="/" className="font-display text-xl font-bold tracking-tighter">
+        <Link to="/" className="font-display text-xl font-bold tracking-tighter text-primary">
           FITHIRE
         </Link>
 
@@ -38,8 +38,8 @@ const Navbar = () => {
             <Link
               key={link.name}
               to={link.path}
-              className={`text-[10px] font-bold tracking-[0.2em] transition-colors hover:text-zinc-950 ${
-                location.pathname === link.path ? 'text-zinc-950' : 'text-zinc-400'
+              className={`text-[10px] font-bold tracking-[0.2em] transition-colors hover:text-primary ${
+                location.pathname === link.path ? 'text-primary' : 'text-zinc-400'
               }`}
             >
               {link.name}

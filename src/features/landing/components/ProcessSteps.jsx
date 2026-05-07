@@ -30,7 +30,7 @@ const ProcessSteps = () => {
   return (
     <section className="section-container relative">
       {/* Decorative background number for the section */}
-      <div className="absolute top-0 right-10 text-[20vw] font-display font-bold text-zinc-50 pointer-events-none select-none">
+      <div className="absolute top-0 right-10 text-[20vw] font-display font-bold text-emerald-50 pointer-events-none select-none opacity-50">
         STEPS
       </div>
 
@@ -43,7 +43,7 @@ const ProcessSteps = () => {
           >
             How it works
           </motion.span>
-          <h2 className="text-h2 uppercase">QUY TRÌNH TỐI ƯU.</h2>
+          <h2 className="text-h2 uppercase text-zinc-900">QUY TRÌNH <span className="text-primary italic font-normal">TỐI ƯU.</span></h2>
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-3 gap-12">
@@ -57,19 +57,19 @@ const ProcessSteps = () => {
               className="group relative"
             >
               {/* Image Container with Reveal Effect */}
-              <div className="relative aspect-[4/5] overflow-hidden rounded-md border border-zinc-100 mb-10 shadow-lg shadow-zinc-900/5">
+              <div className="relative aspect-[4/5] overflow-hidden rounded-xl border border-emerald-50 mb-10 shadow-lg shadow-emerald-900/5">
                 <motion.img 
                   whileHover={{ scale: 1.1 }}
                   transition={{ duration: 1.5, ease: [0.22, 1, 0.36, 1] }}
                   alt={s.title} 
-                  className="w-full h-full object-cover grayscale group-hover:grayscale-0 transition-all duration-1000" 
+                  className="w-full h-full object-cover transition-all duration-1000" 
                   src={s.img} 
                 />
-                <div className="absolute inset-0 bg-gradient-to-t from-zinc-950/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-700" />
+                <div className="absolute inset-0 bg-gradient-to-t from-emerald-950/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-700" />
                 
                 {/* Step Indicator */}
-                <div className="absolute top-6 left-6 bg-white/90 backdrop-blur-md px-3 py-1 border border-zinc-100">
-                   <span className="text-sm font-display font-bold text-zinc-950">
+                <div className="absolute top-6 left-6 bg-primary text-white px-4 py-1.5 rounded-full shadow-lg">
+                   <span className="text-xs font-display font-bold">
                     {s.step}
                    </span>
                 </div>
@@ -77,24 +77,24 @@ const ProcessSteps = () => {
 
               {/* Content Area */}
               <div className="px-2">
-                <div className="w-10 h-10 border border-zinc-900 flex items-center justify-center mb-6 group-hover:bg-zinc-950 group-hover:text-white transition-all duration-500">
-                  <s.icon className="w-5 h-5" />
+                <div className="w-10 h-10 border border-primary flex items-center justify-center mb-6 group-hover:bg-primary group-hover:text-white transition-all duration-500">
+                  <s.icon className="w-5 h-5 text-primary group-hover:text-white" />
                 </div>
-                <h3 className="text-2xl font-bold tracking-tight uppercase mb-4">{s.title}</h3>
+                <h3 className="text-2xl font-bold tracking-tight uppercase mb-4 text-zinc-900 group-hover:text-primary transition-colors">{s.title}</h3>
                 <p className="text-zinc-500 text-sm leading-relaxed mb-8">
                   {s.desc}
                 </p>
                 
                 <motion.button 
                   whileHover={{ x: 5 }}
-                  className="flex items-center gap-3 text-[10px] font-bold uppercase tracking-widest text-zinc-400 group-hover:text-zinc-950 transition-colors duration-500"
+                  className="flex items-center gap-3 text-[10px] font-bold uppercase tracking-widest text-emerald-600 group-hover:text-primary transition-colors duration-500"
                 >
                   Khám phá ngay <ArrowRight className="w-4 h-4" />
                 </motion.button>
               </div>
 
               {/* Bottom Animated Line */}
-              <div className="absolute -bottom-4 left-0 w-0 h-[2px] bg-zinc-950 group-hover:w-full transition-all duration-1000" />
+              <div className="absolute -bottom-4 left-0 w-0 h-[2px] bg-primary group-hover:w-full transition-all duration-1000" />
             </motion.div>
           ))}
         </div>
