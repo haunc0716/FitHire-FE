@@ -1,9 +1,11 @@
 import React, { useState, useEffect } from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import { motion } from 'framer-motion';
+import { getAuthSession } from '../../features/auth/services/authSession';
 
 const Navbar = () => {
   const [isScrolled, setIsScrolled] = useState(false);
+  const [isLoggedIn, setIsLoggedIn] = useState(false);
   const location = useLocation();
 
   useEffect(() => {
@@ -11,8 +13,12 @@ const Navbar = () => {
       setIsScrolled(window.scrollY > 20);
     };
     window.addEventListener('scroll', handleScroll);
+    
+    const session = getAuthSession();
+    setIsLoggedIn(!!(session?.accessToken && session.expiresAt > Date.now()));
+    
     return () => window.removeEventListener('scroll', handleScroll);
-  }, []);
+  }, [location.pathname]);
 
   const navLinks = [
     { name: 'Trang chủ', path: '/' },
@@ -45,9 +51,15 @@ const Navbar = () => {
               {link.name}
             </Link>
           ))}
-          <Link to="/login" className="btn-primary !py-2.5 !px-6 !text-xs">
-            Bắt đầu
-          </Link>
+          {isLoggedIn ? (
+            <Link to="/user" className="btn-primary !py-2.5 !px-6 !text-xs bg-emerald-600 hover:bg-emerald-700">
+              Dashboard
+            </Link>
+          ) : (
+            <Link to="/login" className="btn-primary !py-2.5 !px-6 !text-xs">
+              Bắt đầu
+            </Link>
+          )}
         </div>
       </div>
     </nav>

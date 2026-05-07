@@ -1,5 +1,6 @@
 import React from 'react';
 import { motion, useScroll, useTransform } from 'framer-motion';
+import { Link } from 'react-router-dom';
 
 const HeroSection = () => {
   const { scrollY } = useScroll();
@@ -49,12 +50,12 @@ const HeroSection = () => {
             </motion.p>
 
             <motion.div variants={itemVariants} className="flex flex-col sm:flex-row gap-5">
-              <button className="btn-primary">
+              <Link to="/login" className="btn-primary flex items-center justify-center">
                 Bắt đầu ngay
-              </button>
-              <button className="btn-secondary">
+              </Link>
+              <Link to="/features" className="btn-secondary flex items-center justify-center">
                 Tìm hiểu thêm
-              </button>
+              </Link>
             </motion.div>
 
             <motion.div variants={itemVariants} className="mt-16 pt-12 border-t border-stone-200 flex gap-12">

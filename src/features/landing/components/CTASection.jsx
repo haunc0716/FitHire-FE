@@ -1,5 +1,6 @@
 import React from 'react';
 import { motion } from 'framer-motion';
+import { Link } from 'react-router-dom';
 
 const CTASection = () => {
   return (
@@ -46,12 +47,12 @@ const CTASection = () => {
             transition={{ delay: 0.3, duration: 0.6 }}
             className="flex flex-col sm:flex-row justify-center gap-6"
           >
-            <button className="btn-primary">
+            <Link to="/login" className="btn-primary flex items-center justify-center">
               Bắt đầu miễn phí
-            </button>
-            <button className="btn-secondary">
+            </Link>
+            <Link to="/support" className="btn-secondary flex items-center justify-center">
               Liên hệ tư vấn
-            </button>
+            </Link>
           </motion.div>
         </motion.div>
       </div>

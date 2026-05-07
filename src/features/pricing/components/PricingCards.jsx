@@ -14,34 +14,7 @@ import {
    Vietnamese feature fallback data (in case API returns
    empty or missing diacritics)
    ────────────────────────────────────────────────────────── */
-const FALLBACK_FEATURES = {
-  FREE: [
-    'Scan CV: 3/tháng · Đánh giá CV và gợi ý cải thiện',
-    'Mock Interview: 1/tháng · Phỏng vấn giả lập bằng text và voice',
-  ],
-  LUOT_LE: [
-    'Mock Interview: 1 buổi · Phỏng vấn giả lập bằng text và voice',
-  ],
-  PLUS: [
-    'Scan CV: 15/tháng · Đánh giá CV và gợi ý cải thiện',
-    'Mock Interview: 10/tháng · Phỏng vấn giả lập bằng text và voice',
-    'CV Generation: 5/tháng · Tạo CV theo mẫu hỗ trợ bởi AI',
-    'Culture Fit: 5/tháng · Phân tích độ phù hợp văn hoá doanh nghiệp',
-  ],
-  PRO: [
-    'Scan CV: không giới hạn',
-    'Mock Interview: không giới hạn',
-    'CV Generation: không giới hạn',
-    'Culture Fit: không giới hạn',
-  ],
-};
 
-const FALLBACK_DESCRIPTIONS = {
-  FREE: 'Bắt đầu miễn phí, trải nghiệm các tính năng cơ bản.',
-  LUOT_LE: 'Mua theo lượt, linh hoạt không ràng buộc.',
-  PLUS: 'Gói đầy đủ tính năng cho ứng viên nghiêm túc.',
-  PRO: 'Trọn bộ tính năng, không giới hạn cho chuyên gia.',
-};
 
 /* ──────────────────────────────────────────────────────────
    Theme config per plan – unified vibrant palette
@@ -226,14 +199,8 @@ const PricingCards = () => {
     () =>
       plans.map((plan) => {
         const theme = PLAN_THEMES[plan.code] ?? PLAN_THEMES.FREE;
-        const apiFeatures = (plan.features ?? []).map(buildFeatureLine);
-        // Use fallback if API returns empty or only whitespace features
-        const hasValidFeatures = apiFeatures.length > 0 && apiFeatures.some((f) => f.trim().length > 3);
-        const featureLines = hasValidFeatures ? apiFeatures : (FALLBACK_FEATURES[plan.code] ?? apiFeatures);
-        // Use fallback description if API returns empty
-        const description = (plan.description && plan.description.trim().length > 3)
-          ? plan.description
-          : (FALLBACK_DESCRIPTIONS[plan.code] ?? '');
+        const featureLines = (plan.features ?? []).map(buildFeatureLine);
+        const description = plan.description || '';
 
         return {
           ...plan,
@@ -384,7 +351,7 @@ const PricingCards = () => {
       {/* ══════════════════════════════════════════════════
           PRICING CARDS GRID
          ══════════════════════════════════════════════════ */}
-      <div className="grid grid-cols-1 gap-5 md:grid-cols-2 xl:grid-cols-4">
+      <div className="grid grid-cols-1 gap-6 md:grid-cols-2 xl:grid-cols-4 items-stretch">
         {enrichedPlans.map((plan) => {
           const Icon = plan.theme.icon;
           const isBusy = busyPlanCode === plan.code;
@@ -397,22 +364,13 @@ const PricingCards = () => {
             <article
               key={plan.code}
               className={`
-                relative flex flex-col rounded-2xl border p-6
-                transition-all duration-300 hover:-translate-y-1
+                relative flex flex-col h-full rounded-[2rem] border p-8
+                transition-all duration-500 hover:-translate-y-2
                 ${plan.theme.cardBg}
                 ${plan.theme.cardBorder}
                 ${plan.theme.cardHover}
               `}
-              style={{ minHeight: '420px' }}
             >
-              {/* ── Highlighted ribbon ── */}
-              {isPlus && (
-                <div className="absolute -top-3 left-1/2 -translate-x-1/2 z-10">
-                  <span className="bg-emerald-600 text-white text-[10px] font-bold px-4 py-1 rounded-full uppercase tracking-widest shadow-md">
-                    ★ Phổ biến nhất
-                  </span>
-                </div>
-              )}
 
               {/* ── Header: icon + badge ── */}
               <div className="flex items-center justify-between mb-4">
@@ -425,7 +383,7 @@ const PricingCards = () => {
               </div>
 
               {/* ── Plan name ── */}
-              <h3 className={`text-xl font-display font-extrabold mb-1 ${isPro ? 'text-white' : 'text-stone-900'}`}>
+              <h3 className={`text-2xl font-display font-black mb-2 ${isPro ? 'text-white' : 'text-stone-900'}`}>
                 {plan.name}
               </h3>
 

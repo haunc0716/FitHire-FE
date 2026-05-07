@@ -29,7 +29,7 @@ const LoginPage = () => {
   useEffect(() => {
     const currentSession = getAuthSession();
     if (currentSession?.accessToken && currentSession.expiresAt > Date.now()) {
-      navigate('/', { replace: true });
+      navigate('/user', { replace: true });
     }
   }, [navigate]);
 
@@ -49,7 +49,7 @@ const LoginPage = () => {
         const authPayload = await loginWithGoogle(idToken);
         saveAuthSession(authPayload);
         setStatusMessage('Đăng nhập thành công. Đang chuyển hướng...');
-        navigate('/', { replace: true });
+        navigate('/user', { replace: true });
       } catch (error) {
         setErrorMessage(error?.message || 'Đăng nhập thất bại. Vui lòng thử lại.');
         setStatusMessage('');
@@ -215,10 +215,10 @@ const LoginPage = () => {
               </div>
               
               {!isGoogleReady && !errorMessage && (
-                <p className="text-xs text-stone-400 mt-3 flex items-center gap-2">
+                <div className="text-xs text-stone-400 mt-3 flex items-center gap-2">
                   <div className="w-3 h-3 border-2 border-stone-300 border-t-primary rounded-full animate-spin" />
                   Đang tải Google Sign-In...
-                </p>
+                </div>
               )}
             </div>
 
