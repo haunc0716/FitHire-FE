@@ -15,38 +15,38 @@ const Navbar = () => {
   }, []);
 
   const navLinks = [
-    { name: 'TRANG CHỦ', path: '/' },
-    { name: 'TÍNH NĂNG', path: '/features' },
-    { name: 'BẢNG GIÁ', path: '/pricing' },
-    { name: 'QUY TRÌNH', path: '/process' },
-    { name: 'HỖ TRỢ', path: '/support' },
+    { name: 'Trang chủ', path: '/' },
+    { name: 'Tính năng', path: '/features' },
+    { name: 'Bảng giá', path: '/pricing' },
+    { name: 'Quy trình', path: '/process' },
+    { name: 'Hỗ trợ', path: '/support' },
   ];
 
   return (
     <nav 
       className={`fixed top-0 left-0 w-full z-50 transition-all duration-500 ${
-        isScrolled ? 'bg-white/80 backdrop-blur-xl border-b border-zinc-100 py-4' : 'bg-transparent py-6'
+        isScrolled ? 'bg-white/90 backdrop-blur-xl border-b border-stone-100 py-3 shadow-sm' : 'bg-transparent py-5'
       }`}
     >
       <div className="max-w-7xl mx-auto px-6 flex justify-between items-center">
-        <Link to="/" className="font-display text-xl font-bold tracking-tighter text-primary">
-          FITHIRE
+        <Link to="/" className="font-display text-2xl font-black tracking-tight text-primary">
+          FitHire
         </Link>
 
-        <div className="hidden md:flex items-center gap-10">
+        <div className="hidden md:flex items-center gap-8">
           {navLinks.map((link) => (
             <Link
               key={link.name}
               to={link.path}
-              className={`text-[10px] font-bold tracking-[0.2em] transition-colors hover:text-primary ${
-                location.pathname === link.path ? 'text-primary' : 'text-zinc-400'
+              className={`text-sm font-semibold transition-all hover:text-primary ${
+                location.pathname === link.path ? 'text-primary' : 'text-stone-500'
               }`}
             >
               {link.name}
             </Link>
           ))}
-          <Link to="/login" className="btn-primary !py-2 !px-6 !text-[9px]">
-            BẮT ĐẦU
+          <Link to="/login" className="btn-primary !py-2.5 !px-6 !text-xs">
+            Bắt đầu
           </Link>
         </div>
       </div>

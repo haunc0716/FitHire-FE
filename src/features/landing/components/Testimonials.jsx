@@ -28,7 +28,7 @@ const Testimonials = () => {
     <section className="section-container">
       <div className="flex flex-col md:flex-row justify-between items-end mb-20 gap-8">
         <div className="max-w-2xl">
-          <motion.span 
+          <motion.span
             initial={{ opacity: 0 }}
             whileInView={{ opacity: 1 }}
             className="text-[10px] font-bold uppercase tracking-[0.4em] text-zinc-400 block mb-6"
@@ -51,7 +51,7 @@ const Testimonials = () => {
             className="bg-white p-12 group hover:bg-primary transition-all duration-700 relative overflow-hidden"
           >
             <div className="absolute -right-4 -top-4 w-24 h-24 bg-emerald-50 rounded-full group-hover:bg-emerald-400/20 transition-all duration-700" />
-            
+
             <Quote className="w-8 h-8 text-emerald-100 mb-8 group-hover:text-emerald-300 transition-colors relative z-10" />
             <p className="text-zinc-600 group-hover:text-white leading-relaxed mb-12 italic relative z-10">
               "{r.text}"

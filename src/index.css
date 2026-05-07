@@ -1,46 +1,52 @@
 @import "tailwindcss";
 
 @theme {
-  --color-primary: #059669;
-  --color-primary-dark: #047857;
-  --color-primary-light: #34d399;
-  --color-pale: #ecfdf5;
-  --font-display: "Space Grotesk", sans-serif;
+  --color-primary: #15803d;
+  --color-primary-dark: #166534;
+  --color-primary-light: #4ade80;
+  --color-warm-bg: #fdfcfb;
+  --color-pale: #f0fdf4;
+  --font-display: "Plus Jakarta Sans", "Inter", sans-serif;
   --font-body: "Inter", sans-serif;
 }
 
 @layer base {
   * {
-    @apply border-zinc-200;
+    @apply border-stone-200;
   }
+
   body {
-    @apply bg-white text-zinc-900 font-body antialiased selection:bg-zinc-900 selection:text-white;
+    @apply bg-warm-bg text-stone-900 font-body antialiased selection:bg-primary selection:text-white;
   }
 }
 
 @layer components {
+
   /* Restored Grand Layout */
   .section-container {
     @apply max-w-7xl mx-auto px-6 py-28;
   }
 
-  /* Bold Premium Typography */
+  /* Human-centric Premium Typography */
   .text-h1 {
-    @apply font-display text-5xl md:text-7xl font-bold tracking-tight leading-[1.1] text-zinc-950;
+    @apply font-display text-5xl md:text-7xl font-extrabold tracking-tight leading-[1.1] text-stone-950;
   }
+
   .text-h2 {
-    @apply font-display text-3xl md:text-5xl font-bold tracking-tight text-zinc-950;
+    @apply font-display text-3xl md:text-5xl font-bold tracking-tight text-stone-950;
   }
+
   .text-p {
-    @apply text-emerald-950/60 text-lg leading-relaxed;
+    @apply text-stone-600 text-lg leading-relaxed;
   }
 
   /* Refined Components */
   .btn-primary {
-    @apply bg-primary text-white px-8 py-4 text-[11px] font-bold uppercase tracking-widest hover:bg-primary-dark transition-all duration-300;
+    @apply bg-primary text-white px-8 py-4 text-sm font-semibold rounded-full hover:bg-primary-dark transition-all duration-300 shadow-lg shadow-primary/20;
   }
+
   .btn-secondary {
-    @apply border border-zinc-200 text-zinc-900 px-8 py-4 text-[11px] font-bold uppercase tracking-widest hover:border-primary hover:text-primary transition-all duration-300;
+    @apply border border-stone-200 bg-white text-stone-900 px-8 py-4 text-sm font-semibold rounded-full hover:border-primary hover:text-primary transition-all duration-300;
   }
 
   .bg-pale {
@@ -48,26 +54,33 @@
   }
 
   .clean-border {
-    @apply border border-zinc-100 p-12 transition-all duration-500 relative overflow-hidden bg-white;
+    @apply border border-stone-100 p-12 transition-all duration-500 relative overflow-hidden bg-white rounded-3xl;
   }
 
   /* Premium Motion Utilities */
   .glass-card {
-    @apply bg-white/40 backdrop-blur-xl border border-white/40 shadow-2xl;
+    @apply bg-white/60 backdrop-blur-xl border border-white/40 shadow-2xl rounded-3xl;
   }
 
   .glass-emerald {
-    @apply bg-emerald-50/40 backdrop-blur-xl border border-emerald-100/50 shadow-2xl;
+    @apply bg-green-50/40 backdrop-blur-xl border border-green-100/50 shadow-2xl rounded-3xl;
   }
 
   .image-reveal-container {
-    @apply relative overflow-hidden rounded-md bg-zinc-50 border border-zinc-100;
+    @apply relative overflow-hidden rounded-3xl bg-stone-50 border border-stone-100;
   }
 }
 
 @keyframes float-slow {
-  0%, 100% { transform: translateY(0px); }
-  50% { transform: translateY(-12px); }
+
+  0%,
+  100% {
+    transform: translateY(0px);
+  }
+
+  50% {
+    transform: translateY(-12px);
+  }
 }
 
 .animate-float-slow {

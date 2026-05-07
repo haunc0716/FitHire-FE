@@ -10,61 +10,122 @@ import {
   simulatePaymentSuccess,
 } from '../services/subscriptionApi';
 
+/* ──────────────────────────────────────────────────────────
+   Vietnamese feature fallback data (in case API returns
+   empty or missing diacritics)
+   ────────────────────────────────────────────────────────── */
+const FALLBACK_FEATURES = {
+  FREE: [
+    'Scan CV: 3/tháng · Đánh giá CV và gợi ý cải thiện',
+    'Mock Interview: 1/tháng · Phỏng vấn giả lập bằng text và voice',
+  ],
+  LUOT_LE: [
+    'Mock Interview: 1 buổi · Phỏng vấn giả lập bằng text và voice',
+  ],
+  PLUS: [
+    'Scan CV: 15/tháng · Đánh giá CV và gợi ý cải thiện',
+    'Mock Interview: 10/tháng · Phỏng vấn giả lập bằng text và voice',
+    'CV Generation: 5/tháng · Tạo CV theo mẫu hỗ trợ bởi AI',
+    'Culture Fit: 5/tháng · Phân tích độ phù hợp văn hoá doanh nghiệp',
+  ],
+  PRO: [
+    'Scan CV: không giới hạn',
+    'Mock Interview: không giới hạn',
+    'CV Generation: không giới hạn',
+    'Culture Fit: không giới hạn',
+  ],
+};
+
+const FALLBACK_DESCRIPTIONS = {
+  FREE: 'Bắt đầu miễn phí, trải nghiệm các tính năng cơ bản.',
+  LUOT_LE: 'Mua theo lượt, linh hoạt không ràng buộc.',
+  PLUS: 'Gói đầy đủ tính năng cho ứng viên nghiêm túc.',
+  PRO: 'Trọn bộ tính năng, không giới hạn cho chuyên gia.',
+};
+
+/* ──────────────────────────────────────────────────────────
+   Theme config per plan – unified vibrant palette
+   ────────────────────────────────────────────────────────── */
 const PLAN_THEMES = {
   FREE: {
     icon: Sparkles,
     badgeFallback: 'Miễn phí',
-    cardClass: 'bg-white border-emerald-100',
-    iconWrapClass: 'bg-emerald-50',
-    iconClass: 'text-emerald-500',
-    priceClass: 'text-emerald-600',
-    modelClass: 'bg-emerald-50 text-emerald-600',
-    checkWrapClass: 'bg-emerald-50',
-    checkClass: 'text-emerald-500',
-    ctaClass: 'bg-emerald-50 text-emerald-700 border-emerald-100 hover:bg-emerald-100',
-    badgeClass: 'bg-emerald-50 text-emerald-600 border-emerald-100',
-    ctaLabel: 'Bắt đầu ngay',
+    cardBg: 'bg-white',
+    cardBorder: 'border-stone-200/60',
+    cardHover: 'hover:border-stone-300 hover:shadow-lg',
+    iconBg: 'bg-stone-100',
+    iconColor: 'text-stone-500',
+    priceBg: '',
+    priceColor: 'text-stone-900',
+    badgeBg: 'bg-stone-100 text-stone-600',
+    checkBg: 'bg-emerald-50',
+    checkColor: 'text-emerald-600',
+    featureColor: 'text-stone-600',
+    descColor: 'text-stone-500',
+    unitColor: 'text-stone-400',
+    dividerColor: 'border-stone-100',
+    ctaClass: 'bg-stone-100 text-stone-700 hover:bg-stone-200',
+    ctaLabel: 'Khám phá',
   },
   LUOT_LE: {
     icon: Zap,
     badgeFallback: 'Beta 29k',
-    cardClass: 'bg-white border-emerald-100',
-    iconWrapClass: 'bg-emerald-50',
-    iconClass: 'text-emerald-600',
-    priceClass: 'text-emerald-700',
-    modelClass: 'bg-emerald-50 text-emerald-700',
-    checkWrapClass: 'bg-emerald-50',
-    checkClass: 'text-emerald-600',
-    ctaClass: 'bg-emerald-50 text-emerald-700 border-emerald-100 hover:bg-emerald-100',
-    badgeClass: 'bg-emerald-50 text-emerald-700 border-emerald-100',
-    ctaLabel: 'Bắt đầu ngay',
+    cardBg: 'bg-white',
+    cardBorder: 'border-stone-200/60',
+    cardHover: 'hover:border-emerald-300 hover:shadow-lg hover:shadow-emerald-50',
+    iconBg: 'bg-emerald-50',
+    iconColor: 'text-emerald-600',
+    priceBg: '',
+    priceColor: 'text-stone-900',
+    badgeBg: 'bg-amber-50 text-amber-700',
+    checkBg: 'bg-emerald-50',
+    checkColor: 'text-emerald-600',
+    featureColor: 'text-stone-600',
+    descColor: 'text-stone-500',
+    unitColor: 'text-stone-400',
+    dividerColor: 'border-stone-100',
+    ctaClass: 'bg-white text-emerald-700 border-2 border-emerald-200 hover:bg-emerald-50 hover:border-emerald-400',
+    ctaLabel: 'Mua lượt dùng',
   },
   PLUS: {
     icon: Target,
     badgeFallback: 'Phổ biến',
-    cardClass: 'bg-white border-emerald-200',
-    iconWrapClass: 'bg-emerald-100',
-    iconClass: 'text-emerald-600',
-    priceClass: 'text-emerald-600',
-    modelClass: 'bg-emerald-50 text-emerald-700',
-    checkWrapClass: 'bg-emerald-50',
-    checkClass: 'text-emerald-600',
-    ctaClass: 'bg-emerald-600 text-white border-transparent hover:bg-emerald-700',
-    badgeClass: 'bg-emerald-50 text-emerald-700 border-emerald-100',
-    ctaLabel: 'Bắt đầu ngay',
+    cardBg: 'bg-gradient-to-b from-emerald-50/80 to-white',
+    cardBorder: 'border-emerald-200',
+    cardHover: 'hover:shadow-xl hover:shadow-emerald-100/50',
+    iconBg: 'bg-emerald-100',
+    iconColor: 'text-emerald-700',
+    priceBg: '',
+    priceColor: 'text-emerald-800',
+    badgeBg: 'bg-emerald-600 text-white',
+    checkBg: 'bg-emerald-100',
+    checkColor: 'text-emerald-700',
+    featureColor: 'text-stone-700',
+    descColor: 'text-stone-500',
+    unitColor: 'text-stone-500',
+    dividerColor: 'border-emerald-100',
+    ctaClass: 'bg-emerald-600 text-white hover:bg-emerald-700 shadow-lg shadow-emerald-200',
+    ctaLabel: 'Nâng cấp ngay',
+    highlighted: true,
   },
   PRO: {
     icon: Crown,
     badgeFallback: 'Khuyến nghị',
-    cardClass: 'bg-gradient-to-b from-white to-emerald-50/50 border-emerald-500 shadow-[0_20px_60px_-30px_rgba(5,150,105,0.45)]',
-    iconWrapClass: 'bg-emerald-100',
-    iconClass: 'text-emerald-700',
-    priceClass: 'text-emerald-700',
-    modelClass: 'bg-emerald-100 text-emerald-700',
-    checkWrapClass: 'bg-emerald-100',
-    checkClass: 'text-emerald-600',
-    ctaClass: 'bg-gradient-to-r from-emerald-600 to-emerald-400 text-white border-transparent hover:from-emerald-500 hover:to-emerald-300',
-    badgeClass: 'bg-emerald-50 text-emerald-700 border-emerald-100',
+    cardBg: 'bg-gradient-to-br from-emerald-600 via-emerald-700 to-teal-800',
+    cardBorder: 'border-emerald-500/30',
+    cardHover: 'hover:shadow-2xl hover:shadow-emerald-900/30',
+    iconBg: 'bg-white/15',
+    iconColor: 'text-emerald-200',
+    priceBg: '',
+    priceColor: 'text-white',
+    badgeBg: 'bg-emerald-400/20 text-emerald-200 backdrop-blur-sm',
+    checkBg: 'bg-white/15',
+    checkColor: 'text-emerald-300',
+    featureColor: 'text-emerald-100',
+    descColor: 'text-emerald-200/80',
+    unitColor: 'text-emerald-300/70',
+    dividerColor: 'border-emerald-500/30',
+    ctaClass: 'bg-white text-emerald-800 hover:bg-emerald-50 shadow-lg font-bold',
     ctaLabel: 'Chọn gói Pro',
     hot: true,
   },
@@ -165,13 +226,23 @@ const PricingCards = () => {
     () =>
       plans.map((plan) => {
         const theme = PLAN_THEMES[plan.code] ?? PLAN_THEMES.FREE;
+        const apiFeatures = (plan.features ?? []).map(buildFeatureLine);
+        // Use fallback if API returns empty or only whitespace features
+        const hasValidFeatures = apiFeatures.length > 0 && apiFeatures.some((f) => f.trim().length > 3);
+        const featureLines = hasValidFeatures ? apiFeatures : (FALLBACK_FEATURES[plan.code] ?? apiFeatures);
+        // Use fallback description if API returns empty
+        const description = (plan.description && plan.description.trim().length > 3)
+          ? plan.description
+          : (FALLBACK_DESCRIPTIONS[plan.code] ?? '');
+
         return {
           ...plan,
           theme,
           formattedPrice: formatCurrency(plan.price),
           priceUnit: resolvePriceUnit(plan),
           badgeLabel: plan.badgeLabel || theme.badgeFallback,
-          featureLines: (plan.features ?? []).map(buildFeatureLine),
+          featureLines,
+          description,
           ctaLabel: theme.ctaLabel,
         };
       }),
@@ -241,14 +312,15 @@ const PricingCards = () => {
     }
   }, [pendingPayment, refreshMySnapshot]);
 
+  /* ── Loading skeleton ─────────────────────────────────── */
   if (loading) {
     return (
-      <section className="mb-28">
-        <div className="grid grid-cols-1 gap-6 md:grid-cols-2 xl:grid-cols-4">
+      <section className="mb-20">
+        <div className="grid grid-cols-1 gap-5 md:grid-cols-2 xl:grid-cols-4">
           {Array.from({ length: 4 }).map((_, index) => (
             <div
               key={`pricing-skeleton-${index}`}
-              className="h-[620px] rounded-[28px] border border-zinc-200 bg-zinc-50 animate-pulse"
+              className="h-[420px] rounded-2xl border border-stone-100 bg-stone-50 animate-pulse"
             />
           ))}
         </div>
@@ -257,10 +329,11 @@ const PricingCards = () => {
   }
 
   return (
-    <section className="mb-28">
+    <section className="mb-20">
+      {/* Error banner */}
       {error ? (
-        <div className="mb-6 flex items-start gap-2 rounded-2xl border border-rose-200 bg-rose-50 px-4 py-3 text-rose-700">
-          <AlertCircle className="mt-0.5 h-4 w-4" />
+        <div className="mb-5 flex items-start gap-2 rounded-xl border border-rose-200 bg-rose-50 px-4 py-3 text-rose-700">
+          <AlertCircle className="mt-0.5 h-4 w-4 shrink-0" />
           <div className="flex flex-wrap items-center gap-3 text-sm">
             <span>{error}</span>
             <button
@@ -274,15 +347,17 @@ const PricingCards = () => {
         </div>
       ) : null}
 
+      {/* Status message */}
       {statusMessage ? (
-        <div className="mb-6 rounded-2xl border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm text-emerald-700">
+        <div className="mb-5 rounded-xl border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm text-emerald-700">
           {statusMessage}
         </div>
       ) : null}
 
+      {/* Pending payment simulation */}
       {pendingPayment ? (
-        <div className="mb-6 rounded-2xl border border-amber-200 bg-amber-50 px-4 py-4">
-          <p className="mb-3 text-sm font-semibold text-amber-800">
+        <div className="mb-5 rounded-xl border border-amber-200 bg-amber-50 px-4 py-3">
+          <p className="mb-2 text-sm font-semibold text-amber-800">
             Payment #{pendingPayment.id} đang PENDING cho gói {pendingPayment.planName}
           </p>
           <div className="flex flex-wrap gap-3">
@@ -306,74 +381,122 @@ const PricingCards = () => {
         </div>
       ) : null}
 
-      <div className="grid grid-cols-1 gap-6 md:grid-cols-2 xl:grid-cols-4">
+      {/* ══════════════════════════════════════════════════
+          PRICING CARDS GRID
+         ══════════════════════════════════════════════════ */}
+      <div className="grid grid-cols-1 gap-5 md:grid-cols-2 xl:grid-cols-4">
         {enrichedPlans.map((plan) => {
           const Icon = plan.theme.icon;
-          const showHotRibbon = Boolean(plan.highlighted || plan.theme.hot);
           const isBusy = busyPlanCode === plan.code;
           const isCurrentPlan = activePlanCodes.includes(plan.code);
           const isDisabled = isBusy || paymentActionLoading || isCurrentPlan;
+          const isPro = plan.code === 'PRO';
+          const isPlus = plan.code === 'PLUS';
 
           return (
             <article
               key={plan.code}
-              className={`relative flex h-full flex-col rounded-[28px] border p-7 shadow-[0_16px_40px_-30px_rgba(15,23,42,0.45)] transition-transform duration-300 hover:-translate-y-1 ${plan.theme.cardClass}`}
+              className={`
+                relative flex flex-col rounded-2xl border p-6
+                transition-all duration-300 hover:-translate-y-1
+                ${plan.theme.cardBg}
+                ${plan.theme.cardBorder}
+                ${plan.theme.cardHover}
+              `}
+              style={{ minHeight: '420px' }}
             >
-              {showHotRibbon ? (
-                <>
-                  <div className="absolute top-0 right-0 h-0 w-0 border-t-[70px] border-l-[70px] border-t-amber-500 border-l-transparent" />
-                  <span className="absolute top-[10px] right-[8px] rotate-45 text-[11px] font-bold tracking-wide text-white">
-                    HOT
+              {/* ── Highlighted ribbon ── */}
+              {isPlus && (
+                <div className="absolute -top-3 left-1/2 -translate-x-1/2 z-10">
+                  <span className="bg-emerald-600 text-white text-[10px] font-bold px-4 py-1 rounded-full uppercase tracking-widest shadow-md">
+                    ★ Phổ biến nhất
                   </span>
-                </>
-              ) : null}
-
-              <div className="mb-6 flex items-start justify-between gap-4">
-                <div className={`flex h-14 w-14 items-center justify-center rounded-full ${plan.theme.iconWrapClass}`}>
-                  <Icon className={`h-6 w-6 ${plan.theme.iconClass}`} strokeWidth={2.2} />
                 </div>
-                <span className={`rounded-full border px-4 py-1 text-sm font-semibold leading-none ${plan.theme.badgeClass}`}>
+              )}
+
+              {/* ── Header: icon + badge ── */}
+              <div className="flex items-center justify-between mb-4">
+                <div className={`flex h-11 w-11 items-center justify-center rounded-xl ${plan.theme.iconBg}`}>
+                  <Icon className={`h-5 w-5 ${plan.theme.iconColor}`} strokeWidth={1.8} />
+                </div>
+                <span className={`rounded-full px-3 py-1 text-[11px] font-bold leading-none ${plan.theme.badgeBg}`}>
                   {plan.badgeLabel}
                 </span>
               </div>
 
-              <h3 className="mb-2 text-[2rem] font-display font-bold text-zinc-900">{plan.name}</h3>
-              <p className="mb-8 min-h-20 text-[1.1rem] leading-relaxed text-slate-600">{plan.description}</p>
+              {/* ── Plan name ── */}
+              <h3 className={`text-xl font-display font-extrabold mb-1 ${isPro ? 'text-white' : 'text-stone-900'}`}>
+                {plan.name}
+              </h3>
 
-              <div className="mb-4 flex items-end gap-2">
-                <span className={`text-[3.5rem] font-display font-bold leading-none ${plan.theme.priceClass}`}>
+              {/* ── Description ── */}
+              <p className={`text-[13px] leading-relaxed mb-4 ${plan.theme.descColor}`}>
+                {plan.description}
+              </p>
+
+              {/* ── Price block ── */}
+              <div className="mb-1 flex items-baseline gap-1">
+                <span className={`text-4xl font-display font-black leading-none tracking-tight ${plan.theme.priceColor}`}>
                   {plan.formattedPrice}
                 </span>
-                {Number(plan.price) > 0 ? <span className={`pb-1 text-3xl font-bold ${plan.theme.priceClass}`}>đ</span> : null}
+                {Number(plan.price) > 0 && (
+                  <span className={`text-xl font-bold ${plan.theme.priceColor}`}>đ</span>
+                )}
               </div>
-              <p className="mb-4 text-base font-semibold text-slate-400">{plan.priceUnit}</p>
-              <div className={`mb-7 inline-flex w-fit items-center gap-2 rounded-full px-3 py-1 text-sm font-semibold ${plan.theme.modelClass}`}>
-                <Sparkles className="h-4 w-4" />
-                <span>{plan.code}</span>
-              </div>
+              <p className={`text-xs font-medium mb-5 ${plan.theme.unitColor}`}>
+                {plan.priceUnit}
+              </p>
 
-              <div className="mb-6 border-t border-zinc-200" />
+              {/* ── Divider ── */}
+              <div className={`border-t mb-5 ${plan.theme.dividerColor}`} />
 
-              <ul className="mb-10 space-y-3">
-                {plan.featureLines.map((line) => (
-                  <li key={`${plan.code}-${line}`} className="flex items-start gap-3 text-[1.05rem] leading-snug text-slate-700">
-                    <span className={`mt-1 inline-flex h-7 w-7 shrink-0 items-center justify-center rounded-full ${plan.theme.checkWrapClass}`}>
-                      <Check className={`h-4 w-4 ${plan.theme.checkClass}`} strokeWidth={3} />
-                    </span>
-                    <span>{line}</span>
-                  </li>
-                ))}
+              {/* ── Features ── */}
+              <ul className="space-y-3 flex-grow mb-6">
+                {plan.featureLines.map((line, idx) => {
+                  // Split "Feature Name: detail" for bold name styling
+                  const colonIdx = line.indexOf(':');
+                  const featureName = colonIdx > -1 ? line.slice(0, colonIdx) : line;
+                  const featureDetail = colonIdx > -1 ? line.slice(colonIdx + 1).trim() : '';
+
+                  return (
+                    <li
+                      key={`${plan.code}-feat-${idx}`}
+                      className={`flex items-start gap-2.5 text-[13px] leading-snug ${plan.theme.featureColor}`}
+                    >
+                      <span className={`mt-0.5 inline-flex h-[18px] w-[18px] shrink-0 items-center justify-center rounded-full ${plan.theme.checkBg}`}>
+                        <Check className={`h-3 w-3 ${plan.theme.checkColor}`} strokeWidth={3} />
+                      </span>
+                      <span>
+                        <strong className="font-semibold">{featureName}</strong>
+                        {featureDetail && (
+                          <span className="font-normal">: {featureDetail}</span>
+                        )}
+                      </span>
+                    </li>
+                  );
+                })}
               </ul>
 
+              {/* ── CTA button ── */}
               <button
                 type="button"
                 onClick={() => handleCheckout(plan)}
                 disabled={isDisabled}
-                className={`mt-auto inline-flex w-full items-center justify-center gap-2 rounded-full border px-6 py-4 text-xl font-bold transition-all duration-300 disabled:opacity-60 ${plan.theme.ctaClass}`}
+                className={`
+                  w-full inline-flex items-center justify-center gap-2
+                  px-5 py-3 rounded-xl text-sm font-bold
+                  transition-all duration-300 disabled:opacity-50
+                  cursor-pointer
+                  ${plan.theme.ctaClass}
+                `}
               >
-                {isBusy ? <Loader2 className="h-4 w-4 animate-spin" /> : plan.code === 'PRO' ? <Sparkles className="h-4 w-4" /> : null}
-                <span>{isBusy ? 'Đang xử lý...' : isCurrentPlan ? 'Đang sử dụng' : plan.ctaLabel}</span>
-                <ChevronRight className="h-4 w-4" />
+                {isBusy ? (
+                  <Loader2 className="h-4 w-4 animate-spin" />
+                ) : isPro ? (
+                  <Sparkles className="h-4 w-4" />
+                ) : null}
+                <span>{isBusy ? 'Đang xử lý...' : isCurrentPlan ? 'Gói hiện tại' : plan.ctaLabel}</span>
+                {!isBusy && !isCurrentPlan && <ChevronRight className="h-3.5 w-3.5" />}
               </button>
             </article>
           );
