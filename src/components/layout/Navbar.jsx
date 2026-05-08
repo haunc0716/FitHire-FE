@@ -52,7 +52,7 @@ const Navbar = () => {
             </Link>
           ))}
           {isLoggedIn ? (
-            <Link to="/user" className="btn-primary !py-2.5 !px-6 !text-xs bg-emerald-600 hover:bg-emerald-700">
+            <Link to="/admin" className="btn-primary !py-2.5 !px-6 !text-xs bg-emerald-600 hover:bg-emerald-700">
               Dashboard
             </Link>
           ) : (

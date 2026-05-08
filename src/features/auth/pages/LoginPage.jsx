@@ -29,7 +29,7 @@ const LoginPage = () => {
   useEffect(() => {
     const currentSession = getAuthSession();
     if (currentSession?.accessToken && currentSession.expiresAt > Date.now()) {
-      navigate('/user', { replace: true });
+      navigate('/admin', { replace: true });
     }
   }, [navigate]);
 
@@ -49,7 +49,7 @@ const LoginPage = () => {
         const authPayload = await loginWithGoogle(idToken);
         saveAuthSession(authPayload);
         setStatusMessage('Đăng nhập thành công. Đang chuyển hướng...');
-        navigate('/user', { replace: true });
+        navigate('/admin', { replace: true });
       } catch (error) {
         setErrorMessage(error?.message || 'Đăng nhập thất bại. Vui lòng thử lại.');
         setStatusMessage('');
