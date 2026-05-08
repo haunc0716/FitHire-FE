@@ -5,8 +5,7 @@ import {
   Mail, 
   Lock, 
   Bell, 
-  Globe, 
-  Shield, 
+   Globe, 
   CreditCard, 
   LogOut,
   Camera,
@@ -24,8 +23,7 @@ export default function UserSettingsPage() {
   };
 
   const tabs = [
-    { id: 'profile', name: 'Profile', icon: User },
-    { id: 'account', name: 'Account & Security', icon: Shield },
+   { id: 'profile', name: 'Profile', icon: User },
     { id: 'notifications', name: 'Notifications', icon: Bell },
     { id: 'billing', name: 'Billing History', icon: CreditCard },
   ];
