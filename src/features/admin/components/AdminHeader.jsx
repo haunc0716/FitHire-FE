@@ -28,7 +28,7 @@ export default function AdminHeader({ setMobileMenuOpen }) {
   return (
     <header className="h-16 bg-white border-b border-gray-100 flex items-center justify-between px-4 lg:px-8 z-10 sticky top-0">
       <div className="flex items-center gap-4 flex-1">
-        <button 
+        <button
           className="lg:hidden text-gray-500 hover:text-gray-900 focus:outline-none"
           onClick={() => setMobileMenuOpen(true)}
         >
@@ -38,9 +38,9 @@ export default function AdminHeader({ setMobileMenuOpen }) {
         {/* Global Search (Command Palette vibe) */}
         <div className="hidden sm:flex items-center max-w-md w-full relative">
           <Search className="w-4 h-4 text-gray-400 absolute left-3" />
-          <input 
-            type="text" 
-            placeholder="Search users, transactions, or settings..." 
+          <input
+            type="text"
+            placeholder="Search users, transactions, or settings..."
             className="w-full pl-10 pr-4 py-2 bg-gray-50 border-transparent focus:bg-white focus:border-emerald-500 focus:ring-2 focus:ring-emerald-200 rounded-xl text-sm outline-none transition-all duration-200"
           />
           <div className="absolute right-3 flex items-center gap-1">
@@ -64,7 +64,7 @@ export default function AdminHeader({ setMobileMenuOpen }) {
             <span className="text-sm font-medium text-gray-900">Admin User</span>
             <span className="text-xs text-gray-500">Super Admin</span>
           </div>
-          <button 
+          <button
             onClick={() => setIsProfileOpen(!isProfileOpen)}
             className="w-8 h-8 rounded-full bg-emerald-100 flex items-center justify-center text-emerald-700 font-medium border border-emerald-200 hover:ring-2 hover:ring-emerald-500 hover:ring-offset-2 transition-all focus:outline-none"
           >
@@ -84,7 +84,7 @@ export default function AdminHeader({ setMobileMenuOpen }) {
                 </div>
               </div>
               <div className="p-2">
-                <Link 
+                <Link
                   to="/admin/profile"
                   onClick={() => setIsProfileOpen(false)}
                   className="flex items-center gap-2 px-3 py-2 text-sm font-medium text-gray-700 hover:bg-emerald-50 hover:text-emerald-600 rounded-xl transition-colors"
@@ -94,7 +94,7 @@ export default function AdminHeader({ setMobileMenuOpen }) {
                 </Link>
               </div>
               <div className="border-t border-gray-50 p-2">
-                <button 
+                <button
                   onClick={handleLogout}
                   className="w-full flex items-center gap-2 px-3 py-2 text-sm font-medium text-red-600 hover:bg-red-50 rounded-xl transition-colors"
                 >

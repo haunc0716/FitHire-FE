@@ -53,14 +53,14 @@ export default function PlanManagementPage() {
                 Most Popular
               </div>
             )}
-            
+
             <div className="p-6 flex-1">
               <div className="flex justify-between items-start mb-4">
                 <div className="w-10 h-10 rounded-xl bg-gray-50 text-gray-600 flex items-center justify-center">
                   <Package className="w-5 h-5" />
                 </div>
                 <div className="flex items-center gap-1">
-                   <button className="p-1.5 text-gray-400 hover:text-emerald-600 hover:bg-emerald-50 rounded-lg transition-colors">
+                  <button className="p-1.5 text-gray-400 hover:text-emerald-600 hover:bg-emerald-50 rounded-lg transition-colors">
                     <Edit2 className="w-4 h-4" />
                   </button>
                   <button className="p-1.5 text-gray-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors">
@@ -91,7 +91,7 @@ export default function PlanManagementPage() {
                 ))}
               </div>
             </div>
-            
+
             <div className="p-4 border-t border-gray-50 bg-gray-50/50 flex justify-between items-center">
               <span className="text-xs text-gray-500">Last updated: 2 days ago</span>
             </div>

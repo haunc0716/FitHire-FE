@@ -122,30 +122,30 @@ const LoginPage = () => {
 
         {/* Image and Content */}
         <div className="relative z-10 w-full max-w-lg flex flex-col items-center text-center mt-8">
-           <div className="relative mb-10 w-full max-w-[320px] aspect-square">
-             <div className="absolute inset-0 bg-primary/20 rounded-full blur-[60px] animate-pulse" />
-             <img 
-               src="/images/success-human.png" 
-               alt="FitHire User" 
-               className="relative z-10 w-full h-full object-contain drop-shadow-2xl"
-             />
-           </div>
-           
-           <div className="flex items-center justify-center gap-3 mb-6">
-             <div className="w-10 h-[2px] bg-primary rounded-full"></div>
-             <span className="text-primary font-bold tracking-widest text-xs uppercase">
-               Nền tảng tuyển dụng thông minh
-             </span>
-             <div className="w-10 h-[2px] bg-primary rounded-full"></div>
-           </div>
+          <div className="relative mb-10 w-full max-w-[320px] aspect-square">
+            <div className="absolute inset-0 bg-primary/20 rounded-full blur-[60px] animate-pulse" />
+            <img
+              src="/images/success-human.png"
+              alt="FitHire User"
+              className="relative z-10 w-full h-full object-contain drop-shadow-2xl"
+            />
+          </div>
 
-           <h2 className="text-3xl lg:text-4xl font-display font-bold text-stone-900 leading-tight mb-4">
-             Kiến tạo sự nghiệp <br />
-             <span className="text-primary italic">đột phá</span> của bạn.
-           </h2>
-           <p className="text-stone-500 text-base leading-relaxed max-w-md mx-auto">
-             Đăng nhập để trải nghiệm nền tảng đồng hành giúp bạn tối ưu hồ sơ và rèn luyện kỹ năng phỏng vấn theo lộ trình cá nhân hóa.
-           </p>
+          <div className="flex items-center justify-center gap-3 mb-6">
+            <div className="w-10 h-[2px] bg-primary rounded-full"></div>
+            <span className="text-primary font-bold tracking-widest text-xs uppercase">
+              Nền tảng tuyển dụng thông minh
+            </span>
+            <div className="w-10 h-[2px] bg-primary rounded-full"></div>
+          </div>
+
+          <h2 className="text-3xl lg:text-4xl font-display font-bold text-stone-900 leading-tight mb-4">
+            Kiến tạo sự nghiệp <br />
+            <span className="text-primary italic">đột phá</span> của bạn.
+          </h2>
+          <p className="text-stone-500 text-base leading-relaxed max-w-md mx-auto">
+            Đăng nhập để trải nghiệm nền tảng đồng hành giúp bạn tối ưu hồ sơ và rèn luyện kỹ năng phỏng vấn theo lộ trình cá nhân hóa.
+          </p>
         </div>
       </motion.div>
 
@@ -186,8 +186,8 @@ const LoginPage = () => {
                   required
                 />
               </div>
-              <button 
-                type="submit" 
+              <button
+                type="submit"
                 className="w-full btn-primary !py-3 flex justify-center items-center"
               >
                 Tiếp tục
@@ -207,13 +207,12 @@ const LoginPage = () => {
             <div className="flex flex-col items-center">
               {/* Removed the outer border box here */}
               <div
-                className={`transition-opacity ${
-                  isSubmitting ? 'pointer-events-none opacity-60' : ''
-                }`}
+                className={`transition-opacity ${isSubmitting ? 'pointer-events-none opacity-60' : ''
+                  }`}
               >
                 <div ref={buttonContainerRef} className="flex justify-center min-h-[40px] w-full" />
               </div>
-              
+
               {!isGoogleReady && !errorMessage && (
                 <div className="text-xs text-stone-400 mt-3 flex items-center gap-2">
                   <div className="w-3 h-3 border-2 border-stone-300 border-t-primary rounded-full animate-spin" />
@@ -236,7 +235,7 @@ const LoginPage = () => {
               </motion.div>
             )}
           </div>
-          
+
           <p className="mt-12 text-xs text-stone-400">
             Bằng việc đăng nhập, bạn đồng ý với <Link to="#" className="underline hover:text-stone-600">Điều khoản dịch vụ</Link> và <Link to="#" className="underline hover:text-stone-600">Chính sách bảo mật</Link> của chúng tôi.
           </p>
