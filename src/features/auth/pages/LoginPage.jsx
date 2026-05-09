@@ -1,9 +1,14 @@
 import React, { useCallback, useEffect, useRef, useState } from 'react';
 import { motion } from 'framer-motion';
 import { Link, useNavigate } from 'react-router-dom';
-import { AlertCircle, ArrowLeft, CheckCircle2, ShieldCheck, Sparkles } from 'lucide-react';
+import { AlertCircle, ArrowLeft, CheckCircle2 } from 'lucide-react';
 import { loginWithGoogle } from '../services/authApi';
-import { getAuthSession, saveAuthSession } from '../services/authSession';
+import {
+  getAuthSession,
+  isSessionValid,
+  resolveHomeByRole,
+  saveAuthSession,
+} from '../services/authSession';
 import {
   cancelGoogleOneTap,
   loadGoogleIdentityScript,
@@ -28,8 +33,8 @@ const LoginPage = () => {
 
   useEffect(() => {
     const currentSession = getAuthSession();
-    if (currentSession?.accessToken && currentSession.expiresAt > Date.now()) {
-      navigate('/admin', { replace: true });
+    if (isSessionValid(currentSession)) {
+      navigate(resolveHomeByRole(currentSession?.user?.role), { replace: true });
     }
   }, [navigate]);
 
@@ -47,9 +52,9 @@ const LoginPage = () => {
 
       try {
         const authPayload = await loginWithGoogle(idToken);
-        saveAuthSession(authPayload);
+        const session = saveAuthSession(authPayload);
         setStatusMessage('Đăng nhập thành công. Đang chuyển hướng...');
-        navigate('/admin', { replace: true });
+        navigate(resolveHomeByRole(session?.user?.role), { replace: true });
       } catch (error) {
         setErrorMessage(error?.message || 'Đăng nhập thất bại. Vui lòng thử lại.');
         setStatusMessage('');
@@ -99,14 +104,12 @@ const LoginPage = () => {
 
   return (
     <div className="min-h-screen bg-warm-bg flex flex-col md:flex-row overflow-hidden font-body">
-      {/* Left Panel */}
       <motion.div
         initial={{ opacity: 0, x: -40 }}
         animate={{ opacity: 1, x: 0 }}
         transition={{ duration: 0.8, ease: [0.22, 1, 0.36, 1] }}
         className="hidden md:flex md:w-1/2 bg-pale p-12 lg:p-16 flex-col relative overflow-hidden items-center justify-center border-r border-stone-200/50"
       >
-        {/* Decorative Background */}
         <div className="absolute inset-0 overflow-hidden pointer-events-none">
           <div className="absolute top-[-10%] right-[-10%] w-[500px] h-[500px] bg-primary/10 rounded-full blur-[100px]" />
           <div className="absolute bottom-[-10%] left-[-10%] w-[400px] h-[400px] bg-primary-light/10 rounded-full blur-[80px]" />
@@ -120,7 +123,6 @@ const LoginPage = () => {
           FITHIRE
         </Link>
 
-        {/* Image and Content */}
         <div className="relative z-10 w-full max-w-lg flex flex-col items-center text-center mt-8">
           <div className="relative mb-10 w-full max-w-[320px] aspect-square">
             <div className="absolute inset-0 bg-primary/20 rounded-full blur-[60px] animate-pulse" />
@@ -149,7 +151,6 @@ const LoginPage = () => {
         </div>
       </motion.div>
 
-      {/* Right Panel */}
       <motion.div
         initial={{ opacity: 0, x: 40 }}
         animate={{ opacity: 1, x: 0 }}
@@ -157,7 +158,6 @@ const LoginPage = () => {
         className="flex-1 px-6 py-10 md:px-20 md:py-16 lg:px-24 flex flex-col justify-center bg-white"
       >
         <div className="max-w-md w-full mx-auto flex flex-col items-center text-center">
-          {/* Mobile Back Button */}
           <Link
             to="/"
             className="md:hidden self-start inline-flex items-center gap-2 text-stone-500 hover:text-stone-900 transition-colors mb-12 text-sm font-medium"
@@ -203,9 +203,7 @@ const LoginPage = () => {
               </div>
             </div>
 
-            {/* Google Sign In */}
             <div className="flex flex-col items-center">
-              {/* Removed the outer border box here */}
               <div
                 className={`transition-opacity ${isSubmitting ? 'pointer-events-none opacity-60' : ''
                   }`}

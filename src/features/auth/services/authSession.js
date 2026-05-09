@@ -1,5 +1,9 @@
 const AUTH_SESSION_KEY = 'fithire.auth.session';
 
+export function resolveHomeByRole(role) {
+  return role === 'ADMIN' ? '/admin' : '/user';
+}
+
 export function saveAuthSession(authPayload) {
   if (!authPayload || !authPayload.accessToken) {
     return null;
@@ -35,6 +39,14 @@ export function getAuthSession() {
   } catch {
     return null;
   }
+}
+
+export function isSessionValid(session) {
+  return Boolean(session?.accessToken && Number(session?.expiresAt) > Date.now());
+}
+
+export function getSessionRole(session) {
+  return session?.user?.role ?? null;
 }
 
 export function clearAuthSession() {
