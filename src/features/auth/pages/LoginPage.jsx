@@ -176,18 +176,18 @@ const LoginPage = () => {
           </motion.div>
 
           <div className="flex items-center justify-center gap-3 mb-6">
-            <div className="w-10 h-[2px] bg-primary rounded-full"></div>
-            <span className="text-primary font-bold tracking-widest text-xs uppercase">
+            <div className="w-10 h-[2px] bg-primary/30 rounded-full"></div>
+            <span className="text-primary font-bold tracking-widest text-[10px] uppercase">
               Nền tảng tuyển dụng thông minh
             </span>
-            <div className="w-10 h-[2px] bg-primary rounded-full"></div>
+            <div className="w-10 h-[2px] bg-primary/30 rounded-full"></div>
           </div>
 
-          <h2 className="text-3xl lg:text-4xl font-display font-bold text-stone-900 leading-tight mb-4">
+          <h2 className="text-4xl lg:text-5xl font-display font-bold text-stone-900 leading-tight mb-6">
             Kiến tạo sự nghiệp <br />
             <span className="text-primary italic">đột phá</span> của bạn.
           </h2>
-          <p className="text-stone-500 text-base leading-relaxed max-w-md mx-auto">
+          <p className="text-stone-500 text-base leading-relaxed max-w-sm mx-auto">
             Đăng nhập để trải nghiệm nền tảng đồng hành giúp bạn tối ưu hồ sơ và rèn luyện kỹ năng phỏng vấn theo lộ trình cá nhân hóa.
           </p>
         </div>
@@ -216,38 +216,38 @@ const LoginPage = () => {
             </p>
           </motion.div>
 
-          <div className="w-full space-y-6">
-            <form onSubmit={handleEmailSubmit} className="space-y-4 text-left w-full mb-6">
+          <div className="w-full">
+            <motion.form variants={itemVariants} onSubmit={handleEmailSubmit} className="space-y-5 text-left w-full mb-8">
               <div>
-                <label className="block text-sm font-semibold text-stone-700 mb-1.5">Tài khoản Gmail / Email</label>
+                <label className="block text-[10px] font-bold uppercase tracking-widest text-stone-400 mb-2 ml-1">Email / Tài khoản</label>
                 <input
                   type="email"
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
-                  placeholder="name@gmail.com"
-                  className="w-full px-4 py-3 rounded-xl border border-stone-200 bg-stone-50 focus:bg-white focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all text-stone-900 placeholder:text-stone-400"
+                  placeholder="ten-cua-ban@gmail.com"
+                  className="w-full px-4 py-4 rounded-2xl border border-stone-100 bg-stone-50 focus:bg-white focus:outline-none focus:ring-4 focus:ring-primary/5 focus:border-primary transition-all text-stone-900 placeholder:text-stone-400 text-sm"
                   required
                 />
               </div>
               <div>
-                <div className="flex items-center justify-between mb-1.5">
-                  <label className="block text-sm font-semibold text-stone-700">Mật khẩu</label>
-                  <Link to="/forgot-password" className="text-xs font-semibold text-primary hover:text-primary-dark">Quên mật khẩu?</Link>
+                <div className="flex items-center justify-between mb-2 ml-1">
+                  <label className="block text-[10px] font-bold uppercase tracking-widest text-stone-400">Mật khẩu</label>
+                  <Link to="/forgot-password" className="text-[10px] font-bold uppercase tracking-widest text-primary hover:text-primary-dark">Quên mật khẩu?</Link>
                 </div>
                 <input
                   type="password"
                   placeholder="••••••••"
-                  className="w-full px-4 py-3 rounded-xl border border-stone-200 bg-stone-50 focus:bg-white focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all text-stone-900 placeholder:text-stone-400"
+                  className="w-full px-4 py-4 rounded-2xl border border-stone-100 bg-stone-50 focus:bg-white focus:outline-none focus:ring-4 focus:ring-primary/5 focus:border-primary transition-all text-stone-900 placeholder:text-stone-400 text-sm"
                   required
                 />
               </div>
               <button
                 type="submit"
-                className="w-full btn-primary !py-3 flex justify-center items-center"
+                className="w-full bg-primary text-white py-4 rounded-2xl font-bold uppercase tracking-widest text-xs hover:bg-primary-dark transition-all shadow-xl shadow-primary/20 mt-2"
               >
-                Tiếp tục
+                Đăng nhập FitHire
               </button>
-            </form>
+            </motion.form>
 
             <motion.div variants={itemVariants} className="relative my-8">
               <div className="absolute inset-0 flex items-center">
