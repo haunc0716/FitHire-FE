@@ -1,6 +1,6 @@
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { AlertCircle, Check, ChevronRight, Crown, Loader2, Sparkles, Target, Zap } from 'lucide-react';
+import { AlertCircle, Check, ChevronRight, Crown, Loader2, Sparkles, Target, Zap, Smile, Timer, Rocket, Gem } from 'lucide-react';
 import { getAuthSession } from '../../auth/services/authSession';
 import {
   checkoutSubscription,
@@ -21,7 +21,7 @@ import {
    ────────────────────────────────────────────────────────── */
 const PLAN_THEMES = {
   FREE: {
-    icon: Sparkles,
+    icon: Smile,
     badgeFallback: 'Miễn phí',
     cardBg: 'bg-white',
     cardBorder: 'border-stone-200/60',
@@ -41,7 +41,7 @@ const PLAN_THEMES = {
     ctaLabel: 'Khám phá',
   },
   LUOT_LE: {
-    icon: Zap,
+    icon: Timer,
     badgeFallback: 'Beta 29k',
     cardBg: 'bg-white',
     cardBorder: 'border-stone-200/60',
@@ -61,7 +61,7 @@ const PLAN_THEMES = {
     ctaLabel: 'Mua lượt dùng',
   },
   PLUS: {
-    icon: Target,
+    icon: Rocket,
     badgeFallback: 'Phổ biến',
     cardBg: 'bg-gradient-to-b from-emerald-50/80 to-white',
     cardBorder: 'border-emerald-200',
@@ -82,7 +82,7 @@ const PLAN_THEMES = {
     highlighted: true,
   },
   PRO: {
-    icon: Crown,
+    icon: Gem,
     badgeFallback: 'Khuyến nghị',
     cardBg: 'bg-gradient-to-br from-emerald-600 via-emerald-700 to-teal-800',
     cardBorder: 'border-emerald-500/30',
