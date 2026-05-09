@@ -28,6 +28,7 @@ import CulturalFitPage from './features/user/pages/CulturalFitPage';
 import MockInterviewPage from './features/user/pages/MockInterviewPage';
 import UserPricingPage from './features/user/pages/UserPricingPage';
 import UserProfilePage from './features/user/pages/UserProfilePage';
+import ChangePasswordPage from './features/user/pages/ChangePasswordPage';
 
 export default function App() {
   return (
@@ -69,6 +70,7 @@ export default function App() {
             <Route path="pricing" element={<UserPricingPage />} />
             <Route path="profile" element={<UserProfilePage />} />
           </Route>
+          <Route path="/change-password" element={<ChangePasswordPage />} />
         </Route>
       </Routes>
     </Router>

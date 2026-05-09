@@ -1,9 +1,11 @@
 import React, { useEffect, useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { User, Mail, Image as ImageIcon, ShieldCheck, CheckCircle2, AlertCircle, Camera } from 'lucide-react';
 import { fetchMyProfile, updateMyProfile } from '../services/userApi';
 
 export default function UserProfilePage() {
+  const navigate = useNavigate();
   const [form, setForm] = useState({ fullName: '', email: '', avatarUrl: '' });
   const [status, setStatus] = useState('');
   const [error, setError] = useState('');
@@ -41,6 +43,7 @@ export default function UserProfilePage() {
       setLoading(false);
     }
   };
+
 
   return (
     <div className="relative min-h-screen bg-[#f8f9fa] overflow-hidden font-body">
@@ -160,7 +163,14 @@ export default function UserProfilePage() {
                 )}
 
                 {/* Actions */}
-                <div className="pt-4 flex items-center justify-end border-t border-stone-100">
+                <div className="pt-4 flex items-center justify-end gap-3 border-t border-stone-100">
+                  <button
+                    type="button"
+                    onClick={() => navigate('/change-password')}
+                    className="flex items-center gap-2 border border-stone-200 px-4 py-2.5 rounded-lg text-sm font-semibold text-stone-700 hover:border-emerald-200 hover:text-emerald-700 transition-colors"
+                  >
+                    Đổi mật khẩu
+                  </button>
                   <button 
                     type="submit" 
                     disabled={loading || fetching}

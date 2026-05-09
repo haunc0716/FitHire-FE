@@ -37,8 +37,9 @@ export default function UserPricingPage() {
     <div className="relative mx-auto max-w-6xl space-y-8 p-6 lg:p-8">
       
       {/* Background Bubbles */}
-      <div className="absolute top-0 left-0 h-[400px] w-[400px] -translate-x-1/2 -translate-y-1/4 rounded-full bg-emerald-200/40 blur-[100px] -z-10 pointer-events-none" />
-      <div className="absolute top-40 right-0 h-[300px] w-[300px] translate-x-1/3 rounded-full bg-amber-200/40 blur-[80px] -z-10 pointer-events-none" />
+      <div className="absolute top-0 left-0 h-[420px] w-[420px] -translate-x-1/2 -translate-y-1/4 rounded-full bg-emerald-200/40 blur-[110px] -z-10 pointer-events-none" />
+      <div className="absolute top-40 right-0 h-[340px] w-[340px] translate-x-1/3 rounded-full bg-sky-200/40 blur-[90px] -z-10 pointer-events-none" />
+      <div className="absolute bottom-0 left-1/3 h-[260px] w-[260px] translate-y-1/3 rounded-full bg-rose-200/30 blur-[90px] -z-10 pointer-events-none" />
 
       {/* 1. Header */}
       <div className="relative z-10 flex flex-col gap-3 pb-2">
@@ -58,14 +59,14 @@ export default function UserPricingPage() {
             const isFree = sub.subscriptionCode === 'FREE';
             
             return (
-              <div key={idx} className={`flex flex-col sm:flex-row sm:items-center justify-between gap-4 rounded-2xl border p-6 shadow-sm ${
+              <div key={idx} className={`flex flex-col sm:flex-row sm:items-center justify-between gap-3 rounded-2xl border p-5 shadow-sm ${
                 isPro ? 'border-emerald-200 bg-gradient-to-r from-emerald-50 to-white' : 
-                isFree ? 'border-slate-200 bg-white' : 'border-indigo-100 bg-indigo-50/30'
+                isFree ? 'border-sky-200 bg-gradient-to-r from-sky-50 via-white to-indigo-50/60' : 'border-indigo-100 bg-indigo-50/30'
               }`}>
                 <div className="flex items-center gap-5">
-                  <div className={`flex h-14 w-14 items-center justify-center rounded-full ${
+                  <div className={`flex h-12 w-12 items-center justify-center rounded-2xl ${
                     isPro ? 'bg-emerald-100 text-emerald-600' : 
-                    isFree ? 'bg-slate-100 text-slate-500' : 'bg-indigo-100 text-indigo-600'
+                    isFree ? 'bg-slate-100 text-slate-600 ring-1 ring-slate-200' : 'bg-indigo-100 text-indigo-600'
                   }`}>
                     <CreditCard className="h-6 w-6" />
                   </div>
@@ -76,7 +77,7 @@ export default function UserPricingPage() {
                       </h2>
                       <span className={`inline-flex items-center gap-1.5 rounded-md px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider ${
                         isPro ? 'bg-emerald-100 text-emerald-700' : 
-                        isFree ? 'bg-slate-100 text-slate-600' : 'bg-indigo-100 text-indigo-700'
+                        isFree ? 'bg-slate-100 text-slate-700' : 'bg-indigo-100 text-indigo-700'
                       }`}>
                         <CheckCircle2 className="h-3 w-3" /> Đang sử dụng
                       </span>
@@ -86,6 +87,10 @@ export default function UserPricingPage() {
                       <span>Hạn dùng: <strong className="text-slate-700">{sub.endDate ? new Date(sub.endDate).toLocaleDateString('vi-VN') : 'Không thời hạn'}</strong></span>
                     </div>
                   </div>
+                </div>
+                <div className="hidden sm:block h-10 w-px bg-slate-200/70" />
+                <div className="text-xs text-slate-500">
+                  <span className="font-semibold text-slate-700">Quyền lợi:</span> Tài khoản cơ bản, giới hạn tính năng.
                 </div>
               </div>
             );
