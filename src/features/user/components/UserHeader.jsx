@@ -160,10 +160,14 @@ export default function UserHeader() {
               onMouseLeave={() => setActiveDropdown(null)}
             >
               <div className="flex items-center gap-2 cursor-pointer py-2 px-1">
-                <div className="flex h-9 w-9 items-center justify-center rounded-full bg-stone-100 text-sm font-bold text-stone-700 border-2 border-white ring-2 ring-amber-400 shadow-sm hover:ring-amber-500 transition-all">
+                <div className="flex h-9 w-9 items-center justify-center rounded-full bg-stone-100 text-sm font-bold text-stone-700 border-2 border-white ring-2 ring-[#00b14f] shadow-sm hover:ring-[#009b45] transition-all">
                   {avatarInitial}
                 </div>
-                <ChevronDown className="h-4 w-4 text-stone-400" />
+                <div className="hidden lg:flex flex-col pl-1">
+                  <span className="text-[11px] font-semibold text-stone-500 leading-none mb-1">Tài khoản</span>
+                  <span className="text-[12px] font-bold text-[#00b14f] leading-none uppercase">Free</span>
+                </div>
+                <ChevronDown className="h-4 w-4 text-stone-400 ml-1" />
               </div>
 
               {activeDropdown === 'Avatar' && (
