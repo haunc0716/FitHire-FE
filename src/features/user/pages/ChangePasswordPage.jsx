@@ -1,41 +1,54 @@
 import React, { useState } from 'react';
 import { motion } from 'framer-motion';
-import { Lock, CheckCircle2, AlertCircle, ArrowLeft } from 'lucide-react';
+import { Lock, ArrowLeft } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
+import { useToast } from '../../../components/ui/ToastProvider';
 
 export default function ChangePasswordPage() {
   const navigate = useNavigate();
+  const { showToast } = useToast();
   const [form, setForm] = useState({ currentPassword: '', newPassword: '', confirmPassword: '' });
-  const [status, setStatus] = useState('');
-  const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
 
   const handleSubmit = (e) => {
     e.preventDefault();
-    setStatus('');
-    setError('');
     setLoading(true);
 
     if (!form.currentPassword || !form.newPassword || !form.confirmPassword) {
-      setError('Vui lòng nhập đầy đủ thông tin mật khẩu.');
+      showToast({
+        type: 'error',
+        title: 'Thiếu thông tin',
+        message: 'Vui lòng nhập đầy đủ thông tin mật khẩu.'
+      });
       setLoading(false);
       return;
     }
     if (form.newPassword.length < 8) {
-      setError('Mật khẩu mới cần tối thiểu 8 ký tự.');
+      showToast({
+        type: 'warning',
+        title: 'Mật khẩu quá ngắn',
+        message: 'Mật khẩu mới cần tối thiểu 8 ký tự.'
+      });
       setLoading(false);
       return;
     }
     if (form.newPassword !== form.confirmPassword) {
-      setError('Mật khẩu xác nhận không khớp.');
+      showToast({
+        type: 'error',
+        title: 'Xác nhận không khớp',
+        message: 'Mật khẩu xác nhận không khớp.'
+      });
       setLoading(false);
       return;
     }
 
-    setStatus('Yêu cầu đổi mật khẩu đã được ghi nhận.');
+    showToast({
+      type: 'success',
+      title: 'Đã ghi nhận',
+      message: 'Yêu cầu đổi mật khẩu đã được ghi nhận.'
+    });
     setForm({ currentPassword: '', newPassword: '', confirmPassword: '' });
     setLoading(false);
-    setTimeout(() => setStatus(''), 3000);
   };
 
   return (
@@ -110,19 +123,6 @@ export default function ChangePasswordPage() {
                 />
               </div>
             </div>
-
-            {status && (
-              <div className="flex items-center gap-2 p-3 bg-emerald-50 text-emerald-700 text-sm rounded-lg border border-emerald-100">
-                <CheckCircle2 className="h-5 w-5" />
-                {status}
-              </div>
-            )}
-            {error && (
-              <div className="flex items-center gap-2 p-3 bg-rose-50 text-rose-700 text-sm rounded-lg border border-rose-100">
-                <AlertCircle className="h-5 w-5" />
-                {error}
-              </div>
-            )}
 
             <div className="pt-4 flex items-center justify-end border-t border-stone-100">
               <button

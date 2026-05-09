@@ -1,5 +1,5 @@
 import React, { useEffect, useMemo, useState } from 'react';
-import { Package, Plus, MoreVertical, Check, Edit2, Trash2, X, Info, CreditCard, Layout, Star, ChevronRight } from 'lucide-react';
+import { Package, Plus, MoreVertical, Check, Edit2, Trash2, X, CreditCard, Layout, Star, ChevronRight } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
   createAdminSubscription,
@@ -7,6 +7,7 @@ import {
   getAdminSubscriptions,
   updateAdminSubscription,
 } from '../services/subscriptionApi';
+import { useToast } from '../../../components/ui/ToastProvider';
 
 const emptyFormState = {
   code: '',
@@ -58,9 +59,9 @@ function normalizeSubscription(subscription) {
 }
 
 export default function PlanManagementPage() {
+  const { showToast } = useToast();
   const [plans, setPlans] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
-  const [errorMessage, setErrorMessage] = useState('');
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
   const [editingPlan, setEditingPlan] = useState(null);
@@ -76,12 +77,15 @@ export default function PlanManagementPage() {
 
   const fetchSubscriptions = async () => {
     setIsLoading(true);
-    setErrorMessage('');
     try {
       const data = await getAdminSubscriptions();
       setPlans(Array.isArray(data) ? data.map(normalizeSubscription) : []);
     } catch (error) {
-      setErrorMessage(error?.message || 'Không thể tải danh sách gói.');
+      showToast({
+        type: 'error',
+        title: 'Không thể tải gói dịch vụ',
+        message: error?.message || 'Vui lòng thử lại sau.'
+      });
     } finally {
       setIsLoading(false);
     }
@@ -94,7 +98,6 @@ export default function PlanManagementPage() {
   const openCreateModal = () => {
     setEditingPlan(null);
     setFormState(emptyFormState);
-    setErrorMessage('');
     setIsModalOpen(true);
   };
 
@@ -116,7 +119,6 @@ export default function PlanManagementPage() {
       badgeLabel: raw.badgeLabel ?? '',
       highlighted: Boolean(raw.highlighted),
     });
-    setErrorMessage('');
     setIsModalOpen(true);
   };
 
@@ -129,18 +131,20 @@ export default function PlanManagementPage() {
     if (!plan?.id) return;
     if (!window.confirm(`Bạn chắc chắn muốn xóa gói "${plan.name}"?`)) return;
     
-    setErrorMessage('');
     try {
       await deleteAdminSubscription(plan.id);
       await fetchSubscriptions();
     } catch (error) {
-      setErrorMessage(error?.message || 'Xóa gói không thành công.');
+      showToast({
+        type: 'error',
+        title: 'Xóa gói thất bại',
+        message: error?.message || 'Vui lòng thử lại sau.'
+      });
     }
   };
 
   const handleSave = async () => {
     setIsSaving(true);
-    setErrorMessage('');
     try {
       const payload = {
         ...formState,
@@ -157,9 +161,18 @@ export default function PlanManagementPage() {
         await createAdminSubscription(payload);
       }
       setIsModalOpen(false);
+      showToast({
+        type: 'success',
+        title: 'Lưu thành công',
+        message: 'Gói dịch vụ đã được cập nhật.'
+      });
       await fetchSubscriptions();
     } catch (error) {
-      setErrorMessage(error?.message || 'Không thể lưu gói.');
+      showToast({
+        type: 'error',
+        title: 'Không thể lưu gói',
+        message: error?.message || 'Vui lòng thử lại sau.'
+      });
     } finally {
       setIsSaving(false);
     }
@@ -186,13 +199,6 @@ export default function PlanManagementPage() {
           Tạo gói mới
         </button>
       </div>
-
-      {errorMessage && (
-        <div className="rounded-2xl border border-red-100 bg-red-50 text-red-600 px-6 py-4 text-sm font-semibold flex items-center gap-3">
-          <Info className="w-5 h-5" />
-          {errorMessage}
-        </div>
-      )}
 
       {/* Grid Layout */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">

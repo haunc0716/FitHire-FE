@@ -1,8 +1,9 @@
 import React, { useCallback, useEffect, useRef, useState } from 'react';
 import { motion } from 'framer-motion';
 import { Link, useNavigate } from 'react-router-dom';
-import { AlertCircle, ArrowLeft, CheckCircle2 } from 'lucide-react';
+import { ArrowLeft } from 'lucide-react';
 import { loginWithGoogle } from '../services/authApi';
+import { useToast } from '../../../components/ui/ToastProvider';
 import {
   getAuthSession,
   isSessionValid,
@@ -19,16 +20,20 @@ const googleClientId = (import.meta.env.VITE_GOOGLE_CLIENT_ID ?? '').trim();
 
 const LoginPage = () => {
   const navigate = useNavigate();
+  const { showToast } = useToast();
   const buttonContainerRef = useRef(null);
   const [isGoogleReady, setIsGoogleReady] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [statusMessage, setStatusMessage] = useState('');
-  const [errorMessage, setErrorMessage] = useState('');
+  const [googleInitFailed, setGoogleInitFailed] = useState(false);
   const [email, setEmail] = useState('');
 
   const handleEmailSubmit = (e) => {
     e.preventDefault();
-    setErrorMessage('Vui lòng click vào nút Google bên dưới để tiếp tục.');
+    showToast({
+      type: 'warning',
+      title: 'Chưa hỗ trợ',
+      message: 'Vui lòng click vào nút Google bên dưới để tiếp tục.'
+    });
   };
 
   useEffect(() => {
@@ -42,35 +47,54 @@ const LoginPage = () => {
     async (credentialResponse) => {
       const idToken = credentialResponse?.credential;
       if (!idToken) {
-        setErrorMessage('Google không trả về idToken. Vui lòng thử lại.');
+        showToast({
+          type: 'error',
+          title: 'Đăng nhập thất bại',
+          message: 'Google không trả về idToken. Vui lòng thử lại.'
+        });
         return;
       }
 
       setIsSubmitting(true);
-      setStatusMessage('Đang xác thực thông tin đăng nhập...');
-      setErrorMessage('');
+      showToast({
+        type: 'info',
+        title: 'Đang xác thực',
+        message: 'Vui lòng chờ trong giây lát.'
+      });
 
       try {
         const authPayload = await loginWithGoogle(idToken);
         const session = saveAuthSession(authPayload);
-        setStatusMessage('Đăng nhập thành công. Đang chuyển hướng...');
+        showToast({
+          type: 'success',
+          title: 'Đăng nhập thành công',
+          message: 'Đang chuyển hướng...'
+        });
         navigate(resolveHomeByRole(session?.user?.role), { replace: true });
       } catch (error) {
-        setErrorMessage(error?.message || 'Đăng nhập thất bại. Vui lòng thử lại.');
-        setStatusMessage('');
+        showToast({
+          type: 'error',
+          title: 'Đăng nhập thất bại',
+          message: error?.message || 'Vui lòng thử lại.'
+        });
       } finally {
         setIsSubmitting(false);
       }
     },
-    [navigate]
-  );
+      [navigate, showToast]
+    );
 
   useEffect(() => {
     let isMounted = true;
 
     async function bootstrapGoogleSignIn() {
       if (!googleClientId) {
-        setErrorMessage('Thiếu cấu hình VITE_GOOGLE_CLIENT_ID cho đăng nhập Google.');
+        showToast({
+          type: 'error',
+          title: 'Thiếu cấu hình',
+          message: 'VITE_GOOGLE_CLIENT_ID chưa được cấu hình.'
+        });
+        setGoogleInitFailed(true);
         return;
       }
 
@@ -87,11 +111,17 @@ const LoginPage = () => {
           onCredential: handleGoogleCredential,
         });
         setIsGoogleReady(true);
+        setGoogleInitFailed(false);
       } catch (error) {
         if (!isMounted) {
           return;
         }
-        setErrorMessage(error?.message || 'Không thể khởi tạo đăng nhập Google.');
+        showToast({
+          type: 'error',
+          title: 'Không thể khởi tạo Google',
+          message: error?.message || 'Vui lòng thử lại sau.'
+        });
+        setGoogleInitFailed(true);
       }
     }
 
@@ -100,7 +130,7 @@ const LoginPage = () => {
       isMounted = false;
       cancelGoogleOneTap();
     };
-  }, [handleGoogleCredential]);
+  }, [handleGoogleCredential, showToast]);
 
   // Framer Motion variants for staggered children
   const containerVariants = {
@@ -266,27 +296,13 @@ const LoginPage = () => {
                 <div ref={buttonContainerRef} className="flex justify-center min-h-[40px] w-full" />
               </div>
 
-              {!isGoogleReady && !errorMessage && (
+              {!isGoogleReady && !googleInitFailed && (
                 <div className="text-[10px] font-bold text-stone-400 mt-3 flex items-center gap-2 uppercase tracking-widest">
                   <div className="w-3 h-3 border-2 border-stone-300 border-t-primary rounded-full animate-spin" />
                   Đang tải Google...
                 </div>
               )}
             </motion.div>
-
-            {statusMessage && (
-              <motion.div initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }} className="flex items-start gap-2 rounded-2xl border border-emerald-100 bg-emerald-50/50 px-4 py-3 text-emerald-700 mt-6 text-left">
-                <CheckCircle2 className="w-5 h-5 mt-0.5 shrink-0" />
-                <span className="text-sm font-medium">{statusMessage}</span>
-              </motion.div>
-            )}
-
-            {errorMessage && (
-              <motion.div initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }} className="flex items-start gap-2 rounded-2xl border border-rose-100 bg-rose-50/50 px-4 py-3 text-rose-700 mt-6 text-left">
-                <AlertCircle className="w-5 h-5 mt-0.5 shrink-0" />
-                <span className="text-sm font-medium">{errorMessage}</span>
-              </motion.div>
-            )}
           </div>
 
           <motion.p variants={itemVariants} className="mt-10 text-center text-sm text-stone-500">

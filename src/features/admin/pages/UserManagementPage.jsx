@@ -1,11 +1,12 @@
 import React, { useState, useEffect } from 'react';
 import { Search, Filter, MoreVertical, Download, Shield, User, CheckCircle2, XCircle, Loader2 } from 'lucide-react';
 import { getAdminUsers } from '../services/userApi';
+import { useToast } from '../../../components/ui/ToastProvider';
 
 export default function UserManagementPage() {
+  const { showToast } = useToast();
   const [users, setUsers] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
-  const [error, setError] = useState('');
   const [searchTerm, setSearchTerm] = useState('');
 
   useEffect(() => {
@@ -14,12 +15,15 @@ export default function UserManagementPage() {
 
   const fetchUsers = async () => {
     setIsLoading(true);
-    setError('');
     try {
       const data = await getAdminUsers();
       setUsers(Array.isArray(data) ? data : []);
     } catch (err) {
-      setError(err?.message || 'Không thể tải danh sách người dùng.');
+      showToast({
+        type: 'error',
+        title: 'Không thể tải người dùng',
+        message: err?.message || 'Vui lòng thử lại sau.'
+      });
     } finally {
       setIsLoading(false);
     }
@@ -42,13 +46,6 @@ export default function UserManagementPage() {
           Export CSV
         </button>
       </div>
-
-      {error && (
-        <div className="p-4 bg-rose-50 border border-rose-100 text-rose-600 rounded-xl text-sm flex items-center gap-2">
-          <XCircle className="h-5 w-5" />
-          {error}
-        </div>
-      )}
 
       <div className="bg-white rounded-2xl border border-stone-100 shadow-[0_2px_10px_rgba(0,0,0,0.02)] overflow-hidden">
         <div className="p-4 border-b border-stone-100 flex flex-col sm:flex-row gap-4 justify-between items-center bg-stone-50/30">

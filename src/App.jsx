@@ -30,6 +30,7 @@ import UserPricingPage from './features/user/pages/UserPricingPage';
 import UserProfilePage from './features/user/pages/UserProfilePage';
 import ChangePasswordPage from './features/user/pages/ChangePasswordPage';
 import { clearAuthSession, getAuthSession, isSessionValid } from './features/auth/services/authSession';
+import { ToastProvider } from './components/ui/ToastProvider';
 
 const IDLE_TIMEOUT_MS = 20 * 60 * 1000;
 
@@ -82,8 +83,9 @@ function IdleLogoutWatcher() {
 export default function App() {
   return (
     <Router>
-      <IdleLogoutWatcher />
-      <Routes>
+      <ToastProvider>
+        <IdleLogoutWatcher />
+        <Routes>
         <Route path="/" element={<HomePage />} />
         <Route path="/features" element={<FeaturesPage />} />
         <Route path="/pricing" element={<PricingPage />} />
@@ -122,7 +124,8 @@ export default function App() {
           </Route>
           <Route path="/change-password" element={<ChangePasswordPage />} />
         </Route>
-      </Routes>
+        </Routes>
+      </ToastProvider>
     </Router>
   );
 }

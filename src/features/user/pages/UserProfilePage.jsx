@@ -1,14 +1,14 @@
 import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
-import { User, Mail, Image as ImageIcon, ShieldCheck, CheckCircle2, AlertCircle, Camera } from 'lucide-react';
+import { User, Mail, ShieldCheck, Camera } from 'lucide-react';
 import { fetchMyProfile, updateMyProfile } from '../services/userApi';
+import { useToast } from '../../../components/ui/ToastProvider';
 
 export default function UserProfilePage() {
   const navigate = useNavigate();
+  const { showToast } = useToast();
   const [form, setForm] = useState({ fullName: '', email: '', avatarUrl: '' });
-  const [status, setStatus] = useState('');
-  const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
   const [fetching, setFetching] = useState(true);
 
@@ -21,24 +21,34 @@ export default function UserProfilePage() {
           avatarUrl: data?.avatarUrl || '',
         });
       })
-      .catch((err) => setError(err?.message || 'Không thể tải hồ sơ.'))
+      .catch((err) => {
+        showToast({
+          type: 'error',
+          title: 'Không thể tải hồ sơ',
+          message: err?.message || 'Vui lòng thử lại sau.'
+        });
+      })
       .finally(() => setFetching(false));
   }, []);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    setStatus('');
-    setError('');
     setLoading(true);
 
     try {
       const updated = await updateMyProfile({ fullName: form.fullName, avatarUrl: form.avatarUrl });
       setForm((prev) => ({ ...prev, fullName: updated?.fullName || prev.fullName, avatarUrl: updated?.avatarUrl || prev.avatarUrl }));
-      setStatus('Cập nhật hồ sơ thành công.');
-      // Auto clear status after 3s
-      setTimeout(() => setStatus(''), 3000);
+      showToast({
+        type: 'success',
+        title: 'Cập nhật thành công',
+        message: 'Thông tin hồ sơ đã được lưu.'
+      });
     } catch (err) {
-      setError(err?.message || 'Cập nhật hồ sơ thất bại.');
+      showToast({
+        type: 'error',
+        title: 'Cập nhật thất bại',
+        message: err?.message || 'Vui lòng thử lại sau.'
+      });
     } finally {
       setLoading(false);
     }
@@ -147,20 +157,6 @@ export default function UserProfilePage() {
                   <p className="text-xs text-stone-500 mt-1.5">Email này được dùng để đăng nhập và không thể thay đổi.</p>
                 </div>
 
-
-                {/* Status Messages */}
-                {status && (
-                  <div className="flex items-center gap-2 p-3 bg-emerald-50 text-emerald-700 text-sm rounded-lg border border-emerald-100">
-                    <CheckCircle2 className="h-5 w-5" />
-                    {status}
-                  </div>
-                )}
-                {error && (
-                  <div className="flex items-center gap-2 p-3 bg-rose-50 text-rose-700 text-sm rounded-lg border border-rose-100">
-                    <AlertCircle className="h-5 w-5" />
-                    {error}
-                  </div>
-                )}
 
                 {/* Actions */}
                 <div className="pt-4 flex items-center justify-end gap-3 border-t border-stone-100">

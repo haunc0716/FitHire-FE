@@ -1,7 +1,8 @@
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { AlertCircle, Check, ChevronRight, Crown, Loader2, Sparkles, Target, Zap, Smile, Timer, Rocket, Gem } from 'lucide-react';
+import { Check, ChevronRight, Crown, Loader2, Sparkles, Target, Zap, Smile, Timer, Rocket, Gem } from 'lucide-react';
 import { getAuthSession } from '../../auth/services/authSession';
+import { useToast } from '../../../components/ui/ToastProvider';
 import {
   checkoutSubscription,
   fetchMySubscriptions,
@@ -144,12 +145,11 @@ function buildFeatureLine(feature) {
 
 const PricingCards = () => {
   const navigate = useNavigate();
+  const { showToast } = useToast();
   const [plans, setPlans] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [error, setError] = useState('');
   const [busyPlanCode, setBusyPlanCode] = useState('');
   const [paymentActionLoading, setPaymentActionLoading] = useState(false);
-  const [statusMessage, setStatusMessage] = useState('');
   const [pendingPayment, setPendingPayment] = useState(null);
   const [activePlanCodes, setActivePlanCodes] = useState([]);
 
@@ -179,17 +179,20 @@ const PricingCards = () => {
 
   const loadPlans = useCallback(async () => {
     setLoading(true);
-    setError('');
     try {
       const data = await fetchPricingPlans();
       setPlans(Array.isArray(data) ? data : []);
       await refreshMySnapshot();
     } catch (apiError) {
-      setError(apiError?.message || 'Không thể tải bảng giá.');
+      showToast({
+        type: 'error',
+        title: 'Không thể tải bảng giá',
+        message: apiError?.message || 'Vui lòng thử lại sau.'
+      });
     } finally {
       setLoading(false);
     }
-  }, [refreshMySnapshot]);
+  }, [refreshMySnapshot, showToast]);
 
   useEffect(() => {
     loadPlans();
@@ -225,8 +228,7 @@ const PricingCards = () => {
       }
 
       setBusyPlanCode(plan.code);
-      setStatusMessage('');
-      setError('');
+      
 
       try {
         const checkout = await checkoutSubscription(plan.code, plan.billingType === 'RECURRING');
@@ -238,20 +240,32 @@ const PricingCards = () => {
             planCode: plan.code,
             planName: plan.name,
           });
-          setStatusMessage(`Đã tạo thanh toán #${payment.id} cho gói ${plan.name}. Chọn kết quả mô phỏng bên dưới.`);
+          showToast({
+            type: 'info',
+            title: 'Đã tạo thanh toán',
+            message: `Thanh toán #${payment.id} cho gói ${plan.name} đang PENDING.`
+          });
         } else {
           setPendingPayment(null);
-          setStatusMessage(`Đã kích hoạt gói ${plan.name} thành công.`);
+          showToast({
+            type: 'success',
+            title: 'Kích hoạt thành công',
+            message: `Gói ${plan.name} đã được kích hoạt.`
+          });
         }
 
         await refreshMySnapshot();
       } catch (apiError) {
-        setError(apiError?.message || 'Không thể tạo checkout.');
+        showToast({
+          type: 'error',
+          title: 'Không thể tạo checkout',
+          message: apiError?.message || 'Vui lòng thử lại sau.'
+        });
       } finally {
         setBusyPlanCode('');
       }
     },
-    [navigate, refreshMySnapshot]
+    [navigate, refreshMySnapshot, showToast]
   );
 
   const handlePaymentSimulation = useCallback(async (result) => {
@@ -260,24 +274,35 @@ const PricingCards = () => {
     }
 
     setPaymentActionLoading(true);
-    setError('');
 
     try {
       if (result === 'SUCCESS') {
         await simulatePaymentSuccess(pendingPayment.id);
-        setStatusMessage(`Thanh toán #${pendingPayment.id} thành công. Gói ${pendingPayment.planName} đã ACTIVE.`);
+        showToast({
+          type: 'success',
+          title: 'Thanh toán thành công',
+          message: `Gói ${pendingPayment.planName} đã ACTIVE.`
+        });
       } else {
         await simulatePaymentFailed(pendingPayment.id);
-        setStatusMessage(`Thanh toán #${pendingPayment.id} thất bại. Bạn có thể checkout lại.`);
+        showToast({
+          type: 'error',
+          title: 'Thanh toán thất bại',
+          message: `Bạn có thể checkout lại gói ${pendingPayment.planName}.`
+        });
       }
       setPendingPayment(null);
       await refreshMySnapshot();
     } catch (apiError) {
-      setError(apiError?.message || 'Không thể cập nhật trạng thái thanh toán.');
+      showToast({
+        type: 'error',
+        title: 'Không thể cập nhật thanh toán',
+        message: apiError?.message || 'Vui lòng thử lại sau.'
+      });
     } finally {
       setPaymentActionLoading(false);
     }
-  }, [pendingPayment, refreshMySnapshot]);
+  }, [pendingPayment, refreshMySnapshot, showToast]);
 
   /* ── Loading skeleton ─────────────────────────────────── */
   if (loading) {
@@ -297,30 +322,6 @@ const PricingCards = () => {
 
   return (
     <section className="mb-20">
-      {/* Error banner */}
-      {error ? (
-        <div className="mb-5 flex items-start gap-2 rounded-xl border border-rose-200 bg-rose-50 px-4 py-3 text-rose-700">
-          <AlertCircle className="mt-0.5 h-4 w-4 shrink-0" />
-          <div className="flex flex-wrap items-center gap-3 text-sm">
-            <span>{error}</span>
-            <button
-              type="button"
-              onClick={loadPlans}
-              className="rounded-full border border-rose-300 px-3 py-1 text-xs font-semibold hover:bg-rose-100"
-            >
-              Tải lại
-            </button>
-          </div>
-        </div>
-      ) : null}
-
-      {/* Status message */}
-      {statusMessage ? (
-        <div className="mb-5 rounded-xl border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm text-emerald-700">
-          {statusMessage}
-        </div>
-      ) : null}
-
       {/* Pending payment simulation */}
       {pendingPayment ? (
         <div className="mb-5 rounded-xl border border-amber-200 bg-amber-50 px-4 py-3">

@@ -2,9 +2,11 @@ import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Link, useNavigate } from 'react-router-dom';
 import { ArrowLeft, Mail, CheckCircle2, ShieldCheck } from 'lucide-react';
+import { useToast } from '../../../components/ui/ToastProvider';
 
 const ForgotPasswordPage = () => {
   const navigate = useNavigate();
+  const { showToast } = useToast();
   const [submitted, setSubmitted] = useState(false);
 
   // Framer Motion variants
@@ -185,7 +187,11 @@ const ForgotPasswordPage = () => {
                 <form 
                   onSubmit={(e) => { 
                     e.preventDefault(); 
-                    alert("Mật khẩu đã được cập nhật thành công!"); 
+                    showToast({
+                      type: 'success',
+                      title: 'Cập nhật thành công',
+                      message: 'Mật khẩu đã được cập nhật. Vui lòng đăng nhập lại.'
+                    });
                     navigate("/login"); 
                   }} 
                   className="space-y-6"

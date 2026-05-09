@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
-import { CreditCard, Download, ArrowUpRight, CheckCircle2, XCircle, Loader2, MoreVertical, Check, X } from 'lucide-react';
+import { CreditCard, Download, ArrowUpRight, Loader2, MoreVertical, Check, X } from 'lucide-react';
 import { markPaymentSuccess, markPaymentFailed } from '../services/paymentApi';
+import { useToast } from '../../../components/ui/ToastProvider';
 
 const initialTransactions = [
   { id: 'TRX-9823', user: 'Sarah Jenkins', plan: 'Premium Pro', amount: '$29.00', date: 'Today, 2:30 PM', status: 'COMPLETED' },
@@ -10,28 +11,38 @@ const initialTransactions = [
 ];
 
 export default function BillingPage() {
+  const { showToast } = useToast();
   const [transactions, setTransactions] = useState(initialTransactions);
   const [updatingId, setUpdatingId] = useState(null);
-  const [message, setMessage] = useState({ text: '', type: '' });
 
   const handleUpdateStatus = async (paymentId, success) => {
     setUpdatingId(paymentId);
-    setMessage({ text: '', type: '' });
     try {
       if (success) {
         await markPaymentSuccess(paymentId);
         setTransactions(prev => prev.map(t => t.id === paymentId ? { ...t, status: 'COMPLETED' } : t));
-        setMessage({ text: `Đã xác nhận thanh toán ${paymentId} thành công.`, type: 'success' });
+        showToast({
+          type: 'success',
+          title: 'Thanh toán thành công',
+          message: `Đã xác nhận thanh toán ${paymentId}.`
+        });
       } else {
         await markPaymentFailed(paymentId);
         setTransactions(prev => prev.map(t => t.id === paymentId ? { ...t, status: 'FAILED' } : t));
-        setMessage({ text: `Đã đánh dấu thanh toán ${paymentId} thất bại.`, type: 'error' });
+        showToast({
+          type: 'error',
+          title: 'Thanh toán thất bại',
+          message: `Đã đánh dấu thanh toán ${paymentId} thất bại.`
+        });
       }
     } catch (err) {
-      setMessage({ text: err?.message || 'Thao tác thất bại.', type: 'error' });
+      showToast({
+        type: 'error',
+        title: 'Thao tác thất bại',
+        message: err?.message || 'Vui lòng thử lại sau.'
+      });
     } finally {
       setUpdatingId(null);
-      setTimeout(() => setMessage({ text: '', type: '' }), 3000);
     }
   };
 
@@ -47,15 +58,6 @@ export default function BillingPage() {
           Download Report
         </button>
       </div>
-
-      {message.text && (
-        <div className={`p-4 rounded-xl text-sm font-medium border flex items-center gap-2 ${
-          message.type === 'success' ? 'bg-emerald-50 border-emerald-100 text-emerald-700' : 'bg-rose-50 border-rose-100 text-rose-700'
-        }`}>
-          {message.type === 'success' ? <CheckCircle2 className="h-5 w-5" /> : <XCircle className="h-5 w-5" />}
-          {message.text}
-        </div>
-      )}
 
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
         <div className="bg-white p-6 rounded-2xl border border-stone-100 shadow-[0_2px_10px_rgba(0,0,0,0.02)]">
