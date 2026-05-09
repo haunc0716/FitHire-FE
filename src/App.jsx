@@ -21,7 +21,6 @@ import ReportsPage from './features/admin/pages/ReportsPage';
 import AdminProfilePage from './features/admin/pages/AdminProfilePage';
 import PlanManagementPage from './features/admin/pages/PlanManagementPage';
 import UserLayout from './features/user/layouts/UserLayout';
-import UserDashboardPage from './features/user/pages/UserDashboardPage';
 import CvJdPage from './features/user/pages/CvJdPage';
 import CvManagerPage from './features/user/pages/CvManagerPage';
 import UserHistoryPage from './features/user/pages/UserHistoryPage';
