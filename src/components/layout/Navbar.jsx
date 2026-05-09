@@ -1,11 +1,12 @@
 import React, { useState, useEffect } from 'react';
 import { Link, useLocation } from 'react-router-dom';
-import { motion } from 'framer-motion';
 import { getAuthSession } from '../../features/auth/services/authSession';
+import UserHeader from '../../features/user/components/UserHeader';
 
 const Navbar = () => {
   const [isScrolled, setIsScrolled] = useState(false);
   const [isLoggedIn, setIsLoggedIn] = useState(false);
+  const [role, setRole] = useState(null);
   const location = useLocation();
 
   useEffect(() => {
@@ -15,10 +16,16 @@ const Navbar = () => {
     window.addEventListener('scroll', handleScroll);
     
     const session = getAuthSession();
-    setIsLoggedIn(!!(session?.accessToken && session.expiresAt > Date.now()));
+    const valid = !!(session?.accessToken && session.expiresAt > Date.now());
+    setIsLoggedIn(valid);
+    setRole(session?.user?.role);
     
     return () => window.removeEventListener('scroll', handleScroll);
   }, [location.pathname]);
+
+  if (isLoggedIn && role === 'USER') {
+    return <UserHeader />;
+  }
 
   const navLinks = [
     { name: 'Trang chủ', path: '/' },
@@ -35,8 +42,8 @@ const Navbar = () => {
       }`}
     >
       <div className="max-w-7xl mx-auto px-6 flex justify-between items-center">
-        <Link to="/" className="font-display text-2xl font-black tracking-tight text-primary">
-          FitHire
+        <Link to="/" className="font-display text-2xl font-black tracking-tight text-emerald-600">
+          Fit<span className="text-emerald-400">Hire</span>
         </Link>
 
         <div className="hidden md:flex items-center gap-8">
@@ -44,20 +51,20 @@ const Navbar = () => {
             <Link
               key={link.name}
               to={link.path}
-              className={`text-sm font-semibold transition-all hover:text-primary ${
-                location.pathname === link.path ? 'text-primary' : 'text-stone-500'
+              className={`text-sm font-semibold transition-all hover:text-emerald-600 ${
+                location.pathname === link.path ? 'text-emerald-600' : 'text-stone-500'
               }`}
             >
               {link.name}
             </Link>
           ))}
-          {isLoggedIn ? (
+          {isLoggedIn && role === 'ADMIN' ? (
             <Link to="/admin" className="btn-primary !py-2.5 !px-6 !text-xs bg-emerald-600 hover:bg-emerald-700">
-              Dashboard
+              Admin Dashboard
             </Link>
           ) : (
-            <Link to="/login" className="btn-primary !py-2.5 !px-6 !text-xs">
-              Bắt đầu
+            <Link to="/login" className="btn-primary !py-2.5 !px-6 !text-xs bg-emerald-600 hover:bg-emerald-700 text-white rounded-full">
+              Đăng nhập
             </Link>
           )}
         </div>

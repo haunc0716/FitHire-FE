@@ -23,11 +23,12 @@ import PlanManagementPage from './features/admin/pages/PlanManagementPage';
 import UserLayout from './features/user/layouts/UserLayout';
 import UserDashboardPage from './features/user/pages/UserDashboardPage';
 import CvJdPage from './features/user/pages/CvJdPage';
+import CvManagerPage from './features/user/pages/CvManagerPage';
+import UserHistoryPage from './features/user/pages/UserHistoryPage';
 import CulturalFitPage from './features/user/pages/CulturalFitPage';
 import MockInterviewPage from './features/user/pages/MockInterviewPage';
 import UserPricingPage from './features/user/pages/UserPricingPage';
 import UserProfilePage from './features/user/pages/UserProfilePage';
-import CvUploadPage from './features/user/pages/CvUploadPage';
 
 export default function App() {
   return (
@@ -60,13 +61,14 @@ export default function App() {
 
         <Route element={<RoleProtectedRoute allowedRoles={['USER']} />}>
           <Route path="/user" element={<UserLayout />}>
-            <Route index element={<UserDashboardPage />} />
+            <Route index element={<CvJdPage />} />
             <Route path="cv-jd" element={<CvJdPage />} />
+            <Route path="cv-manager" element={<CvManagerPage />} />
+            <Route path="history" element={<UserHistoryPage />} />
             <Route path="cultural-fit" element={<CulturalFitPage />} />
             <Route path="mock-interview" element={<MockInterviewPage />} />
             <Route path="pricing" element={<UserPricingPage />} />
             <Route path="profile" element={<UserProfilePage />} />
-            <Route path="cv-upload" element={<CvUploadPage />} />
           </Route>
         </Route>
       </Routes>

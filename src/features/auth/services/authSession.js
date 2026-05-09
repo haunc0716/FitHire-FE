@@ -1,7 +1,7 @@
 const AUTH_SESSION_KEY = 'fithire.auth.session';
 
 export function resolveHomeByRole(role) {
-  return role === 'ADMIN' ? '/admin' : '/user';
+  return role === 'ADMIN' ? '/admin' : '/';
 }
 
 export function saveAuthSession(authPayload) {
