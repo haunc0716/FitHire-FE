@@ -1,9 +1,10 @@
 import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { ArrowLeft, Mail, CheckCircle2 } from 'lucide-react';
 
 const ForgotPasswordPage = () => {
+  const navigate = useNavigate();
   const [submitted, setSubmitted] = useState(false);
 
   return (
@@ -32,29 +33,29 @@ const ForgotPasswordPage = () => {
               exit={{ opacity: 0, scale: 0.95 }}
             >
               <div className="mb-10">
-                <div className="w-12 h-12 bg-zinc-950 text-white flex items-center justify-center mb-6">
+                <div className="w-12 h-12 bg-primary text-white flex items-center justify-center mb-6">
                   <Mail className="w-6 h-6" />
                 </div>
-                <h1 className="text-3xl font-display font-bold text-zinc-950 mb-4">QUÊN MẬT KHẨU?</h1>
-                <p className="text-zinc-500 text-sm leading-relaxed">
+                <h1 className="text-3xl font-display font-bold text-stone-900 mb-4">QUÊN MẬT KHẨU?</h1>
+                <p className="text-stone-500 text-sm leading-relaxed">
                   Nhập địa chỉ email của bạn và chúng tôi sẽ gửi hướng dẫn để bạn đặt lại mật khẩu.
                 </p>
               </div>
 
               <form onSubmit={(e) => { e.preventDefault(); setSubmitted(true); }} className="space-y-8">
                 <div>
-                  <label className="text-[10px] font-bold uppercase tracking-widest text-zinc-400 block mb-2">Email Address</label>
+                  <label className="text-[10px] font-bold uppercase tracking-widest text-stone-400 block mb-2">Email Address</label>
                   <input 
                     type="email" 
                     required
                     placeholder="name@company.com"
-                    className="w-full px-4 py-4 border border-zinc-100 bg-zinc-50 focus:bg-white focus:border-zinc-950 outline-none transition-all text-sm"
+                    className="w-full px-4 py-4 border border-stone-100 bg-stone-50 focus:bg-white focus:border-primary outline-none transition-all text-sm rounded-xl"
                   />
                 </div>
 
                 <button 
                   type="submit"
-                  className="w-full bg-zinc-950 text-white py-4 font-bold uppercase tracking-widest text-xs hover:bg-zinc-800 transition-all shadow-xl shadow-zinc-900/10"
+                  className="w-full bg-primary text-white py-4 font-bold uppercase tracking-widest text-xs hover:bg-primary-dark transition-all shadow-xl shadow-primary/10 rounded-full"
                 >
                   Gửi yêu cầu khôi phục
                 </button>
@@ -62,24 +63,49 @@ const ForgotPasswordPage = () => {
             </motion.div>
           ) : (
             <motion.div
-              key="success"
+              key="reset-password"
               initial={{ opacity: 0, scale: 0.95 }}
               animate={{ opacity: 1, scale: 1 }}
-              className="text-center py-4"
+              className="py-4"
             >
-              <div className="w-20 h-20 bg-emerald-50 text-emerald-600 rounded-full flex items-center justify-center mx-auto mb-8">
-                <CheckCircle2 className="w-10 h-10" />
+              <div className="mb-10">
+                <div className="w-12 h-12 bg-primary text-white flex items-center justify-center mb-6">
+                  <CheckCircle2 className="w-6 h-6" />
+                </div>
+                <h1 className="text-3xl font-display font-bold text-stone-900 mb-4">ĐẶT LẠI MẬT KHẨU</h1>
+                <p className="text-stone-500 text-sm leading-relaxed">
+                  Tạo mật khẩu mới cho tài khoản của bạn. Đảm bảo mật khẩu đủ mạnh để bảo mật.
+                </p>
               </div>
-              <h2 className="text-2xl font-display font-bold text-zinc-950 mb-4">KIỂM TRA EMAIL</h2>
-              <p className="text-zinc-500 text-sm leading-relaxed mb-10">
-                Chúng tôi đã gửi một liên kết đặt lại mật khẩu đến địa chỉ email của bạn. Vui lòng kiểm tra hộp thư đến (và cả thư rác).
-              </p>
-              <button 
-                onClick={() => setSubmitted(false)}
-                className="text-zinc-950 font-bold text-sm hover:underline"
-              >
-                Không nhận được email? Thử lại
-              </button>
+
+              <form onSubmit={(e) => { e.preventDefault(); alert("Mật khẩu đã được cập nhật!"); navigate("/login"); }} className="space-y-8">
+                <div>
+                  <label className="text-[10px] font-bold uppercase tracking-widest text-stone-400 block mb-2">New Password</label>
+                  <input 
+                    type="password" 
+                    required
+                    placeholder="••••••••"
+                    className="w-full px-4 py-4 border border-stone-100 bg-stone-50 focus:bg-white focus:border-primary outline-none transition-all text-sm rounded-xl"
+                  />
+                </div>
+
+                <div>
+                  <label className="text-[10px] font-bold uppercase tracking-widest text-stone-400 block mb-2">Confirm New Password</label>
+                  <input 
+                    type="password" 
+                    required
+                    placeholder="••••••••"
+                    className="w-full px-4 py-4 border border-stone-100 bg-stone-50 focus:bg-white focus:border-primary outline-none transition-all text-sm rounded-xl"
+                  />
+                </div>
+
+                <button 
+                  type="submit"
+                  className="w-full bg-primary text-white py-4 font-bold uppercase tracking-widest text-xs hover:bg-primary-dark transition-all shadow-xl shadow-primary/10 rounded-full"
+                >
+                  Cập nhật mật khẩu
+                </button>
+              </form>
             </motion.div>
           )}
         </AnimatePresence>

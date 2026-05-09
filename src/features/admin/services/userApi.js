@@ -1,3 +1,5 @@
+import { getAuthSession } from '../../auth/services/authSession';
+
 const API_BASE_URL = (import.meta.env.VITE_API_BASE_URL ?? '').replace(/\/$/, '');
 
 function buildApiUrl(path) {
@@ -5,6 +7,17 @@ function buildApiUrl(path) {
     return `${API_BASE_URL}/${path}`;
   }
   return `${API_BASE_URL}${path}`;
+}
+
+function buildAuthHeaders() {
+  const session = getAuthSession();
+  if (!session?.accessToken || Number(session.expiresAt) <= Date.now()) {
+    throw new Error('Phiên đăng nhập đã hết hạn. Vui lòng đăng nhập lại.');
+  }
+  return {
+    Authorization: `${session.tokenType ?? 'Bearer'} ${session.accessToken}`,
+    'Content-Type': 'application/json',
+  };
 }
 
 async function parseJsonSafely(response) {
@@ -24,13 +37,11 @@ async function requestJson(path, options = {}) {
   try {
     response = await fetch(buildApiUrl(path), {
       credentials: 'include',
-      headers: {
-        'Content-Type': 'application/json',
-        ...(options.headers ?? {}),
-      },
+      headers: buildAuthHeaders(),
       ...options,
     });
-  } catch {
+  } catch (error) {
+    if (error.message.includes('đăng nhập')) throw error;
     throw new Error('Không thể kết nối tới máy chủ. Vui lòng thử lại.');
   }
 

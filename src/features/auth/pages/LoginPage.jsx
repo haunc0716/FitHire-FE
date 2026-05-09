@@ -102,36 +102,78 @@ const LoginPage = () => {
     };
   }, [handleGoogleCredential]);
 
+  // Framer Motion variants for staggered children
+  const containerVariants = {
+    hidden: { opacity: 0 },
+    visible: {
+      opacity: 1,
+      transition: {
+        staggerChildren: 0.1,
+        delayChildren: 0.3
+      }
+    }
+  };
+
+  const itemVariants = {
+    hidden: { opacity: 0, y: 20 },
+    visible: { 
+      opacity: 1, 
+      y: 0,
+      transition: { duration: 0.8, ease: [0.22, 1, 0.36, 1] }
+    }
+  };
+
   return (
     <div className="min-h-screen bg-warm-bg flex flex-col md:flex-row overflow-hidden font-body">
+      {/* Left side: Hero Section */}
       <motion.div
         initial={{ opacity: 0, x: -40 }}
         animate={{ opacity: 1, x: 0 }}
         transition={{ duration: 0.8, ease: [0.22, 1, 0.36, 1] }}
         className="hidden md:flex md:w-1/2 bg-pale p-12 lg:p-16 flex-col relative overflow-hidden items-center justify-center border-r border-stone-200/50"
       >
+        {/* Floating Bubble Background Elements */}
         <div className="absolute inset-0 overflow-hidden pointer-events-none">
-          <div className="absolute top-[-10%] right-[-10%] w-[500px] h-[500px] bg-primary/10 rounded-full blur-[100px]" />
-          <div className="absolute bottom-[-10%] left-[-10%] w-[400px] h-[400px] bg-primary-light/10 rounded-full blur-[80px]" />
+          <motion.div 
+            animate={{ 
+              y: [0, -30, 0],
+              scale: [1, 1.1, 1],
+            }}
+            transition={{ duration: 8, repeat: Infinity, ease: "easeInOut" }}
+            className="absolute top-[5%] right-[15%] w-[400px] h-[400px] bg-primary/10 rounded-full blur-[100px]" 
+          />
+          <motion.div 
+            animate={{ 
+              y: [0, 40, 0],
+              scale: [1, 1.05, 1],
+            }}
+            transition={{ duration: 12, repeat: Infinity, ease: "easeInOut", delay: 1 }}
+            className="absolute bottom-[10%] left-[5%] w-[350px] h-[350px] bg-primary-light/10 rounded-full blur-[80px]" 
+          />
+          <div className="absolute top-[30%] left-[-5%] w-[200px] h-[200px] bg-emerald-100/30 rounded-full blur-[60px]" />
         </div>
 
         <Link
           to="/"
-          className="absolute top-12 left-12 text-stone-900 font-display text-2xl font-bold tracking-tighter z-10 flex items-center gap-2"
+          className="absolute top-12 left-12 text-stone-900 font-display text-2xl font-bold tracking-tighter z-20 flex items-center gap-2"
         >
           <ArrowLeft className="w-5 h-5 text-stone-400 hover:text-stone-900 transition-colors" />
           FITHIRE
         </Link>
 
-        <div className="relative z-10 w-full max-w-lg flex flex-col items-center text-center mt-8">
-          <div className="relative mb-10 w-full max-w-[320px] aspect-square">
+        <div className="relative z-10 w-full max-w-lg flex flex-col items-center text-center">
+          <motion.div 
+            animate={{ y: [0, -15, 0] }}
+            transition={{ duration: 6, repeat: Infinity, ease: "easeInOut" }}
+            className="relative mb-12 w-full max-w-[340px] aspect-square"
+          >
             <div className="absolute inset-0 bg-primary/20 rounded-full blur-[60px] animate-pulse" />
             <img
               src="/images/success-human.png"
               alt="FitHire User"
-              className="relative z-10 w-full h-full object-contain drop-shadow-2xl"
+              className="relative z-10 w-full h-full object-contain drop-shadow-[0_20px_50px_rgba(21,128,61,0.15)]"
             />
-          </div>
+          </motion.div>
 
           <div className="flex items-center justify-center gap-3 mb-6">
             <div className="w-10 h-[2px] bg-primary rounded-full"></div>
@@ -151,37 +193,50 @@ const LoginPage = () => {
         </div>
       </motion.div>
 
+      {/* Right side: Login Form */}
       <motion.div
-        initial={{ opacity: 0, x: 40 }}
-        animate={{ opacity: 1, x: 0 }}
-        transition={{ duration: 0.8, ease: [0.22, 1, 0.36, 1] }}
+        variants={containerVariants}
+        initial="hidden"
+        animate="visible"
         className="flex-1 px-6 py-10 md:px-20 md:py-16 lg:px-24 flex flex-col justify-center bg-white"
       >
-        <div className="max-w-md w-full mx-auto flex flex-col items-center text-center">
-          <Link
-            to="/"
-            className="md:hidden self-start inline-flex items-center gap-2 text-stone-500 hover:text-stone-900 transition-colors mb-12 text-sm font-medium"
-          >
-            <ArrowLeft className="w-4 h-4" />
-            Quay lại trang chủ
-          </Link>
+        <div className="max-w-md w-full mx-auto">
+          <motion.div variants={itemVariants} className="text-center md:text-left mb-10">
+            <Link
+              to="/"
+              className="md:hidden self-start inline-flex items-center gap-2 text-stone-500 hover:text-stone-900 transition-colors mb-12 text-sm font-medium"
+            >
+              <ArrowLeft className="w-4 h-4" />
+              Quay lại trang chủ
+            </Link>
 
-          <div className="mb-10">
-            <h1 className="text-3xl md:text-4xl font-display font-bold text-stone-900 mb-4">Đăng nhập FitHire</h1>
+            <h1 className="text-3xl md:text-4xl font-display font-bold text-stone-900 mb-4 uppercase tracking-tight">Đăng nhập</h1>
             <p className="text-stone-500 text-base leading-relaxed">
-              Sử dụng tài khoản Google để tiếp tục. <br /> Không cần tạo mật khẩu, an toàn tuyệt đối.
+              Chào mừng bạn quay trở lại. <br /> Đăng nhập để tiếp tục hành trình sự nghiệp.
             </p>
-          </div>
+          </motion.div>
 
           <div className="w-full space-y-6">
             <form onSubmit={handleEmailSubmit} className="space-y-4 text-left w-full mb-6">
               <div>
-                <label className="block text-sm font-semibold text-stone-700 mb-1.5">Tài khoản Gmail</label>
+                <label className="block text-sm font-semibold text-stone-700 mb-1.5">Tài khoản Gmail / Email</label>
                 <input
                   type="email"
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
                   placeholder="name@gmail.com"
+                  className="w-full px-4 py-3 rounded-xl border border-stone-200 bg-stone-50 focus:bg-white focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all text-stone-900 placeholder:text-stone-400"
+                  required
+                />
+              </div>
+              <div>
+                <div className="flex items-center justify-between mb-1.5">
+                  <label className="block text-sm font-semibold text-stone-700">Mật khẩu</label>
+                  <Link to="/forgot-password" className="text-xs font-semibold text-primary hover:text-primary-dark">Quên mật khẩu?</Link>
+                </div>
+                <input
+                  type="password"
+                  placeholder="••••••••"
                   className="w-full px-4 py-3 rounded-xl border border-stone-200 bg-stone-50 focus:bg-white focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all text-stone-900 placeholder:text-stone-400"
                   required
                 />
@@ -194,16 +249,16 @@ const LoginPage = () => {
               </button>
             </form>
 
-            <div className="relative my-6">
+            <motion.div variants={itemVariants} className="relative my-8">
               <div className="absolute inset-0 flex items-center">
-                <div className="w-full border-t border-stone-200"></div>
+                <div className="w-full border-t border-stone-100"></div>
               </div>
-              <div className="relative flex justify-center text-sm">
-                <span className="px-4 bg-white text-stone-500 font-medium">Hoặc đăng nhập nhanh bằng</span>
+              <div className="relative flex justify-center text-[10px] font-bold uppercase tracking-widest">
+                <span className="px-4 bg-white text-stone-400">Hoặc đăng nhập nhanh bằng</span>
               </div>
-            </div>
+            </motion.div>
 
-            <div className="flex flex-col items-center">
+            <motion.div variants={itemVariants} className="flex flex-col items-center">
               <div
                 className={`transition-opacity ${isSubmitting ? 'pointer-events-none opacity-60' : ''
                   }`}
@@ -212,31 +267,36 @@ const LoginPage = () => {
               </div>
 
               {!isGoogleReady && !errorMessage && (
-                <div className="text-xs text-stone-400 mt-3 flex items-center gap-2">
+                <div className="text-[10px] font-bold text-stone-400 mt-3 flex items-center gap-2 uppercase tracking-widest">
                   <div className="w-3 h-3 border-2 border-stone-300 border-t-primary rounded-full animate-spin" />
-                  Đang tải Google Sign-In...
+                  Đang tải Google...
                 </div>
               )}
-            </div>
+            </motion.div>
 
             {statusMessage && (
-              <motion.div initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }} className="flex items-start gap-2 rounded-xl border border-emerald-200 bg-emerald-50 px-4 py-3 text-emerald-700 mt-4 text-left">
+              <motion.div initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }} className="flex items-start gap-2 rounded-2xl border border-emerald-100 bg-emerald-50/50 px-4 py-3 text-emerald-700 mt-6 text-left">
                 <CheckCircle2 className="w-5 h-5 mt-0.5 shrink-0" />
                 <span className="text-sm font-medium">{statusMessage}</span>
               </motion.div>
             )}
 
             {errorMessage && (
-              <motion.div initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }} className="flex items-start gap-2 rounded-xl border border-rose-200 bg-rose-50 px-4 py-3 text-rose-700 mt-4 text-left">
+              <motion.div initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }} className="flex items-start gap-2 rounded-2xl border border-rose-100 bg-rose-50/50 px-4 py-3 text-rose-700 mt-6 text-left">
                 <AlertCircle className="w-5 h-5 mt-0.5 shrink-0" />
                 <span className="text-sm font-medium">{errorMessage}</span>
               </motion.div>
             )}
           </div>
 
-          <p className="mt-12 text-xs text-stone-400">
-            Bằng việc đăng nhập, bạn đồng ý với <Link to="#" className="underline hover:text-stone-600">Điều khoản dịch vụ</Link> và <Link to="#" className="underline hover:text-stone-600">Chính sách bảo mật</Link> của chúng tôi.
-          </p>
+          <motion.p variants={itemVariants} className="mt-10 text-center text-sm text-stone-500">
+            Chưa có tài khoản?{' '}
+            <Link to="/register" className="text-primary font-bold hover:underline">Đăng ký ngay</Link>
+          </motion.p>
+
+          <motion.p variants={itemVariants} className="mt-12 text-center text-[10px] text-stone-400 leading-relaxed max-w-xs mx-auto">
+            Bằng việc đăng nhập, bạn đồng ý với <Link to="#" className="underline hover:text-stone-600">Điều khoản dịch vụ</Link> và <Link to="#" className="underline hover:text-stone-600">Chính sách bảo mật</Link> của FitHire.
+          </motion.p>
         </div>
       </motion.div>
     </div>
