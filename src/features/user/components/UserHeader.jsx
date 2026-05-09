@@ -15,6 +15,7 @@ import {
   Crown
 } from 'lucide-react';
 import { getAuthSession, clearAuthSession } from '../../auth/services/authSession';
+import { fetchMyProfile } from '../services/userApi';
 
 const navGroups = [
   {
@@ -42,10 +43,21 @@ export default function UserHeader() {
   // State for dropdowns
   const [activeDropdown, setActiveDropdown] = useState(null); 
   
+  const [userProfile, setUserProfile] = useState(null);
+  
   const headerRef = useRef(null);
 
-  const userLabel = useMemo(() => session?.user?.fullName || 'Người dùng', [session]);
+  const userLabel = useMemo(() => userProfile?.fullName || session?.user?.fullName || 'Người dùng', [userProfile, session]);
+  const avatarUrl = useMemo(() => userProfile?.avatarUrl || session?.user?.avatarUrl, [userProfile, session]);
   const avatarInitial = useMemo(() => (userLabel?.trim()?.charAt(0) || 'U').toUpperCase(), [userLabel]);
+
+  useEffect(() => {
+    if (session?.accessToken) {
+      fetchMyProfile()
+        .then(data => setUserProfile(data))
+        .catch(() => {});
+    }
+  }, [session?.accessToken]);
 
   useEffect(() => {
     function onClickOutside(event) {
@@ -160,8 +172,12 @@ export default function UserHeader() {
               onMouseLeave={() => setActiveDropdown(null)}
             >
               <div className="flex items-center gap-2 cursor-pointer py-2 px-1">
-                <div className="flex h-9 w-9 items-center justify-center rounded-full bg-stone-100 text-sm font-bold text-stone-700 border-2 border-white ring-2 ring-[#00b14f] shadow-sm hover:ring-[#009b45] transition-all">
-                  {avatarInitial}
+                <div className="flex h-9 w-9 items-center justify-center rounded-full bg-stone-100 text-sm font-bold text-stone-700 border-2 border-white ring-2 ring-[#00b14f] shadow-sm hover:ring-[#009b45] transition-all overflow-hidden">
+                  {avatarUrl ? (
+                    <img src={avatarUrl} alt={userLabel} className="h-full w-full object-cover" />
+                  ) : (
+                    avatarInitial
+                  )}
                 </div>
                 <div className="hidden lg:flex flex-col pl-1">
                   <span className="text-[11px] font-semibold text-stone-500 leading-none mb-1">Tài khoản</span>
@@ -224,8 +240,12 @@ export default function UserHeader() {
 
             <div className="p-4 bg-stone-50 border-b border-stone-100">
               <div className="flex items-center gap-3">
-                <div className="flex h-12 w-12 items-center justify-center rounded-full bg-white font-bold text-stone-700 border border-stone-200 shadow-sm">
-                  {avatarInitial}
+                <div className="flex h-12 w-12 items-center justify-center rounded-full bg-white font-bold text-stone-700 border border-stone-200 shadow-sm overflow-hidden">
+                  {avatarUrl ? (
+                    <img src={avatarUrl} alt={userLabel} className="h-full w-full object-cover" />
+                  ) : (
+                    avatarInitial
+                  )}
                 </div>
                 <div>
                   <p className="font-bold text-stone-900">{userLabel}</p>
