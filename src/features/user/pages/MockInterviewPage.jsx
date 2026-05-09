@@ -19,10 +19,47 @@ export default function MockInterviewPage() {
   ]);
   const [userInput, setUserInput] = useState('');
   const [history, setHistory] = useState([
-    { id: 1, role: 'Frontend Developer', date: '08/05/2026', score: 85 },
-    { id: 2, role: 'React Developer', date: '05/05/2026', score: 72 }
+    {
+      id: 1,
+      role: 'Frontend Developer',
+      date: '08/05/2026',
+      score: 85,
+      duration: '24:45',
+      turns: 12,
+      detail: 'Mở đầu tự tin, nêu rõ 2 dự án nổi bật. Kỹ thuật React tốt, nhưng phần tối ưu hiệu năng còn thiếu ví dụ cụ thể. Khuyến nghị luyện thêm phần đo lường và giải thích trade-off.',
+      transcript: [
+        { role: 'AI', text: 'Chào bạn! Hãy giới thiệu ngắn gọn về bản thân.' },
+        { role: 'User', text: 'Mình là Frontend Developer với 3 năm kinh nghiệm, tập trung vào React và tối ưu UI.' },
+        { role: 'AI', text: 'Bạn có thể kể về một dự án nổi bật gần đây?' },
+        { role: 'User', text: 'Mình xây dựng dashboard cho đội sales, tối ưu hiệu năng và trải nghiệm tương tác.' }
+      ],
+      aiEvaluation: {
+        summary: 'Giao tiếp rõ ràng, mạch lạc. Cần bổ sung số liệu và trade-off kỹ thuật khi nói về tối ưu hiệu năng.',
+        strengths: ['Mạch lạc', 'Tập trung vào người dùng', 'Nắm chắc React cơ bản'],
+        improvements: ['Bổ sung số liệu hiệu năng', 'Nêu rõ trade-off và lý do lựa chọn']
+      }
+    },
+    {
+      id: 2,
+      role: 'React Developer',
+      date: '05/05/2026',
+      score: 72,
+      duration: '18:20',
+      turns: 8,
+      detail: 'Trả lời đúng trọng tâm nhưng thiếu cấu trúc STAR ở phần behavioral. Cần làm rõ vai trò cá nhân, kết quả định lượng và bài học rút ra.',
+      transcript: [
+        { role: 'AI', text: 'Hãy chia sẻ cách bạn xử lý conflict trong team.' },
+        { role: 'User', text: 'Mình trao đổi thẳng thắn với team, đưa ra dữ liệu và thống nhất cách làm.' }
+      ],
+      aiEvaluation: {
+        summary: 'Có tinh thần hợp tác, nhưng thiếu cấu trúc STAR và kết quả định lượng.',
+        strengths: ['Thái độ hợp tác', 'Giải thích rõ ràng'],
+        improvements: ['Cấu trúc STAR', 'Đưa ví dụ định lượng']
+      }
+    }
   ]);
   const [activeTab, setActiveTab] = useState('config');
+  const [selectedHistory, setSelectedHistory] = useState(null);
 
   const videoRef = useRef(null);
   const transcriptEndRef = useRef(null);
@@ -64,6 +101,8 @@ export default function MockInterviewPage() {
       score: Math.floor(Math.random() * 40) + 60
     };
     setHistory([newEntry, ...history]);
+    setPlan(null);
+    setActiveTab('config');
   };
 
   const handleSendMessage = (e) => {
@@ -76,6 +115,11 @@ export default function MockInterviewPage() {
         role: 'AI', text: 'Tôi hiểu rồi. Bạn có thể giải thích chi tiết hơn không?'
       }]);
     }, 1200);
+  };
+
+  const handleResetPlan = () => {
+    setPlan(null);
+    setActiveTab('config');
   };
 
   return (
@@ -99,20 +143,13 @@ export default function MockInterviewPage() {
             </p>
           </div>
 
-          <div className="flex bg-white/40 backdrop-blur-sm p-1 rounded-xl border border-white shadow-sm h-fit">
-            <button
-              onClick={() => setActiveTab('config')}
-              className={`px-5 py-2 rounded-lg text-xs font-bold transition-all ${activeTab === 'config' ? 'bg-white text-emerald-700 shadow-md' : 'text-slate-400'}`}
-            >
-              Phiên mới
-            </button>
-            <button
-              onClick={() => setActiveTab('history')}
-              className={`px-5 py-2 rounded-lg text-xs font-bold transition-all ${activeTab === 'history' ? 'bg-white text-emerald-700 shadow-md' : 'text-slate-400'}`}
-            >
-              Lịch sử
-            </button>
-          </div>
+          <button
+            onClick={() => setActiveTab(activeTab === 'history' ? 'config' : 'history')}
+            className="inline-flex items-center gap-2 text-base font-bold text-emerald-700 hover:text-emerald-800 transition-all"
+          >
+            {activeTab === 'history' ? 'Quay lại phiên mới' : 'Lịch sử'}
+            <ArrowRight size={16} className="translate-y-[1px]" />
+          </button>
         </div>
 
         <AnimatePresence mode="wait">
@@ -165,14 +202,101 @@ export default function MockInterviewPage() {
                   </div>
                   <h4 className="font-bold text-sm text-slate-900 mb-1">{item.role}</h4>
                   <p className="text-[10px] text-zinc-400 mb-4">{item.date}</p>
-                  <button className="w-full bg-emerald-600 text-white py-2.5 rounded-xl text-[10px] font-bold uppercase shadow-md shadow-emerald-600/10">Chi tiết</button>
+                  <button
+                    onClick={() => {
+                      setSelectedHistory(item);
+                      setActiveTab('historyDetail');
+                    }}
+                    className="w-full bg-emerald-600 text-white py-2.5 rounded-xl text-[10px] font-bold uppercase shadow-md shadow-emerald-600/10"
+                  >
+                    Chi tiết
+                  </button>
                 </div>
               ))}
             </motion.div>
+          ) : activeTab === 'historyDetail' && selectedHistory ? (
+            <motion.div key="histDetail" initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="space-y-6">
+              <div className="rounded-2xl border border-emerald-100 bg-gradient-to-r from-emerald-50 via-emerald-50/60 to-white shadow-sm px-5 py-4">
+                <p className="text-[10px] font-bold text-emerald-700 uppercase tracking-widest">Lịch sử phỏng vấn</p>
+                <h3 className="text-lg font-bold text-slate-900 mt-1">{selectedHistory.role}</h3>
+                <div className="mt-2 flex flex-wrap items-center gap-2 text-xs text-emerald-700">
+                  <span className="rounded-full border border-emerald-200 bg-white px-2.5 py-1 font-semibold">{selectedHistory.date}</span>
+                  <span className="rounded-full border border-emerald-200 bg-white px-2.5 py-1 font-semibold">{selectedHistory.score}%</span>
+                  <span className="rounded-full border border-emerald-200 bg-white px-2.5 py-1 font-semibold">{selectedHistory.duration}</span>
+                  <span className="rounded-full border border-emerald-200 bg-white px-2.5 py-1 font-semibold">{selectedHistory.turns} lượt hỏi</span>
+                </div>
+              </div>
+
+              <div className="grid lg:grid-cols-2 gap-6">
+                <div className="bg-emerald-50/40 rounded-2xl border border-emerald-100 shadow-sm overflow-hidden">
+                  <div className="px-5 py-3 border-b border-slate-100 bg-slate-50/50 flex items-center justify-between">
+                    <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Ghi am cuoc phong van</span>
+                    <Mic2 size={16} className="text-slate-300" />
+                  </div>
+                  <div className="p-5 space-y-3 text-sm">
+                    {selectedHistory.transcript.map((msg, i) => (
+                      <div key={i} className={`flex ${msg.role === 'User' ? 'justify-end' : 'justify-start'}`}>
+                        <div className={`max-w-[85%] rounded-xl px-3 py-2 ${msg.role === 'User' ? 'bg-emerald-600 text-white' : 'bg-emerald-50 text-emerald-900 border border-emerald-100'}`}>
+                          {msg.text}
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+
+                <div className="bg-white rounded-2xl border border-slate-200 shadow-sm p-5">
+                  <div className="flex items-center gap-2 mb-3">
+                    <CheckCircle2 size={18} className="text-emerald-600" />
+                    <p className="text-sm font-bold text-slate-900">Danh gia AI</p>
+                  </div>
+                  <p className="text-sm text-slate-700 leading-relaxed mb-4">
+                    {selectedHistory.aiEvaluation.summary}
+                  </p>
+                  <div className="mb-4 grid grid-cols-3 gap-3 text-center">
+                    <div className="rounded-xl border border-emerald-100 bg-emerald-50/60 py-2">
+                      <p className="text-xs text-emerald-700 font-semibold">Giao tiep</p>
+                      <p className="text-lg font-bold text-emerald-700">{Math.min(95, selectedHistory.score + 5)}%</p>
+                    </div>
+                    <div className="rounded-xl border border-emerald-100 bg-emerald-50/60 py-2">
+                      <p className="text-xs text-emerald-700 font-semibold">Ky thuat</p>
+                      <p className="text-lg font-bold text-emerald-700">{Math.max(60, selectedHistory.score - 10)}%</p>
+                    </div>
+                    <div className="rounded-xl border border-emerald-100 bg-emerald-50/60 py-2">
+                      <p className="text-xs text-emerald-700 font-semibold">Tu duy</p>
+                      <p className="text-lg font-bold text-emerald-700">{selectedHistory.score}%</p>
+                    </div>
+                  </div>
+                  <div className="grid sm:grid-cols-2 gap-4">
+                    <div>
+                      <p className="text-xs font-bold text-emerald-700 mb-2">Diem manh</p>
+                      <ul className="text-sm text-slate-700 space-y-1">
+                        {selectedHistory.aiEvaluation.strengths.map((item, i) => (
+                          <li key={i} className="flex items-start gap-2">
+                            <span className="mt-1 h-1.5 w-1.5 rounded-full bg-emerald-400" />
+                            <span>{item}</span>
+                          </li>
+                        ))}
+                      </ul>
+                    </div>
+                    <div>
+                      <p className="text-xs font-bold text-rose-600 mb-2">Can cai thien</p>
+                      <ul className="text-sm text-slate-700 space-y-1">
+                        {selectedHistory.aiEvaluation.improvements.map((item, i) => (
+                          <li key={i} className="flex items-start gap-2">
+                            <span className="mt-1 h-1.5 w-1.5 rounded-full bg-rose-400" />
+                            <span>{item}</span>
+                          </li>
+                        ))}
+                      </ul>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </motion.div>
           ) : (
             <motion.div key="cfg" initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="grid lg:grid-cols-12 gap-6 items-stretch">
-              <div className="lg:col-span-5 flex flex-col">
-                <div className="bg-white rounded-2xl border border-slate-200 p-6 shadow-sm flex-1 flex flex-col gap-6">
+              <div className="lg:col-span-5 flex flex-col relative">
+                <div className={plan ? 'bg-white rounded-2xl border border-slate-200 p-6 shadow-sm flex-1 flex flex-col gap-6 opacity-60 select-none' : 'bg-white rounded-2xl border border-slate-200 p-6 shadow-sm flex-1 flex flex-col gap-6'}>
                   <h2 className="text-sm font-bold text-slate-900 border-b border-slate-100 pb-3">Cấu hình phỏng vấn</h2>
 
                   <form onSubmit={handleGenerate} className="flex flex-col gap-5 flex-1">
@@ -201,6 +325,9 @@ export default function MockInterviewPage() {
                     </div>
                   </form>
                 </div>
+                {plan && (
+                  <div className="absolute inset-0 rounded-2xl bg-white/40 backdrop-blur-[1px] border border-slate-200 pointer-events-auto" />
+                )}
               </div>
 
               <div className="lg:col-span-7 flex flex-col">
@@ -215,9 +342,18 @@ export default function MockInterviewPage() {
                 ) : (
                   <motion.div initial={{ scale: 0.98 }} animate={{ scale: 1 }} className="bg-emerald-50/30 backdrop-blur-md rounded-2xl border border-emerald-100 p-6 shadow-xl flex-1 flex flex-col">
                     <div className="flex-1">
-                      <div className="flex items-center gap-2 mb-6">
-                        <CheckCircle2 size={18} className="text-emerald-600" />
-                        <span className="text-xs font-bold text-emerald-700 tracking-tight">Kịch bản sẵn sàng</span>
+                      <div className="flex items-center justify-between gap-3 mb-6">
+                        <div className="flex items-center gap-2">
+                          <CheckCircle2 size={18} className="text-emerald-600" />
+                          <span className="text-xs font-bold text-emerald-700 tracking-tight">Kịch bản sẵn sàng</span>
+                        </div>
+                        <button
+                          type="button"
+                          onClick={handleResetPlan}
+                          className="inline-flex items-center gap-2 rounded-full bg-emerald-600 px-4 py-2 text-xs font-bold text-white shadow-lg shadow-emerald-600/30 hover:bg-emerald-700 transition-all"
+                        >
+                          <Trash2 size={14} /> Quay lại tạo mới
+                        </button>
                       </div>
                       <h2 className="text-2xl font-bold text-slate-900 mb-1 tracking-tight">{plan.role}</h2>
                       <p className="text-xs font-medium text-slate-500 mb-8">Cấp độ: {plan.level}</p>
