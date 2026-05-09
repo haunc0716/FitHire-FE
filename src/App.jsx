@@ -1,5 +1,5 @@
-import React from 'react';
-import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
+import React, { useEffect, useRef } from 'react';
+import { BrowserRouter as Router, Routes, Route, useLocation, useNavigate } from 'react-router-dom';
 import HomePage from './features/landing/pages/HomePage';
 import FeaturesPage from './features/landing/pages/FeaturesPage';
 import PricingPage from './features/pricing/pages/PricingPage';
@@ -29,10 +29,60 @@ import MockInterviewPage from './features/user/pages/MockInterviewPage';
 import UserPricingPage from './features/user/pages/UserPricingPage';
 import UserProfilePage from './features/user/pages/UserProfilePage';
 import ChangePasswordPage from './features/user/pages/ChangePasswordPage';
+import { clearAuthSession, getAuthSession, isSessionValid } from './features/auth/services/authSession';
+
+const IDLE_TIMEOUT_MS = 20 * 60 * 1000;
+
+function IdleLogoutWatcher() {
+  const navigate = useNavigate();
+  const location = useLocation();
+  const timerRef = useRef(null);
+
+  useEffect(() => {
+    const resetTimer = () => {
+      if (timerRef.current) {
+        clearTimeout(timerRef.current);
+      }
+
+      const session = getAuthSession();
+      if (!isSessionValid(session)) {
+        return;
+      }
+
+      timerRef.current = setTimeout(() => {
+        clearAuthSession();
+        navigate('/login', { replace: true });
+      }, IDLE_TIMEOUT_MS);
+    };
+
+    const events = ['mousemove', 'mousedown', 'keydown', 'scroll', 'touchstart', 'click'];
+    events.forEach((eventName) => window.addEventListener(eventName, resetTimer, { passive: true }));
+
+    const handleVisibility = () => {
+      if (!document.hidden) {
+        resetTimer();
+      }
+    };
+
+    document.addEventListener('visibilitychange', handleVisibility);
+    resetTimer();
+
+    return () => {
+      if (timerRef.current) {
+        clearTimeout(timerRef.current);
+      }
+      events.forEach((eventName) => window.removeEventListener(eventName, resetTimer));
+      document.removeEventListener('visibilitychange', handleVisibility);
+    };
+  }, [location.pathname, navigate]);
+
+  return null;
+}
 
 export default function App() {
   return (
     <Router>
+      <IdleLogoutWatcher />
       <Routes>
         <Route path="/" element={<HomePage />} />
         <Route path="/features" element={<FeaturesPage />} />
