@@ -2,7 +2,7 @@ import React, { useCallback, useEffect, useRef, useState } from 'react';
 import { motion } from 'framer-motion';
 import { Link, useNavigate } from 'react-router-dom';
 import { ArrowLeft } from 'lucide-react';
-import { loginWithGoogle } from '../services/authApi';
+import { loginWithEmailPassword, loginWithGoogle } from '../services/authApi';
 import { useToast } from '../../../components/ui/ToastProvider';
 import {
   getAuthSession,
@@ -17,6 +17,15 @@ import {
 } from '../services/googleIdentityService';
 
 const googleClientId = (import.meta.env.VITE_GOOGLE_CLIENT_ID ?? '').trim();
+const verificationKeywords = ['xác thực', 'verification'];
+
+const shouldRedirectToVerify = (message) => {
+  if (!message) {
+    return false;
+  }
+  const normalized = String(message).toLowerCase();
+  return verificationKeywords.some((keyword) => normalized.includes(keyword));
+};
 
 const LoginPage = () => {
   const navigate = useNavigate();
@@ -26,14 +35,53 @@ const LoginPage = () => {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [googleInitFailed, setGoogleInitFailed] = useState(false);
   const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
 
-  const handleEmailSubmit = (e) => {
+  const handleEmailSubmit = async (e) => {
     e.preventDefault();
+    if (!email || !password) {
+      showToast({
+        type: 'warning',
+        title: 'Thiếu thông tin',
+        message: 'Vui lòng nhập email và mật khẩu.'
+      });
+      return;
+    }
+
+    setIsSubmitting(true);
     showToast({
-      type: 'warning',
-      title: 'Chưa hỗ trợ',
-      message: 'Vui lòng click vào nút Google bên dưới để tiếp tục.'
+      type: 'info',
+      title: 'Đang đăng nhập',
+      message: 'Vui lòng chờ trong giây lát.'
     });
+
+    try {
+      const authPayload = await loginWithEmailPassword({ email, password });
+      const session = saveAuthSession(authPayload);
+      showToast({
+        type: 'success',
+        title: 'Đăng nhập thành công',
+        message: 'Đang chuyển hướng...'
+      });
+      navigate(resolveHomeByRole(session?.user?.role), { replace: true });
+    } catch (error) {
+      if (shouldRedirectToVerify(error?.message)) {
+        showToast({
+          type: 'info',
+          title: 'Cần xác thực email',
+          message: error?.message || 'Vui lòng xác thực email để tiếp tục.'
+        });
+        navigate(`/verify-email?email=${encodeURIComponent(email)}`, { replace: true });
+        return;
+      }
+      showToast({
+        type: 'error',
+        title: 'Đăng nhập thất bại',
+        message: error?.message || 'Vui lòng thử lại.'
+      });
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   useEffect(() => {
@@ -72,6 +120,15 @@ const LoginPage = () => {
         });
         navigate(resolveHomeByRole(session?.user?.role), { replace: true });
       } catch (error) {
+        if (shouldRedirectToVerify(error?.message)) {
+          showToast({
+            type: 'info',
+            title: 'Cần xác thực email',
+            message: error?.message || 'Vui lòng xác thực email để tiếp tục.'
+          });
+          navigate('/verify-email', { replace: true });
+          return;
+        }
         showToast({
           type: 'error',
           title: 'Đăng nhập thất bại',
@@ -267,6 +324,8 @@ const LoginPage = () => {
                 <input
                   type="password"
                   placeholder="••••••••"
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
                   className="w-full px-4 py-4 rounded-2xl border border-stone-100 bg-stone-50 focus:bg-white focus:outline-none focus:ring-4 focus:ring-primary/5 focus:border-primary transition-all text-stone-900 placeholder:text-stone-400 text-sm"
                   required
                 />

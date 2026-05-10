@@ -8,6 +8,7 @@ import SupportPage from './features/landing/pages/SupportPage';
 import LoginPage from './features/auth/pages/LoginPage';
 import RegisterPage from './features/auth/pages/RegisterPage';
 import ForgotPasswordPage from './features/auth/pages/ForgotPasswordPage';
+import VerifyEmailPage from './features/auth/pages/VerifyEmailPage';
 import RoleProtectedRoute from './features/auth/components/RoleProtectedRoute';
 import AdminLayout from './features/admin/layouts/AdminLayout';
 import DashboardPage from './features/admin/pages/DashboardPage';
@@ -95,6 +96,7 @@ export default function App() {
         <Route path="/login" element={<LoginPage />} />
         <Route path="/register" element={<RegisterPage />} />
         <Route path="/forgot-password" element={<ForgotPasswordPage />} />
+        <Route path="/verify-email" element={<VerifyEmailPage />} />
 
         <Route element={<RoleProtectedRoute allowedRoles={['ADMIN']} />}>
           <Route path="/admin" element={<AdminLayout />}>

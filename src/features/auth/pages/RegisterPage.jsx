@@ -1,15 +1,103 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { motion } from 'framer-motion';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { ArrowLeft, CheckCircle2 } from 'lucide-react';
+import { registerWithEmailPassword } from '../services/authApi';
+import { saveAuthSession, resolveHomeByRole } from '../services/authSession';
+import { useToast } from '../../../components/ui/ToastProvider';
 
 const RegisterPage = () => {
+  const navigate = useNavigate();
+  const { showToast } = useToast();
+  const [form, setForm] = useState({
+    fullName: '',
+    email: '',
+    password: '',
+    confirmPassword: '',
+  });
+  const [acceptTerms, setAcceptTerms] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false);
   const benefits = [
     'Tối ưu CV chuẩn quốc tế miễn phí',
     'Rèn luyện phỏng vấn với AI 24/7',
     'Gợi ý việc làm phù hợp với năng lực',
     'Nhận báo cáo phân tích sự nghiệp chuyên sâu'
   ];
+
+  const handleChange = (key) => (event) => {
+    setForm((prev) => ({ ...prev, [key]: event.target.value }));
+  };
+
+  const handleSubmit = async (event) => {
+    event.preventDefault();
+
+    if (!form.fullName || !form.email || !form.password || !form.confirmPassword) {
+      showToast({
+        type: 'warning',
+        title: 'Thiếu thông tin',
+        message: 'Vui lòng nhập đầy đủ thông tin đăng ký.'
+      });
+      return;
+    }
+
+    if (form.password !== form.confirmPassword) {
+      showToast({
+        type: 'warning',
+        title: 'Mật khẩu chưa khớp',
+        message: 'Vui lòng kiểm tra lại mật khẩu xác nhận.'
+      });
+      return;
+    }
+
+    if (!acceptTerms) {
+      showToast({
+        type: 'warning',
+        title: 'Chưa đồng ý điều khoản',
+        message: 'Vui lòng đồng ý với điều khoản dịch vụ.'
+      });
+      return;
+    }
+
+    setIsSubmitting(true);
+    showToast({
+      type: 'info',
+      title: 'Đang đăng ký',
+      message: 'Vui lòng chờ trong giây lát.'
+    });
+
+    try {
+      const authPayload = await registerWithEmailPassword({
+        fullName: form.fullName,
+        email: form.email,
+        password: form.password,
+      });
+      if (authPayload?.user?.emailVerified) {
+        const session = saveAuthSession(authPayload);
+        showToast({
+          type: 'success',
+          title: 'Đăng ký thành công',
+          message: 'Đang chuyển hướng...'
+        });
+        navigate(resolveHomeByRole(session?.user?.role), { replace: true });
+        return;
+      }
+
+      showToast({
+        type: 'info',
+        title: 'Cần xác thực email',
+        message: 'Vui lòng nhập mã xác thực đã gửi về email.'
+      });
+      navigate(`/verify-email?email=${encodeURIComponent(form.email)}`, { replace: true });
+    } catch (error) {
+      showToast({
+        type: 'error',
+        title: 'Đăng ký thất bại',
+        message: error?.message || 'Vui lòng thử lại.'
+      });
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
 
   return (
     <div className="min-h-screen bg-warm-bg flex flex-col md:flex-row overflow-hidden font-body">
@@ -92,13 +180,16 @@ const RegisterPage = () => {
             <p className="text-stone-500 text-base">Chỉ mất 1 phút để mở ra cánh cửa sự nghiệp mới.</p>
           </div>
 
-          <form className="space-y-5">
+          <form className="space-y-5" onSubmit={handleSubmit}>
             <div>
               <label className="text-[10px] font-bold uppercase tracking-widest text-stone-400 block mb-2 ml-1">Họ và tên</label>
               <input 
                 type="text" 
                 placeholder="Nguyễn Văn A"
+                value={form.fullName}
+                onChange={handleChange('fullName')}
                 className="w-full px-4 py-4 border border-stone-100 bg-stone-50 focus:bg-white focus:border-primary focus:ring-4 focus:ring-primary/5 outline-none transition-all text-sm rounded-2xl"
+                required
               />
             </div>
 
@@ -107,7 +198,10 @@ const RegisterPage = () => {
               <input 
                 type="email" 
                 placeholder="ten-cua-ban@gmail.com"
+                value={form.email}
+                onChange={handleChange('email')}
                 className="w-full px-4 py-4 border border-stone-100 bg-stone-50 focus:bg-white focus:border-primary focus:ring-4 focus:ring-primary/5 outline-none transition-all text-sm rounded-2xl"
+                required
               />
             </div>
 
@@ -116,7 +210,10 @@ const RegisterPage = () => {
               <input 
                 type="password" 
                 placeholder="••••••••"
+                value={form.password}
+                onChange={handleChange('password')}
                 className="w-full px-4 py-4 border border-stone-100 bg-stone-50 focus:bg-white focus:border-primary focus:ring-4 focus:ring-primary/5 outline-none transition-all text-sm rounded-2xl"
+                required
               />
             </div>
 
@@ -125,19 +222,33 @@ const RegisterPage = () => {
               <input 
                 type="password" 
                 placeholder="••••••••"
+                value={form.confirmPassword}
+                onChange={handleChange('confirmPassword')}
                 className="w-full px-4 py-4 border border-stone-100 bg-stone-50 focus:bg-white focus:border-primary focus:ring-4 focus:ring-primary/5 outline-none transition-all text-sm rounded-2xl"
+                required
               />
             </div>
 
             <div className="flex items-start gap-3 py-2 ml-1">
-              <input type="checkbox" className="mt-1 w-4 h-4 accent-primary rounded border-stone-300" id="terms" />
+              <input
+                type="checkbox"
+                className="mt-1 w-4 h-4 accent-primary rounded border-stone-300"
+                id="terms"
+                checked={acceptTerms}
+                onChange={(event) => setAcceptTerms(event.target.checked)}
+                required
+              />
               <label htmlFor="terms" className="text-xs text-stone-500 leading-relaxed">
                 Tôi đồng ý với các <Link to="/terms" className="text-primary font-bold hover:underline">Điều khoản dịch vụ</Link> và <Link to="/privacy" className="text-primary font-bold hover:underline">Chính sách bảo mật</Link> của FitHire.
               </label>
             </div>
 
-            <button className="w-full bg-primary text-white py-4 rounded-2xl font-bold uppercase tracking-widest text-xs hover:bg-primary-dark transition-all shadow-xl shadow-primary/20 mt-2">
-              Đăng ký tài khoản
+            <button
+              type="submit"
+              disabled={isSubmitting}
+              className="w-full bg-primary text-white py-4 rounded-2xl font-bold uppercase tracking-widest text-xs hover:bg-primary-dark transition-all shadow-xl shadow-primary/20 mt-2 disabled:opacity-70 disabled:cursor-not-allowed"
+            >
+              {isSubmitting ? 'Đang xử lý...' : 'Đăng ký tài khoản'}
             </button>
           </form>
 

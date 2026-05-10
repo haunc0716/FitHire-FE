@@ -8,7 +8,15 @@ import { useToast } from '../../../components/ui/ToastProvider';
 export default function UserProfilePage() {
   const navigate = useNavigate();
   const { showToast } = useToast();
-  const [form, setForm] = useState({ fullName: '', email: '', avatarUrl: '' });
+  const [form, setForm] = useState({
+    fullName: '',
+    email: '',
+    avatarUrl: '',
+    emailVerified: false,
+    role: '',
+    status: '',
+    lastLoginAt: '',
+  });
   const [loading, setLoading] = useState(false);
   const [fetching, setFetching] = useState(true);
 
@@ -19,6 +27,10 @@ export default function UserProfilePage() {
           fullName: data?.fullName || '',
           email: data?.email || '',
           avatarUrl: data?.avatarUrl || '',
+          emailVerified: Boolean(data?.emailVerified),
+          role: data?.role || '',
+          status: data?.status || '',
+          lastLoginAt: data?.lastLoginAt || '',
         });
       })
       .catch((err) => {
@@ -29,7 +41,7 @@ export default function UserProfilePage() {
         });
       })
       .finally(() => setFetching(false));
-  }, []);
+  }, [showToast]);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -37,7 +49,15 @@ export default function UserProfilePage() {
 
     try {
       const updated = await updateMyProfile({ fullName: form.fullName, avatarUrl: form.avatarUrl });
-      setForm((prev) => ({ ...prev, fullName: updated?.fullName || prev.fullName, avatarUrl: updated?.avatarUrl || prev.avatarUrl }));
+      setForm((prev) => ({
+        ...prev,
+        fullName: updated?.fullName || prev.fullName,
+        avatarUrl: updated?.avatarUrl || prev.avatarUrl,
+        emailVerified: Boolean(updated?.emailVerified ?? prev.emailVerified),
+        role: updated?.role || prev.role,
+        status: updated?.status || prev.status,
+        lastLoginAt: updated?.lastLoginAt || prev.lastLoginAt,
+      }));
       showToast({
         type: 'success',
         title: 'Cập nhật thành công',
@@ -104,8 +124,12 @@ export default function UserProfilePage() {
 
               <div className="w-full flex items-center justify-between text-sm">
                 <span className="text-stone-500">Trạng thái</span>
-                <span className="flex items-center gap-1.5 text-emerald-600 font-medium bg-emerald-50 px-3 py-1 rounded-full">
-                  <ShieldCheck className="h-4 w-4" /> Đã xác thực
+                <span
+                  className={`flex items-center gap-1.5 font-medium px-3 py-1 rounded-full ${
+                    form.emailVerified ? 'text-emerald-600 bg-emerald-50' : 'text-amber-600 bg-amber-50'
+                  }`}
+                >
+                  <ShieldCheck className="h-4 w-4" /> {form.emailVerified ? 'Đã xác thực' : 'Chưa xác thực'}
                 </span>
               </div>
             </motion.div>
@@ -156,6 +180,7 @@ export default function UserProfilePage() {
                   </div>
                   <p className="text-xs text-stone-500 mt-1.5">Email này được dùng để đăng nhập và không thể thay đổi.</p>
                 </div>
+
 
 
                 {/* Actions */}

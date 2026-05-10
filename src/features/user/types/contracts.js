@@ -4,7 +4,10 @@
  * @property {string} email
  * @property {string} fullName
  * @property {string | null} avatarUrl
+ * @property {boolean} emailVerified
  * @property {'USER' | 'ADMIN'} role
+ * @property {string} status
+ * @property {string | null} lastLoginAt
  */
 
 /**
