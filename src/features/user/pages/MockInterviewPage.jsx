@@ -60,6 +60,7 @@ export default function MockInterviewPage() {
   ]);
   const [activeTab, setActiveTab] = useState('config');
   const [selectedHistory, setSelectedHistory] = useState(null);
+  const [lastResult, setLastResult] = useState(null);
 
   const videoRef = useRef(null);
   const transcriptEndRef = useRef(null);
@@ -97,12 +98,22 @@ export default function MockInterviewPage() {
       videoRef.current.srcObject.getTracks().forEach(track => track.stop());
     }
     const newEntry = {
-      id: Date.now(), role, date: new Date().toLocaleDateString('vi-VN'),
-      score: Math.floor(Math.random() * 40) + 60
+      id: Date.now(),
+      role,
+      date: new Date().toLocaleDateString('vi-VN'),
+      score: Math.floor(Math.random() * 40) + 60,
+      duration: '24:45',
+      turns: transcript.length,
+      transcript: [...transcript],
+      aiEvaluation: {
+        summary: 'Chúc mừng bạn đã hoàn thành buổi phỏng vấn! Bạn đã thể hiện rất tốt các kỹ năng chuyên môn và khả năng tư duy giải quyết vấn đề. AI Mentor nhận thấy bạn có nền tảng kiến thức vững chắc nhưng cần chú trọng thêm vào việc giải thích các ví dụ thực tế một cách chi tiết hơn.',
+        strengths: ['Tự tin trong giao tiếp', 'Nắm vững kiến thức React cơ bản', 'Giải quyết vấn đề logic'],
+        improvements: ['Cần thêm ví dụ định lượng', 'Giải thích sâu hơn về kiến trúc hệ thống']
+      }
     };
     setHistory([newEntry, ...history]);
-    setPlan(null);
-    setActiveTab('config');
+    setLastResult(newEntry);
+    setActiveTab('result');
   };
 
   const handleSendMessage = (e) => {
@@ -190,6 +201,108 @@ export default function MockInterviewPage() {
                   <input value={userInput} onChange={(e) => setUserInput(e.target.value)} placeholder="Nhập câu trả lời..." className="flex-1 bg-white border border-slate-200 rounded-xl px-4 py-2 text-sm outline-none" />
                   <button className="bg-emerald-600 text-white p-2.5 rounded-xl"><Send size={16} /></button>
                 </form>
+              </div>
+            </motion.div>
+          ) : activeTab === 'result' && lastResult ? (
+            <motion.div key="result" initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="space-y-6">
+              <div className="flex items-center justify-between gap-6">
+                <div className="rounded-2xl border border-emerald-100 bg-gradient-to-r from-emerald-50 via-emerald-50/60 to-white shadow-sm px-6 py-5 flex-1">
+                  <div className="flex items-center gap-2 mb-1">
+                    <Sparkles size={16} className="text-emerald-600" />
+                    <p className="text-[10px] font-bold text-emerald-700 uppercase tracking-widest">Kết quả phỏng vấn AI</p>
+                  </div>
+                  <h3 className="text-xl font-bold text-slate-900">{lastResult.role}</h3>
+                  <div className="mt-3 flex flex-wrap items-center gap-2 text-xs text-emerald-700">
+                    <span className="rounded-full border border-emerald-200 bg-white px-3 py-1 font-semibold">{lastResult.date}</span>
+                    <span className="rounded-full border border-emerald-200 bg-white px-3 py-1 font-semibold">Điểm số: {lastResult.score}%</span>
+                    <span className="rounded-full border border-emerald-200 bg-white px-3 py-1 font-semibold">{lastResult.duration}</span>
+                    <span className="rounded-full border border-emerald-200 bg-white px-3 py-1 font-semibold">{lastResult.turns} lượt trao đổi</span>
+                  </div>
+                </div>
+                <button
+                  onClick={() => {
+                    setLastResult(null);
+                    setPlan(null);
+                    setActiveTab('config');
+                  }}
+                  className="bg-[#00b14f] text-white px-8 py-5 rounded-2xl font-bold text-sm shadow-xl shadow-emerald-600/20 hover:bg-[#009b45] transition-all flex items-center gap-3 shrink-0"
+                >
+                  Hoàn thành <CheckCircle2 size={18} />
+                </button>
+              </div>
+
+              <div className="grid lg:grid-cols-2 gap-6">
+                <div className="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden flex flex-col max-h-[500px]">
+                  <div className="px-5 py-3 border-b border-slate-100 bg-slate-50/50 flex items-center justify-between">
+                    <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Nội dung cuộc hội thoại</span>
+                    <FileText size={16} className="text-slate-300" />
+                  </div>
+                  <div className="p-5 space-y-4 overflow-y-auto text-sm">
+                    {lastResult.transcript.map((msg, i) => (
+                      <div key={i} className={`flex flex-col ${msg.role === 'User' ? 'items-end' : 'items-start'}`}>
+                        <div className={`max-w-[85%] p-3 rounded-xl ${msg.role === 'User' ? 'bg-emerald-600 text-white shadow-sm' : 'bg-emerald-50 text-emerald-900 border border-emerald-100'}`}>
+                          {msg.text}
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+
+                <div className="bg-white rounded-2xl border border-slate-200 shadow-sm p-6 space-y-6">
+                  <div>
+                    <div className="flex items-center gap-2 mb-3">
+                      <CheckCircle2 size={20} className="text-emerald-600" />
+                      <p className="text-base font-bold text-slate-900">Đánh giá từ AI Mentor</p>
+                    </div>
+                    <p className="text-sm text-slate-600 leading-relaxed italic">
+                      "{lastResult.aiEvaluation.summary}"
+                    </p>
+                  </div>
+
+                  <div className="grid grid-cols-3 gap-4">
+                    <div className="bg-emerald-50 rounded-2xl p-4 text-center border border-emerald-100">
+                      <p className="text-[10px] font-bold text-emerald-600 uppercase mb-1">Giao tiếp</p>
+                      <p className="text-2xl font-bold text-emerald-700">88%</p>
+                    </div>
+                    <div className="bg-emerald-50 rounded-2xl p-4 text-center border border-emerald-100">
+                      <p className="text-[10px] font-bold text-emerald-600 uppercase mb-1">Kỹ thuật</p>
+                      <p className="text-2xl font-bold text-emerald-700">82%</p>
+                    </div>
+                    <div className="bg-emerald-50 rounded-2xl p-4 text-center border border-emerald-100">
+                      <p className="text-[10px] font-bold text-emerald-600 uppercase mb-1">Tư duy</p>
+                      <p className="text-2xl font-bold text-emerald-700">{lastResult.score}%</p>
+                    </div>
+                  </div>
+
+                  <div className="grid sm:grid-cols-2 gap-6">
+                    <div className="space-y-3">
+                      <p className="text-xs font-bold text-emerald-700 flex items-center gap-2">
+                        <span className="w-1.5 h-1.5 rounded-full bg-emerald-500" /> Điểm mạnh
+                      </p>
+                      <ul className="space-y-2">
+                        {lastResult.aiEvaluation.strengths.map((s, i) => (
+                          <li key={i} className="text-sm text-slate-600 flex items-start gap-2">
+                            <ChevronRight size={14} className="mt-0.5 text-emerald-300 shrink-0" />
+                            {s}
+                          </li>
+                        ))}
+                      </ul>
+                    </div>
+                    <div className="space-y-3">
+                      <p className="text-xs font-bold text-rose-600 flex items-center gap-2">
+                        <span className="w-1.5 h-1.5 rounded-full bg-rose-500" /> Cần cải thiện
+                      </p>
+                      <ul className="space-y-2">
+                        {lastResult.aiEvaluation.improvements.map((s, i) => (
+                          <li key={i} className="text-sm text-slate-600 flex items-start gap-2">
+                            <ChevronRight size={14} className="mt-0.5 text-rose-300 shrink-0" />
+                            {s}
+                          </li>
+                        ))}
+                      </ul>
+                    </div>
+                  </div>
+                </div>
               </div>
             </motion.div>
           ) : activeTab === 'history' ? (
