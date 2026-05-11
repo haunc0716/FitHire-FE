@@ -1,8 +1,9 @@
-import React, { useEffect, useState } from 'react';
+import React, { Suspense, useEffect, useState } from 'react';
 import { motion } from 'framer-motion';
 import { Sparkles, CreditCard, Clock, CheckCircle2, AlertCircle } from 'lucide-react';
 import { fetchMySubscriptions } from '../../pricing/services/subscriptionApi';
-import PricingCards from '../../pricing/components/PricingCards';
+
+const PricingCards = React.lazy(() => import('../../pricing/components/PricingCards'));
 
 export default function UserPricingPage() {
   const [subscriptions, setSubscriptions] = useState([]);
@@ -117,7 +118,9 @@ export default function UserPricingPage() {
           Bảng giá
         </h2>
         {/* Reusing the beautiful component from the landing page */}
-        <PricingCards />
+        <Suspense fallback={<div className="h-[420px] rounded-2xl border border-stone-100 bg-stone-50 animate-pulse" />}>
+          <PricingCards />
+        </Suspense>
       </div>
 
     </div>

@@ -1,47 +1,64 @@
-import React, { useEffect, useRef } from 'react';
+import React, { Suspense, useEffect, useRef } from 'react';
 import { BrowserRouter as Router, Routes, Route, useLocation, useNavigate } from 'react-router-dom';
-import HomePage from './features/landing/pages/HomePage';
-import FeaturesPage from './features/landing/pages/FeaturesPage';
-import PricingPage from './features/pricing/pages/PricingPage';
-import ProcessPage from './features/landing/pages/ProcessPage';
-import SupportPage from './features/landing/pages/SupportPage';
-import LoginPage from './features/auth/pages/LoginPage';
-import RegisterPage from './features/auth/pages/RegisterPage';
-import ForgotPasswordPage from './features/auth/pages/ForgotPasswordPage';
-import VerifyEmailPage from './features/auth/pages/VerifyEmailPage';
-import RoleProtectedRoute from './features/auth/components/RoleProtectedRoute';
-import AdminLayout from './features/admin/layouts/AdminLayout';
-import DashboardPage from './features/admin/pages/DashboardPage';
-import UserManagementPage from './features/admin/pages/UserManagementPage';
-import BillingPage from './features/admin/pages/BillingPage';
-import CvAnalysisPage from './features/admin/pages/CvAnalysisPage';
-import InterviewsPage from './features/admin/pages/InterviewsPage';
-import AdminCulturalFitPage from './features/admin/pages/CulturalFitPage';
-import AiSettingsPage from './features/admin/pages/AiSettingsPage';
-import ReportsPage from './features/admin/pages/ReportsPage';
-import AdminProfilePage from './features/admin/pages/AdminProfilePage';
-import PlanManagementPage from './features/admin/pages/PlanManagementPage';
-import UserLayout from './features/user/layouts/UserLayout';
-import CvJdPage from './features/user/pages/CvJdPage';
-import CvManagerPage from './features/user/pages/CvManagerPage';
-import UserHistoryPage from './features/user/pages/UserHistoryPage';
-import CulturalFitPage from './features/user/pages/CulturalFitPage';
-import MockInterviewPage from './features/user/pages/MockInterviewPage';
-import UserPricingPage from './features/user/pages/UserPricingPage';
-import UserProfilePage from './features/user/pages/UserProfilePage';
-import ChangePasswordPage from './features/user/pages/ChangePasswordPage';
+const HomePage = React.lazy(() => import('./features/landing/pages/HomePage'));
+const FeaturesPage = React.lazy(() => import('./features/landing/pages/FeaturesPage'));
+const PricingPage = React.lazy(() => import('./features/pricing/pages/PricingPage'));
+const ProcessPage = React.lazy(() => import('./features/landing/pages/ProcessPage'));
+const SupportPage = React.lazy(() => import('./features/landing/pages/SupportPage'));
+const LoginPage = React.lazy(() => import('./features/auth/pages/LoginPage'));
+const RegisterPage = React.lazy(() => import('./features/auth/pages/RegisterPage'));
+const ForgotPasswordPage = React.lazy(() => import('./features/auth/pages/ForgotPasswordPage'));
+const VerifyEmailPage = React.lazy(() => import('./features/auth/pages/VerifyEmailPage'));
+const RoleProtectedRoute = React.lazy(() => import('./features/auth/components/RoleProtectedRoute'));
+const AdminLayout = React.lazy(() => import('./features/admin/layouts/AdminLayout'));
+const DashboardPage = React.lazy(() => import('./features/admin/pages/DashboardPage'));
+const UserManagementPage = React.lazy(() => import('./features/admin/pages/UserManagementPage'));
+const BillingPage = React.lazy(() => import('./features/admin/pages/BillingPage'));
+const CvAnalysisPage = React.lazy(() => import('./features/admin/pages/CvAnalysisPage'));
+const InterviewsPage = React.lazy(() => import('./features/admin/pages/InterviewsPage'));
+const AdminCulturalFitPage = React.lazy(() => import('./features/admin/pages/CulturalFitPage'));
+const AiSettingsPage = React.lazy(() => import('./features/admin/pages/AiSettingsPage'));
+const ReportsPage = React.lazy(() => import('./features/admin/pages/ReportsPage'));
+const AdminProfilePage = React.lazy(() => import('./features/admin/pages/AdminProfilePage'));
+const PlanManagementPage = React.lazy(() => import('./features/admin/pages/PlanManagementPage'));
+const UserLayout = React.lazy(() => import('./features/user/layouts/UserLayout'));
+const CvJdPage = React.lazy(() => import('./features/user/pages/CvJdPage'));
+const CvManagerPage = React.lazy(() => import('./features/user/pages/CvManagerPage'));
+const UserHistoryPage = React.lazy(() => import('./features/user/pages/UserHistoryPage'));
+const CulturalFitPage = React.lazy(() => import('./features/user/pages/CulturalFitPage'));
+const MockInterviewPage = React.lazy(() => import('./features/user/pages/MockInterviewPage'));
+const UserPricingPage = React.lazy(() => import('./features/user/pages/UserPricingPage'));
+const UserProfilePage = React.lazy(() => import('./features/user/pages/UserProfilePage'));
+const ChangePasswordPage = React.lazy(() => import('./features/user/pages/ChangePasswordPage'));
 import { clearAuthSession, getAuthSession, isSessionValid } from './features/auth/services/authSession';
 import { ToastProvider } from './components/ui/ToastProvider';
 
 const IDLE_TIMEOUT_MS = 20 * 60 * 1000;
 
+const RouteFallback = () => (
+  <div className="min-h-screen bg-warm-bg flex items-center justify-center p-6">
+    <div className="w-full max-w-xl space-y-4">
+      <div className="h-8 w-1/2 bg-stone-100 rounded-full animate-pulse" />
+      <div className="h-5 w-full bg-stone-100 rounded-full animate-pulse" />
+      <div className="h-5 w-5/6 bg-stone-100 rounded-full animate-pulse" />
+      <div className="h-64 w-full bg-stone-100 rounded-3xl animate-pulse" />
+    </div>
+  </div>
+);
+
 function IdleLogoutWatcher() {
   const navigate = useNavigate();
   const location = useLocation();
   const timerRef = useRef(null);
+  const lastResetRef = useRef(0);
 
   useEffect(() => {
     const resetTimer = () => {
+      const now = Date.now();
+      // Only reset timer at most once every 2 seconds to save performance
+      if (now - lastResetRef.current < 2000) return;
+      lastResetRef.current = now;
+
       if (timerRef.current) {
         clearTimeout(timerRef.current);
       }
@@ -57,7 +74,8 @@ function IdleLogoutWatcher() {
       }, IDLE_TIMEOUT_MS);
     };
 
-    const events = ['mousemove', 'mousedown', 'keydown', 'scroll', 'touchstart', 'click'];
+    const events = ['mousedown', 'keydown', 'scroll', 'touchstart', 'click'];
+    // Removed mousemove as it's too frequent and usually mousedown/scroll are enough to detect activity
     events.forEach((eventName) => window.addEventListener(eventName, resetTimer, { passive: true }));
 
     const handleVisibility = () => {
@@ -86,47 +104,49 @@ export default function App() {
     <Router>
       <ToastProvider>
         <IdleLogoutWatcher />
-        <Routes>
-        <Route path="/" element={<HomePage />} />
-        <Route path="/features" element={<FeaturesPage />} />
-        <Route path="/pricing" element={<PricingPage />} />
-        <Route path="/process" element={<ProcessPage />} />
-        <Route path="/support" element={<SupportPage />} />
+        <Suspense fallback={<RouteFallback />}>
+          <Routes>
+            <Route path="/" element={<HomePage />} />
+            <Route path="/features" element={<FeaturesPage />} />
+            <Route path="/pricing" element={<PricingPage />} />
+            <Route path="/process" element={<ProcessPage />} />
+            <Route path="/support" element={<SupportPage />} />
 
-        <Route path="/login" element={<LoginPage />} />
-        <Route path="/register" element={<RegisterPage />} />
-        <Route path="/forgot-password" element={<ForgotPasswordPage />} />
-        <Route path="/verify-email" element={<VerifyEmailPage />} />
+            <Route path="/login" element={<LoginPage />} />
+            <Route path="/register" element={<RegisterPage />} />
+            <Route path="/forgot-password" element={<ForgotPasswordPage />} />
+            <Route path="/verify-email" element={<VerifyEmailPage />} />
 
-        <Route element={<RoleProtectedRoute allowedRoles={['ADMIN']} />}>
-          <Route path="/admin" element={<AdminLayout />}>
-            <Route index element={<DashboardPage />} />
-            <Route path="users" element={<UserManagementPage />} />
-            <Route path="billing" element={<BillingPage />} />
-            <Route path="plans" element={<PlanManagementPage />} />
-            <Route path="cv-analysis" element={<CvAnalysisPage />} />
-            <Route path="interviews" element={<InterviewsPage />} />
-            <Route path="cultural-fit" element={<AdminCulturalFitPage />} />
-            <Route path="ai-settings" element={<AiSettingsPage />} />
-            <Route path="reports" element={<ReportsPage />} />
-            <Route path="profile" element={<AdminProfilePage />} />
-          </Route>
-        </Route>
+            <Route element={<RoleProtectedRoute allowedRoles={['ADMIN']} />}>
+              <Route path="/admin" element={<AdminLayout />}>
+                <Route index element={<DashboardPage />} />
+                <Route path="users" element={<UserManagementPage />} />
+                <Route path="billing" element={<BillingPage />} />
+                <Route path="plans" element={<PlanManagementPage />} />
+                <Route path="cv-analysis" element={<CvAnalysisPage />} />
+                <Route path="interviews" element={<InterviewsPage />} />
+                <Route path="cultural-fit" element={<AdminCulturalFitPage />} />
+                <Route path="ai-settings" element={<AiSettingsPage />} />
+                <Route path="reports" element={<ReportsPage />} />
+                <Route path="profile" element={<AdminProfilePage />} />
+              </Route>
+            </Route>
 
-        <Route element={<RoleProtectedRoute allowedRoles={['USER']} />}>
-          <Route path="/user" element={<UserLayout />}>
-            <Route index element={<CvJdPage />} />
-            <Route path="cv-jd" element={<CvJdPage />} />
-            <Route path="cv-manager" element={<CvManagerPage />} />
-            <Route path="history" element={<UserHistoryPage />} />
-            <Route path="cultural-fit" element={<CulturalFitPage />} />
-            <Route path="mock-interview" element={<MockInterviewPage />} />
-            <Route path="pricing" element={<UserPricingPage />} />
-            <Route path="profile" element={<UserProfilePage />} />
-          </Route>
-          <Route path="/change-password" element={<ChangePasswordPage />} />
-        </Route>
-        </Routes>
+            <Route element={<RoleProtectedRoute allowedRoles={['USER']} />}>
+              <Route path="/user" element={<UserLayout />}>
+                <Route index element={<CvJdPage />} />
+                <Route path="cv-jd" element={<CvJdPage />} />
+                <Route path="cv-manager" element={<CvManagerPage />} />
+                <Route path="history" element={<UserHistoryPage />} />
+                <Route path="cultural-fit" element={<CulturalFitPage />} />
+                <Route path="mock-interview" element={<MockInterviewPage />} />
+                <Route path="pricing" element={<UserPricingPage />} />
+                <Route path="profile" element={<UserProfilePage />} />
+              </Route>
+              <Route path="/change-password" element={<ChangePasswordPage />} />
+            </Route>
+          </Routes>
+        </Suspense>
       </ToastProvider>
     </Router>
   );

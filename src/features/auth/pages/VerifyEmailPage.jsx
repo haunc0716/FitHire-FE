@@ -1,5 +1,5 @@
 import React, { useEffect, useMemo, useState } from 'react';
-import { motion } from 'framer-motion';
+import { motion, useReducedMotion } from 'framer-motion';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { ArrowLeft, Mail, KeyRound } from 'lucide-react';
 import verifyEmailImg from '../../../assets/verify-email.png';
@@ -12,6 +12,7 @@ const VerifyEmailPage = () => {
   const navigate = useNavigate();
   const location = useLocation();
   const { showToast } = useToast();
+  const shouldReduceMotion = useReducedMotion();
   const [form, setForm] = useState({ email: '', code: '' });
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isResending, setIsResending] = useState(false);
@@ -99,51 +100,47 @@ const VerifyEmailPage = () => {
     }
   };
 
-  const containerVariants = {
-    hidden: { opacity: 0 },
-    visible: {
-      opacity: 1,
-      transition: {
-        staggerChildren: 0.1,
-        delayChildren: 0.3
+  const containerVariants = shouldReduceMotion
+    ? {
+        hidden: { opacity: 1 },
+        visible: { opacity: 1, transition: { duration: 0 } },
       }
-    }
-  };
+    : {
+        hidden: { opacity: 0 },
+        visible: {
+          opacity: 1,
+          transition: {
+            staggerChildren: 0.05,
+            delayChildren: 0.1,
+          },
+        },
+      };
 
-  const itemVariants = {
-    hidden: { opacity: 0, y: 20 },
-    visible: {
-      opacity: 1,
-      y: 0,
-      transition: { duration: 0.8, ease: [0.22, 1, 0.36, 1] }
-    }
-  };
+  const itemVariants = shouldReduceMotion
+    ? {
+        hidden: { opacity: 1, y: 0 },
+        visible: { opacity: 1, y: 0, transition: { duration: 0 } },
+      }
+    : {
+        hidden: { opacity: 0, y: 10 },
+        visible: {
+          opacity: 1,
+          y: 0,
+          transition: { duration: 0.4, ease: "easeOut" },
+        },
+      };
 
   return (
     <div className="min-h-screen bg-warm-bg flex flex-col md:flex-row overflow-hidden font-body">
       <motion.div
-        initial={{ opacity: 0, x: -40 }}
-        animate={{ opacity: 1, x: 0 }}
-        transition={{ duration: 0.8, ease: [0.22, 1, 0.36, 1] }}
+        initial={shouldReduceMotion ? false : { opacity: 0 }}
+        animate={{ opacity: 1 }}
+        transition={{ duration: shouldReduceMotion ? 0 : 0.5 }}
         className="hidden md:flex md:w-1/2 bg-pale p-12 lg:p-16 flex-col relative overflow-hidden items-center justify-center border-r border-stone-200/50"
       >
         <div className="absolute inset-0 overflow-hidden pointer-events-none">
-          <motion.div
-            animate={{
-              y: [0, -30, 0],
-              scale: [1, 1.1, 1],
-            }}
-            transition={{ duration: 8, repeat: Infinity, ease: 'easeInOut' }}
-            className="absolute top-[5%] right-[15%] w-[360px] h-[360px] bg-primary/10 rounded-full blur-[100px]"
-          />
-          <motion.div
-            animate={{
-              y: [0, 40, 0],
-              scale: [1, 1.05, 1],
-            }}
-            transition={{ duration: 12, repeat: Infinity, ease: 'easeInOut', delay: 1 }}
-            className="absolute bottom-[10%] left-[5%] w-[320px] h-[320px] bg-primary-light/10 rounded-full blur-[80px]"
-          />
+          <div className="absolute top-[5%] right-[15%] w-[360px] h-[360px] bg-primary/5 rounded-full blur-[100px]" />
+          <div className="absolute bottom-[10%] left-[5%] w-[320px] h-[320px] bg-primary-light/5 rounded-full blur-[80px]" />
         </div>
 
         <Link
@@ -155,16 +152,18 @@ const VerifyEmailPage = () => {
         </Link>
 
         <div className="relative z-10 w-full max-w-lg flex flex-col items-center text-center">
-          <motion.div
-            animate={{ y: [0, -15, 0] }}
-            transition={{ duration: 6, repeat: Infinity, ease: 'easeInOut' }}
-            className="relative mb-12 w-full max-w-[320px] aspect-square"
-          >
-            <div className="absolute inset-0 bg-primary/20 rounded-full blur-[60px] animate-pulse" />
-            <div className="relative z-10 w-full h-full rounded-3xl bg-white/70 border border-white/70 shadow-2xl shadow-primary/10 flex items-center justify-center overflow-hidden">
-              <img src={verifyEmailImg} alt="Xác thực email" className="w-full h-full object-cover" />
+          <div className="relative mb-12 w-full max-w-[320px] aspect-square">
+            <div className="absolute inset-0 bg-primary/10 rounded-full blur-[40px]" />
+            <div className="relative z-10 w-full h-full rounded-3xl bg-white/70 border border-white/70 shadow-2xl flex items-center justify-center overflow-hidden">
+              <img
+                src={verifyEmailImg}
+                alt="Xác thực email"
+                loading="lazy"
+                decoding="async"
+                className="w-full h-full object-cover"
+              />
             </div>
-          </motion.div>
+          </div>
 
           <div className="flex items-center justify-center gap-3 mb-6">
             <div className="w-10 h-[2px] bg-primary/30 rounded-full"></div>

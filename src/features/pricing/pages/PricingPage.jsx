@@ -1,10 +1,11 @@
-import React from 'react';
+import React, { Suspense } from 'react';
 import Navbar from '../../../components/layout/Navbar';
 import Footer from '../../../components/layout/Footer';
 import PricingHero from '../components/PricingHero';
-import PricingCards from '../components/PricingCards';
 import ComparisonTable from '../components/ComparisonTable';
 import CTASection from '../../landing/components/CTASection';
+
+const PricingCards = React.lazy(() => import('../components/PricingCards'));
 
 const PricingPage = () => {
   return (
@@ -13,7 +14,9 @@ const PricingPage = () => {
       <main className="flex-grow">
         <div className="section-container">
           <PricingHero />
-          <PricingCards />
+          <Suspense fallback={<div className="h-[420px] rounded-2xl border border-stone-100 bg-stone-50 animate-pulse" />}>
+            <PricingCards />
+          </Suspense>
           <ComparisonTable />
         </div>
       </main>

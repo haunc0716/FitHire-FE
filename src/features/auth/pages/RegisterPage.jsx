@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { motion } from 'framer-motion';
+import { motion, useReducedMotion } from 'framer-motion';
 import { Link, useNavigate } from 'react-router-dom';
 import { ArrowLeft, CheckCircle2 } from 'lucide-react';
 import { registerWithEmailPassword } from '../services/authApi';
@@ -9,6 +9,7 @@ import { useToast } from '../../../components/ui/ToastProvider';
 const RegisterPage = () => {
   const navigate = useNavigate();
   const { showToast } = useToast();
+  const shouldReduceMotion = useReducedMotion();
   const [form, setForm] = useState({
     fullName: '',
     email: '',
@@ -103,30 +104,15 @@ const RegisterPage = () => {
     <div className="min-h-screen bg-warm-bg flex flex-col md:flex-row overflow-hidden font-body">
       {/* Left side: Why Join? */}
       <motion.div 
-        initial={{ opacity: 0, x: -50 }}
-        animate={{ opacity: 1, x: 0 }}
-        transition={{ duration: 1, ease: [0.22, 1, 0.36, 1] }}
+        initial={shouldReduceMotion ? false : { opacity: 0 }}
+        animate={{ opacity: 1 }}
+        transition={{ duration: shouldReduceMotion ? 0 : 0.5 }}
         className="hidden md:flex md:w-1/2 bg-pale p-12 lg:p-20 flex-col relative overflow-hidden border-r border-stone-200/50"
       >
         {/* Floating Bubble Background Elements */}
         <div className="absolute inset-0 overflow-hidden pointer-events-none">
-          <motion.div 
-            animate={{ 
-              y: [0, -20, 0],
-              scale: [1, 1.1, 1],
-            }}
-            transition={{ duration: 8, repeat: Infinity, ease: "easeInOut" }}
-            className="absolute top-[10%] left-[10%] w-[300px] h-[300px] bg-primary/10 rounded-full blur-[80px]" 
-          />
-          <motion.div 
-            animate={{ 
-              y: [0, 20, 0],
-              scale: [1, 1.05, 1],
-            }}
-            transition={{ duration: 10, repeat: Infinity, ease: "easeInOut", delay: 1 }}
-            className="absolute bottom-[20%] right-[10%] w-[400px] h-[400px] bg-primary-light/10 rounded-full blur-[100px]" 
-          />
-          <div className="absolute top-[40%] right-[-5%] w-[150px] h-[150px] bg-blue-100/50 rounded-full blur-[40px] animate-pulse" />
+          <div className="absolute top-[10%] left-[10%] w-[300px] h-[300px] bg-primary/5 rounded-full blur-[80px]" />
+          <div className="absolute bottom-[20%] right-[10%] w-[400px] h-[400px] bg-primary-light/5 rounded-full blur-[100px]" />
         </div>
 
         <Link to="/" className="absolute top-12 left-12 text-stone-900 font-display text-2xl font-bold tracking-tighter z-20 flex items-center gap-2">
@@ -138,6 +124,8 @@ const RegisterPage = () => {
             <img 
               src="/images/register-hero.png" 
               alt="Hợp tác thành công" 
+              loading="lazy"
+              decoding="async"
               className="w-full h-full object-cover"
             />
             <div className="absolute inset-0 bg-gradient-to-t from-pale/40 to-transparent" />
@@ -149,18 +137,15 @@ const RegisterPage = () => {
           
           <div className="space-y-4 text-left w-full max-w-sm mx-auto">
             {benefits.map((benefit, i) => (
-              <motion.div 
+              <div 
                 key={i}
-                initial={{ opacity: 0, x: -20 }}
-                animate={{ opacity: 1, x: 0 }}
-                transition={{ delay: 0.5 + i * 0.1 }}
                 className="flex items-center gap-4 text-stone-600"
               >
                 <div className="w-6 h-6 bg-primary/10 rounded-full flex items-center justify-center shrink-0">
                   <CheckCircle2 className="w-4 h-4 text-primary" />
                 </div>
                 <span className="text-sm font-medium tracking-wide">{benefit}</span>
-              </motion.div>
+              </div>
             ))}
           </div>
         </div>
@@ -169,9 +154,9 @@ const RegisterPage = () => {
 
       {/* Right side: Register Form */}
       <motion.div 
-        initial={{ opacity: 0, x: 50 }}
-        animate={{ opacity: 1, x: 0 }}
-        transition={{ duration: 1, ease: [0.22, 1, 0.36, 1] }}
+        initial={shouldReduceMotion ? false : { opacity: 0 }}
+        animate={{ opacity: 1 }}
+        transition={{ duration: shouldReduceMotion ? 0 : 0.5 }}
         className="flex-1 p-8 md:px-16 lg:px-24 py-16 flex flex-col justify-center bg-white overflow-y-auto"
       >
         <div className="max-w-md w-full mx-auto">

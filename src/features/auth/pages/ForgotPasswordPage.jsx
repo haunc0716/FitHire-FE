@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
+import { motion, AnimatePresence, useReducedMotion } from 'framer-motion';
 import { Link, useNavigate } from 'react-router-dom';
 import { ArrowLeft, Mail, CheckCircle2, ShieldCheck } from 'lucide-react';
 import { useToast } from '../../../components/ui/ToastProvider';
@@ -7,56 +7,53 @@ import { useToast } from '../../../components/ui/ToastProvider';
 const ForgotPasswordPage = () => {
   const navigate = useNavigate();
   const { showToast } = useToast();
+  const shouldReduceMotion = useReducedMotion();
   const [submitted, setSubmitted] = useState(false);
 
   // Framer Motion variants
-  const containerVariants = {
-    hidden: { opacity: 0 },
-    visible: {
-      opacity: 1,
-      transition: {
-        staggerChildren: 0.1,
-        delayChildren: 0.3
+  const containerVariants = shouldReduceMotion
+    ? {
+        hidden: { opacity: 1 },
+        visible: { opacity: 1, transition: { duration: 0 } },
       }
-    }
-  };
+    : {
+        hidden: { opacity: 0 },
+        visible: {
+          opacity: 1,
+          transition: {
+            staggerChildren: 0.05,
+            delayChildren: 0.1,
+          },
+        },
+      };
 
-  const itemVariants = {
-    hidden: { opacity: 0, y: 20 },
-    visible: { 
-      opacity: 1, 
-      y: 0,
-      transition: { duration: 0.8, ease: [0.22, 1, 0.36, 1] }
-    }
-  };
+  const itemVariants = shouldReduceMotion
+    ? {
+        hidden: { opacity: 1, y: 0 },
+        visible: { opacity: 1, y: 0, transition: { duration: 0 } },
+      }
+    : {
+        hidden: { opacity: 0, y: 10 },
+        visible: {
+          opacity: 1,
+          y: 0,
+          transition: { duration: 0.4, ease: "easeOut" },
+        },
+      };
 
   return (
     <div className="min-h-screen bg-warm-bg flex flex-col md:flex-row overflow-hidden font-body text-stone-900">
       {/* Left side: Hero Section */}
       <motion.div
-        initial={{ opacity: 0, x: -40 }}
-        animate={{ opacity: 1, x: 0 }}
-        transition={{ duration: 0.8, ease: [0.22, 1, 0.36, 1] }}
+        initial={shouldReduceMotion ? false : { opacity: 0 }}
+        animate={{ opacity: 1 }}
+        transition={{ duration: shouldReduceMotion ? 0 : 0.5 }}
         className="hidden md:flex md:w-1/2 bg-pale p-12 lg:p-16 flex-col relative overflow-hidden items-center justify-center border-r border-stone-200/50"
       >
         {/* Floating Bubble Background Elements */}
         <div className="absolute inset-0 overflow-hidden pointer-events-none">
-          <motion.div 
-            animate={{ 
-              y: [0, -30, 0],
-              scale: [1, 1.1, 1],
-            }}
-            transition={{ duration: 8, repeat: Infinity, ease: "easeInOut" }}
-            className="absolute top-[10%] left-[15%] w-[350px] h-[350px] bg-primary/10 rounded-full blur-[100px]" 
-          />
-          <motion.div 
-            animate={{ 
-              y: [0, 40, 0],
-              scale: [1, 1.05, 1],
-            }}
-            transition={{ duration: 12, repeat: Infinity, ease: "easeInOut", delay: 1 }}
-            className="absolute bottom-[15%] right-[10%] w-[300px] h-[300px] bg-primary-light/10 rounded-full blur-[80px]" 
-          />
+          <div className="absolute top-[10%] left-[15%] w-[350px] h-[350px] bg-primary/5 rounded-full blur-[100px]" />
+          <div className="absolute bottom-[15%] right-[10%] w-[300px] h-[300px] bg-primary-light/5 rounded-full blur-[80px]" />
         </div>
 
         <Link
@@ -68,18 +65,16 @@ const ForgotPasswordPage = () => {
         </Link>
 
         <div className="relative z-10 w-full max-w-lg flex flex-col items-center text-center">
-          <motion.div 
-            animate={{ y: [0, -15, 0] }}
-            transition={{ duration: 6, repeat: Infinity, ease: "easeInOut" }}
-            className="relative mb-12 w-full max-w-[340px] aspect-square"
-          >
-            <div className="absolute inset-0 bg-primary/20 rounded-full blur-[60px] animate-pulse" />
+          <div className="relative mb-12 w-full max-w-[340px] aspect-square">
+            <div className="absolute inset-0 bg-primary/10 rounded-full blur-[40px]" />
             <img
               src="/images/forgot-password-hero.png"
               alt="Khôi phục mật khẩu"
-              className="relative z-10 w-full h-full object-contain drop-shadow-[0_20px_50px_rgba(21,128,61,0.15)]"
+              loading="lazy"
+              decoding="async"
+              className="relative z-10 w-full h-full object-contain drop-shadow-xl"
             />
-          </motion.div>
+          </div>
 
           <div className="flex items-center justify-center gap-3 mb-6">
             <div className="w-10 h-[2px] bg-primary/30 rounded-full"></div>
