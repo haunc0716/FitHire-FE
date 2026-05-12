@@ -199,9 +199,13 @@ export default function UserHeader() {
                   <Link to="/user/history" className="flex items-center gap-3 px-5 py-2.5 text-sm font-medium text-stone-700 hover:bg-stone-50 hover:text-emerald-600 transition-colors">
                     <History className="h-4 w-4" /> Lịch sử phân tích
                   </Link>
+                  <Link to="/user/payments" className="flex items-center gap-3 px-5 py-2.5 text-sm font-medium text-stone-700 hover:bg-stone-50 hover:text-emerald-600 transition-colors">
+                    <LogOut className="h-4 w-4 rotate-90" /> Lịch sử thanh toán
+                  </Link>
                   <Link to="/user/pricing" className="flex items-center gap-3 px-5 py-2.5 text-sm font-medium text-stone-700 hover:bg-stone-50 hover:text-emerald-600 transition-colors">
                     <Crown className="h-4 w-4" /> Nâng cấp tài khoản Pro
                   </Link>
+
                   
                   <div className="my-2 border-t border-stone-100" />
                   

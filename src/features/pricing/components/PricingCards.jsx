@@ -234,7 +234,13 @@ const PricingCards = () => {
         const checkout = await checkoutSubscription(plan.code, plan.billingType === 'RECURRING');
         const payment = checkout?.payment;
 
+        if (payment?.checkoutUrl) {
+          window.location.href = payment.checkoutUrl;
+          return;
+        }
+
         if (payment?.status === 'PENDING') {
+
           setPendingPayment({
             id: payment.id,
             planCode: plan.code,

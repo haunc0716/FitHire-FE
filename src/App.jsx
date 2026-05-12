@@ -30,6 +30,9 @@ const MockInterviewPage = React.lazy(() => import('./features/user/pages/MockInt
 const UserPricingPage = React.lazy(() => import('./features/user/pages/UserPricingPage'));
 const UserProfilePage = React.lazy(() => import('./features/user/pages/UserProfilePage'));
 const ChangePasswordPage = React.lazy(() => import('./features/user/pages/ChangePasswordPage'));
+const PaymentHistoryPage = React.lazy(() => import('./features/payments/pages/PaymentHistoryPage'));
+const PaymentStatusPage = React.lazy(() => import('./features/payments/pages/PaymentStatusPage'));
+
 import { clearAuthSession, getAuthSession, isSessionValid } from './features/auth/services/authSession';
 import { ToastProvider } from './components/ui/ToastProvider';
 
@@ -142,9 +145,13 @@ export default function App() {
                 <Route path="mock-interview" element={<MockInterviewPage />} />
                 <Route path="pricing" element={<UserPricingPage />} />
                 <Route path="profile" element={<UserProfilePage />} />
+                <Route path="payments" element={<PaymentHistoryPage />} />
               </Route>
               <Route path="/change-password" element={<ChangePasswordPage />} />
+              <Route path="/payments/success" element={<PaymentStatusPage type="success" />} />
+              <Route path="/payments/cancel" element={<PaymentStatusPage type="cancel" />} />
             </Route>
+
           </Routes>
         </Suspense>
       </ToastProvider>

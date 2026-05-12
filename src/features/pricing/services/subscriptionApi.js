@@ -104,3 +104,41 @@ export function fetchMySubscriptions() {
   });
 }
 
+export function fetchPaymentHistory(params = {}) {
+  const query = new URLSearchParams(params).toString();
+  return requestJson(`/api/payments/me?${query}`, {
+    method: 'GET',
+    headers: {
+      ...buildAuthHeaders(),
+    },
+  });
+}
+
+export function reportPayment(paymentId) {
+  return requestJson(`/api/payments/${paymentId}/report`, {
+    method: 'POST',
+    headers: {
+      ...buildAuthHeaders(),
+    },
+  });
+}
+
+export function cancelPendingPayment(paymentId) {
+  return requestJson(`/api/payments/${paymentId}/cancel`, {
+    method: 'POST',
+    headers: {
+      ...buildAuthHeaders(),
+    },
+  });
+}
+
+export function cancelPendingPaymentByOrderCode(orderCode) {
+  return requestJson(`/api/payments/cancel/by-order-code?orderCode=${encodeURIComponent(orderCode)}`, {
+    method: 'POST',
+    headers: {
+      ...buildAuthHeaders(),
+    },
+  });
+}
+
+
