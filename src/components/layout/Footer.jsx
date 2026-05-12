@@ -45,7 +45,7 @@ const Footer = () => {
         <div className="grid grid-cols-1 md:grid-cols-12 gap-16 mb-24">
           {/* Logo & Info */}
           <div className="md:col-span-4">
-            <Link to="/" className="font-display text-2xl font-bold tracking-tighter mb-8 block">
+            <Link to="/" className="font-display text-2xl font-bold tracking-tighter mb-8 block text-primary">
               FITHIRE
             </Link>
             <p className="text-zinc-500 text-sm leading-relaxed max-w-xs">
@@ -65,7 +65,7 @@ const Footer = () => {
                     <li key={link.name}>
                       <Link
                         to={link.path}
-                        className="text-zinc-500 hover:text-zinc-950 text-sm transition-colors"
+                        className="text-zinc-500 hover:text-primary text-sm transition-colors"
                       >
                         {link.name}
                       </Link>
@@ -87,7 +87,7 @@ const Footer = () => {
               <a
                 key={social}
                 href={`#${social.toLowerCase()}`}
-                className="text-[10px] font-bold uppercase tracking-widest text-zinc-400 hover:text-zinc-950 transition-colors"
+                className="text-[10px] font-bold uppercase tracking-widest text-zinc-400 hover:text-primary transition-colors"
               >
                 {social}
               </a>

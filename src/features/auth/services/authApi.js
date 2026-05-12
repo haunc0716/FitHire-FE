@@ -26,20 +26,16 @@ async function parseJsonSafely(response) {
   }
 }
 
-export async function loginWithGoogle(idToken) {
-  if (!idToken) {
-    throw new Error('Không nhận được Google ID token.');
-  }
-
+async function postJson(path, body) {
   let response;
   try {
-    response = await fetch(buildApiUrl('/api/auth/google'), {
+    response = await fetch(buildApiUrl(path), {
       method: 'POST',
       credentials: 'include',
       headers: {
         'Content-Type': 'application/json',
       },
-      body: JSON.stringify({ idToken }),
+      body: JSON.stringify(body ?? {}),
     });
   } catch {
     throw new Error('Không thể kết nối tới máy chủ. Vui lòng thử lại.');
@@ -47,8 +43,48 @@ export async function loginWithGoogle(idToken) {
 
   const payload = await parseJsonSafely(response);
   if (!response.ok) {
-    throw new Error(resolveErrorMessage(payload, `Đăng nhập thất bại (HTTP ${response.status}).`));
+    throw new Error(resolveErrorMessage(payload, `Yêu cầu thất bại (HTTP ${response.status}).`));
   }
 
   return payload;
+}
+
+export async function loginWithGoogle(idToken) {
+  if (!idToken) {
+    throw new Error('Không nhận được Google ID token.');
+  }
+
+  return postJson('/api/auth/google', { idToken });
+}
+
+export async function loginWithEmailPassword({ email, password }) {
+  if (!email || !password) {
+    throw new Error('Vui lòng nhập email và mật khẩu.');
+  }
+
+  return postJson('/api/auth/login', { email, password });
+}
+
+export async function registerWithEmailPassword({ fullName, email, password }) {
+  if (!fullName || !email || !password) {
+    throw new Error('Vui lòng nhập đầy đủ thông tin đăng ký.');
+  }
+
+  return postJson('/api/auth/register', { fullName, email, password });
+}
+
+export async function verifyEmail({ email, code }) {
+  if (!email || !code) {
+    throw new Error('Vui lòng nhập email và mã xác thực.');
+  }
+
+  return postJson('/api/auth/verify-email', { email, code });
+}
+
+export async function resendVerificationCode(email) {
+  if (!email) {
+    throw new Error('Vui lòng nhập email để gửi lại mã xác thực.');
+  }
+
+  return postJson('/api/auth/resend-verification-code', { email });
 }
