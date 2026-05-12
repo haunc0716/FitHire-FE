@@ -234,31 +234,39 @@ const PricingCards = () => {
         const checkout = await checkoutSubscription(plan.code, plan.billingType === 'RECURRING');
         const payment = checkout?.payment;
 
-        if (payment?.checkoutUrl) {
-          window.location.href = payment.checkoutUrl;
-          return;
-        }
-
         if (payment?.status === 'PENDING') {
-
           setPendingPayment({
             id: payment.id,
             planCode: plan.code,
             planName: plan.name,
           });
-          showToast({
-            type: 'info',
-            title: 'Đã tạo thanh toán',
-            message: `Thanh toán #${payment.id} cho gói ${plan.name} đang PENDING.`
+          navigate('/payments/qr', {
+            state: {
+              payment: {
+                id: payment.id,
+                orderCode: payment.orderCode,
+                amount: payment.amount ?? plan.price,
+                bankName: payment.bankName,
+                accountName: payment.accountName,
+                accountNumber: payment.accountNumber,
+                transferContent: payment.transferContent ?? `FITHIRE-${plan.code}-${payment.id ?? ''}`,
+                qrUrl: payment.qrUrl,
+                status: payment.status,
+                planCode: plan.code,
+                planName: plan.name,
+                createdAt: payment.createdAt,
+              }
+            }
           });
-        } else {
-          setPendingPayment(null);
-          showToast({
-            type: 'success',
-            title: 'Kích hoạt thành công',
-            message: `Gói ${plan.name} đã được kích hoạt.`
-          });
+          return;
         }
+
+        setPendingPayment(null);
+        showToast({
+          type: 'success',
+          title: 'Kích hoạt thành công',
+          message: `Gói ${plan.name} đã được kích hoạt.`
+        });
 
         await refreshMySnapshot();
       } catch (apiError) {

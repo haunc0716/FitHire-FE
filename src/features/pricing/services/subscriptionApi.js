@@ -114,6 +114,15 @@ export function fetchPaymentHistory(params = {}) {
   });
 }
 
+export function fetchPaymentDetails(paymentId) {
+  return requestJson(`/api/payments/${paymentId}`, {
+    method: 'GET',
+    headers: {
+      ...buildAuthHeaders(),
+    },
+  });
+}
+
 export function reportPayment(paymentId) {
   return requestJson(`/api/payments/${paymentId}/report`, {
     method: 'POST',
@@ -122,8 +131,7 @@ export function reportPayment(paymentId) {
     },
   });
 }
-
-export function cancelPendingPayment(paymentId) {
+export function cancelPayment(paymentId) {
   return requestJson(`/api/payments/${paymentId}/cancel`, {
     method: 'POST',
     headers: {
@@ -132,13 +140,11 @@ export function cancelPendingPayment(paymentId) {
   });
 }
 
-export function cancelPendingPaymentByOrderCode(orderCode) {
-  return requestJson(`/api/payments/cancel/by-order-code?orderCode=${encodeURIComponent(orderCode)}`, {
-    method: 'POST',
+export function fetchPaymentSummary() {
+  return requestJson('/api/payments/me/summary', {
+    method: 'GET',
     headers: {
       ...buildAuthHeaders(),
     },
   });
 }
-
-

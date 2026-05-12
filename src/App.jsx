@@ -31,7 +31,7 @@ const UserPricingPage = React.lazy(() => import('./features/user/pages/UserPrici
 const UserProfilePage = React.lazy(() => import('./features/user/pages/UserProfilePage'));
 const ChangePasswordPage = React.lazy(() => import('./features/user/pages/ChangePasswordPage'));
 const PaymentHistoryPage = React.lazy(() => import('./features/payments/pages/PaymentHistoryPage'));
-const PaymentStatusPage = React.lazy(() => import('./features/payments/pages/PaymentStatusPage'));
+const PaymentQrPage = React.lazy(() => import('./features/payments/pages/PaymentQrPage'));
 
 import { clearAuthSession, getAuthSession, isSessionValid } from './features/auth/services/authSession';
 import { ToastProvider } from './components/ui/ToastProvider';
@@ -148,8 +148,8 @@ export default function App() {
                 <Route path="payments" element={<PaymentHistoryPage />} />
               </Route>
               <Route path="/change-password" element={<ChangePasswordPage />} />
-              <Route path="/payments/success" element={<PaymentStatusPage type="success" />} />
-              <Route path="/payments/cancel" element={<PaymentStatusPage type="cancel" />} />
+              <Route path="/payments/qr" element={<PaymentQrPage />} />
+              <Route path="/payments/success" element={<PaymentQrPage status="success" />} />
             </Route>
 
           </Routes>
