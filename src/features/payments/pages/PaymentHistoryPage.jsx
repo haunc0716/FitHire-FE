@@ -1,9 +1,8 @@
-import React, { useEffect, useRef, useState, useCallback } from 'react';
+import React, { useEffect, useState, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import {
   CreditCard,
   ChevronRight,
-  ArrowLeft,
   CheckCircle2,
   XCircle,
   Clock,
@@ -47,7 +46,6 @@ const StatusBadge = ({ status }) => {
 };
 
 const PaymentHistoryPage = () => {
-  const PAYMENT_TIMEOUT_SECONDS = 5 * 60;
   const PAGE_SIZE = 5;
   
   const navigate = useNavigate();
@@ -64,11 +62,8 @@ const PaymentHistoryPage = () => {
   const [loading, setLoading] = useState(true);
   const [reportingId, setReportingId] = useState(null);
   const [reportedIds, setReportedIds] = useState(new Set());
-  const [now, setNow] = useState(Date.now());
   const [currentPage, setCurrentPage] = useState(0);
   const [totalPages, setTotalPages] = useState(0);
-  
-  const autoRefreshLockRef = useRef(false);
 
   const loadData = useCallback(async (page = 0) => {
     try {
@@ -97,29 +92,8 @@ const PaymentHistoryPage = () => {
   }, [loadData, currentPage]);
 
   useEffect(() => {
-    const timer = window.setInterval(() => setNow(Date.now()), 1000);
-    return () => window.clearInterval(timer);
-  }, []);
-
-  // Auto-refresh logic for pending payments
-  useEffect(() => {
-    if (loading || payments.length === 0 || autoRefreshLockRef.current) return;
-
-    const hasExpiredPending = payments.some((payment) => {
-      if (payment.status !== 'PENDING' || !payment.createdAt) return false;
-      const elapsedSeconds = Math.floor((now - new Date(payment.createdAt).getTime()) / 1000);
-      return elapsedSeconds >= PAYMENT_TIMEOUT_SECONDS;
-    });
-
-    if (!hasExpiredPending) return;
-
-    autoRefreshLockRef.current = true;
-    loadData(currentPage).finally(() => {
-      window.setTimeout(() => {
-        autoRefreshLockRef.current = false;
-      }, 8000);
-    });
-  }, [loading, now, payments, currentPage, loadData]);
+    loadData(currentPage);
+  }, [loadData, currentPage]);
 
   const handleReport = async (paymentId) => {
     if (reportedIds.has(paymentId)) return;
@@ -156,18 +130,6 @@ const PaymentHistoryPage = () => {
   };
 
   const formatAmount = (amount) => new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(amount);
-
-  const getRemainingSeconds = (createdAt) => {
-    if (!createdAt) return 0;
-    const elapsedSeconds = Math.floor((now - new Date(createdAt).getTime()) / 1000);
-    return Math.max(0, PAYMENT_TIMEOUT_SECONDS - elapsedSeconds);
-  };
-
-  const formatRemainingTime = (remainingSeconds) => {
-    const minutes = Math.floor(remainingSeconds / 60);
-    const seconds = remainingSeconds % 60;
-    return `${String(minutes).padStart(2, '0')}:${String(seconds).padStart(2, '0')}`;
-  };
 
   return (
     <div className="min-h-screen bg-[#F8F9FA] font-sans text-stone-900">
@@ -221,10 +183,10 @@ const PaymentHistoryPage = () => {
                 </thead>
                 <tbody className="divide-y divide-stone-50">
                   {payments.map((payment) => {
-                    const remainingSeconds = payment.status === 'PENDING' ? getRemainingSeconds(payment.createdAt) : 0;
-                    const isPendingExpired = payment.status === 'PENDING' && remainingSeconds === 0;
                     const isReporting = reportingId === payment.id;
                     const isReported = reportedIds.has(payment.id);
+                    const isPending = payment.status === 'PENDING';
+                    const canReport = isPending;
 
                     return (
                       <tr key={payment.id} className="group hover:bg-stone-50/30 transition-colors">
@@ -238,57 +200,28 @@ const PaymentHistoryPage = () => {
                           <span className="text-sm font-bold text-stone-900">{formatAmount(payment.amount)}</span>
                         </td>
                         <td className="px-6 py-6">
-                          <div className="flex flex-col gap-1">
-                            <StatusBadge status={payment.status} />
-                            {payment.status === 'PENDING' && (
-                              <span className={`text-[10px] font-bold ${isPendingExpired ? 'text-red-400' : 'text-amber-500'}`}>
-                                {isPendingExpired ? 'Đã hết hạn' : `Hết hạn trong: ${formatRemainingTime(remainingSeconds)}`}
-                              </span>
-                            )}
-                          </div>
+                          <StatusBadge status={payment.status} />
                         </td>
                         <td className="px-6 py-6">
                           <span className="text-sm text-stone-500">{formatDate(payment.createdAt)}</span>
                         </td>
                         <td className="px-6 py-6 text-right">
                           <div className="flex items-center justify-end gap-4">
-                            {payment.status === 'PENDING' && !isPendingExpired && (
+                            {canReport && (
                               <button
-                                onClick={() => navigate('/payments/qr', {
-                                  state: {
-                                    payment: {
-                                      id: payment.id,
-                                      orderCode: payment.orderCode,
-                                      amount: payment.amount,
-                                      bankName: payment.bankName,
-                                      accountName: payment.accountName,
-                                      accountNumber: payment.accountNumber,
-                                      transferContent: payment.transferContent,
-                                      qrUrl: payment.qrUrl,
-                                      status: payment.status,
-                                      planName: payment.planName || 'FitHire Premium',
-                                      createdAt: payment.createdAt
-                                    }
-                                  }
-                                })}
-                                className="text-xs font-bold text-emerald-600 hover:underline"
+                                disabled={isReporting || isReported}
+                                onClick={() => handleReport(payment.id)}
+                                className={`text-xs font-bold transition-all ${
+                                  isReported 
+                                    ? 'text-stone-400 cursor-not-allowed' 
+                                    : isReporting 
+                                      ? 'text-amber-500' 
+                                      : 'text-red-500 hover:underline'
+                                }`}
                               >
-                                Thanh toán lại
+                                {isReporting ? 'Đang gửi...' : isReported ? 'Đã báo cáo' : 'Báo lỗi'}
                               </button>
                             )}
-                            <button
-                              disabled={isReporting || isReported}
-                              onClick={() => handleReport(payment.id)}
-                              className={`text-xs font-bold transition-all ${
-                                isReported 
-                                  ? 'text-stone-400 cursor-not-allowed' 
-                                  : isReporting 
-                                    ? 'text-amber-500' 
-                                    : 'text-red-500 hover:underline'
-                              }`}
-                            >
-                              {isReporting ? 'Đang gửi...' : isReported ? 'Đã báo cáo' : 'Báo lỗi'}
-                            </button>
                           </div>
                         </td>
                       </tr>
@@ -356,7 +289,7 @@ const PaymentHistoryPage = () => {
               <AlertCircle className="h-4 w-4 text-stone-300" />
             </div>
             <p className="text-[11px] leading-relaxed text-stone-400 font-medium max-w-2xl">
-              Nếu bạn đã chuyển khoản nhưng trạng thái chưa cập nhật sau 5 phút, vui lòng sử dụng nút <strong>Báo lỗi</strong> hoặc liên hệ đội ngũ hỗ trợ để được kiểm tra thủ công.
+              Nếu giao dịch chưa phản ánh ngay sau khi thanh toán, hệ thống sẽ tự đồng bộ trạng thái từ PayOS. Bạn cũng có thể bấm <strong>Báo lỗi</strong> để gửi yêu cầu kiểm tra thủ công.
             </p>
           </div>
         </div>

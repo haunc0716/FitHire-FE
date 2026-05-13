@@ -1,4 +1,4 @@
-import React, { useMemo, useRef, useState, useEffect } from 'react';
+import React, { useMemo, useRef, useState, useEffect, useCallback } from 'react';
 import { NavLink, Link, useNavigate, useLocation } from 'react-router-dom';
 import { 
   Menu, 
@@ -15,7 +15,7 @@ import {
   Crown
 } from 'lucide-react';
 import { getAuthSession, clearAuthSession } from '../../auth/services/authSession';
-import { fetchMyProfile } from '../services/userApi';
+import { fetchMyProfile, fetchMyEntitlements } from '../services/userApi';
 
 const navGroups = [
   {
@@ -44,6 +44,7 @@ export default function UserHeader() {
   const [activeDropdown, setActiveDropdown] = useState(null); 
   
   const [userProfile, setUserProfile] = useState(null);
+  const [subscriptionLabel, setSubscriptionLabel] = useState('FREE');
   
   const headerRef = useRef(null);
 
@@ -51,13 +52,27 @@ export default function UserHeader() {
   const avatarUrl = useMemo(() => userProfile?.avatarUrl || session?.user?.avatarUrl, [userProfile, session]);
   const avatarInitial = useMemo(() => (userLabel?.trim()?.charAt(0) || 'U').toUpperCase(), [userLabel]);
 
-  useEffect(() => {
-    if (session?.accessToken) {
-      fetchMyProfile()
-        .then(data => setUserProfile(data))
-        .catch(() => {});
-    }
+  const refreshHeaderData = useCallback(() => {
+    if (!session?.accessToken) return;
+
+    Promise.allSettled([fetchMyProfile(), fetchMyEntitlements()])
+      .then(([profileResult, entitlementsResult]) => {
+        if (profileResult.status === 'fulfilled') {
+          setUserProfile(profileResult.value);
+        }
+        if (entitlementsResult.status === 'fulfilled') {
+          const entitlements = entitlementsResult.value;
+          const currentPlan = entitlements?.currentPlan?.name || entitlements?.currentPlan?.code || entitlements?.subscription?.name;
+          const active = Boolean(entitlements?.activeSubscription || currentPlan || entitlements?.isPremium);
+          setSubscriptionLabel(active ? String(currentPlan || 'PRO').toUpperCase() : 'FREE');
+        }
+      })
+      .catch(() => {});
   }, [session?.accessToken]);
+
+  useEffect(() => {
+    refreshHeaderData();
+  }, [refreshHeaderData]);
 
   useEffect(() => {
     function onClickOutside(event) {
@@ -181,7 +196,7 @@ export default function UserHeader() {
                 </div>
                 <div className="hidden lg:flex flex-col pl-1">
                   <span className="text-[11px] font-semibold text-stone-500 leading-none mb-1">Tài khoản</span>
-                  <span className="text-[12px] font-bold text-[#00b14f] leading-none uppercase">Free</span>
+                  <span className="text-[12px] font-bold text-[#00b14f] leading-none uppercase">{subscriptionLabel}</span>
                 </div>
                 <ChevronDown className="h-4 w-4 text-stone-400 ml-1" />
               </div>

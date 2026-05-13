@@ -1,25 +1,14 @@
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Check, ChevronRight, Crown, Loader2, Sparkles, Target, Zap, Smile, Timer, Rocket, Gem } from 'lucide-react';
+import { Check, ChevronRight, Loader2, Sparkles, Smile, Timer, Rocket, Gem } from 'lucide-react';
 import { getAuthSession } from '../../auth/services/authSession';
 import { useToast } from '../../../components/ui/ToastProvider';
 import {
   checkoutSubscription,
   fetchMySubscriptions,
   fetchPricingPlans,
-  simulatePaymentFailed,
-  simulatePaymentSuccess,
 } from '../services/subscriptionApi';
 
-/* ──────────────────────────────────────────────────────────
-   Vietnamese feature fallback data (in case API returns
-   empty or missing diacritics)
-   ────────────────────────────────────────────────────────── */
-
-
-/* ──────────────────────────────────────────────────────────
-   Theme config per plan – unified vibrant palette
-   ────────────────────────────────────────────────────────── */
 const PLAN_THEMES = {
   FREE: {
     icon: Smile,
@@ -149,8 +138,6 @@ const PricingCards = () => {
   const [plans, setPlans] = useState([]);
   const [loading, setLoading] = useState(true);
   const [busyPlanCode, setBusyPlanCode] = useState('');
-  const [paymentActionLoading, setPaymentActionLoading] = useState(false);
-  const [pendingPayment, setPendingPayment] = useState(null);
   const [activePlanCodes, setActivePlanCodes] = useState([]);
 
   const refreshMySnapshot = useCallback(async () => {
@@ -228,47 +215,30 @@ const PricingCards = () => {
       }
 
       setBusyPlanCode(plan.code);
-      
 
       try {
         const checkout = await checkoutSubscription(plan.code, plan.billingType === 'RECURRING');
-        const payment = checkout?.payment;
 
-        if (payment?.status === 'PENDING') {
-          setPendingPayment({
-            id: payment.id,
-            planCode: plan.code,
-            planName: plan.name,
-          });
-          navigate('/payments/qr', {
-            state: {
-              payment: {
-                id: payment.id,
-                orderCode: payment.orderCode,
-                amount: payment.amount ?? plan.price,
-                bankName: payment.bankName,
-                accountName: payment.accountName,
-                accountNumber: payment.accountNumber,
-                transferContent: payment.transferContent ?? `FITHIRE-${plan.code}-${payment.id ?? ''}`,
-                qrUrl: payment.qrUrl,
-                status: payment.status,
-                planCode: plan.code,
-                planName: plan.name,
-                createdAt: payment.createdAt,
-              }
-            }
-          });
+        if (checkout?.checkoutUrl) {
+          window.location.href = checkout.checkoutUrl;
           return;
         }
 
-        setPendingPayment(null);
-        showToast({
-          type: 'success',
-          title: 'Kích hoạt thành công',
-          message: `Gói ${plan.name} đã được kích hoạt.`
-        });
+        if (checkout?.status === 'SUCCESS') {
+          showToast({
+            type: 'success',
+            title: 'Kích hoạt thành công',
+            message: `Gói ${plan.name} đã được kích hoạt.`
+          });
+          await refreshMySnapshot();
+          return;
+        }
 
-        await refreshMySnapshot();
+        showToast({
+          type: 'error',
+          title: 'Không thể tạo checkout',
+          message: 'Hệ thống chưa nhận được liên kết thanh toán PayOS. Vui lòng thử lại.'
+        });
       } catch (apiError) {
         showToast({
           type: 'error',
@@ -282,43 +252,6 @@ const PricingCards = () => {
     [navigate, refreshMySnapshot, showToast]
   );
 
-  const handlePaymentSimulation = useCallback(async (result) => {
-    if (!pendingPayment?.id) {
-      return;
-    }
-
-    setPaymentActionLoading(true);
-
-    try {
-      if (result === 'SUCCESS') {
-        await simulatePaymentSuccess(pendingPayment.id);
-        showToast({
-          type: 'success',
-          title: 'Thanh toán thành công',
-          message: `Gói ${pendingPayment.planName} đã ACTIVE.`
-        });
-      } else {
-        await simulatePaymentFailed(pendingPayment.id);
-        showToast({
-          type: 'error',
-          title: 'Thanh toán thất bại',
-          message: `Bạn có thể checkout lại gói ${pendingPayment.planName}.`
-        });
-      }
-      setPendingPayment(null);
-      await refreshMySnapshot();
-    } catch (apiError) {
-      showToast({
-        type: 'error',
-        title: 'Không thể cập nhật thanh toán',
-        message: apiError?.message || 'Vui lòng thử lại sau.'
-      });
-    } finally {
-      setPaymentActionLoading(false);
-    }
-  }, [pendingPayment, refreshMySnapshot, showToast]);
-
-  /* ── Loading skeleton ─────────────────────────────────── */
   if (loading) {
     return (
       <section className="mb-20">
@@ -336,44 +269,13 @@ const PricingCards = () => {
 
   return (
     <section className="mb-20">
-      {/* Pending payment simulation */}
-      {pendingPayment ? (
-        <div className="mb-5 rounded-xl border border-amber-200 bg-amber-50 px-4 py-3">
-          <p className="mb-2 text-sm font-semibold text-amber-800">
-            Payment #{pendingPayment.id} đang PENDING cho gói {pendingPayment.planName}
-          </p>
-          <div className="flex flex-wrap gap-3">
-            <button
-              type="button"
-              disabled={paymentActionLoading}
-              onClick={() => handlePaymentSimulation('SUCCESS')}
-              className="rounded-full border border-emerald-300 bg-white px-4 py-2 text-sm font-semibold text-emerald-700 hover:bg-emerald-50 disabled:opacity-60"
-            >
-              {paymentActionLoading ? 'Đang xử lý...' : 'Mô phỏng SUCCESS'}
-            </button>
-            <button
-              type="button"
-              disabled={paymentActionLoading}
-              onClick={() => handlePaymentSimulation('FAILED')}
-              className="rounded-full border border-rose-300 bg-white px-4 py-2 text-sm font-semibold text-rose-700 hover:bg-rose-50 disabled:opacity-60"
-            >
-              {paymentActionLoading ? 'Đang xử lý...' : 'Mô phỏng FAILED'}
-            </button>
-          </div>
-        </div>
-      ) : null}
-
-      {/* ══════════════════════════════════════════════════
-          PRICING CARDS GRID
-         ══════════════════════════════════════════════════ */}
       <div className="grid grid-cols-1 gap-6 md:grid-cols-2 xl:grid-cols-4 items-stretch">
         {enrichedPlans.map((plan) => {
           const Icon = plan.theme.icon;
           const isBusy = busyPlanCode === plan.code;
           const isCurrentPlan = activePlanCodes.includes(plan.code);
-          const isDisabled = isBusy || paymentActionLoading || isCurrentPlan;
+          const isDisabled = isBusy || isCurrentPlan;
           const isPro = plan.code === 'PRO';
-          const isPlus = plan.code === 'PLUS';
 
           return (
             <article
@@ -386,8 +288,6 @@ const PricingCards = () => {
                 ${plan.theme.cardHover}
               `}
             >
-
-              {/* ── Header: icon + badge ── */}
               <div className="flex items-center justify-between mb-4">
                 <div className={`flex h-11 w-11 items-center justify-center rounded-xl ${plan.theme.iconBg}`}>
                   <Icon className={`h-5 w-5 ${plan.theme.iconColor}`} strokeWidth={1.8} />
@@ -397,17 +297,14 @@ const PricingCards = () => {
                 </span>
               </div>
 
-              {/* ── Plan name ── */}
               <h3 className={`text-2xl font-display font-black mb-2 ${isPro ? 'text-white' : 'text-stone-900'}`}>
                 {plan.name}
               </h3>
 
-              {/* ── Description ── */}
               <p className={`text-[13px] leading-relaxed mb-4 ${plan.theme.descColor}`}>
                 {plan.description}
               </p>
 
-              {/* ── Price block ── */}
               <div className="mb-1 flex items-baseline gap-1">
                 <span className={`text-4xl font-display font-black leading-none tracking-tight ${plan.theme.priceColor}`}>
                   {plan.formattedPrice}
@@ -420,13 +317,10 @@ const PricingCards = () => {
                 {plan.priceUnit}
               </p>
 
-              {/* ── Divider ── */}
               <div className={`border-t mb-5 ${plan.theme.dividerColor}`} />
 
-              {/* ── Features ── */}
               <ul className="space-y-3 flex-grow mb-6">
                 {plan.featureLines.map((line, idx) => {
-                  // Split "Feature Name: detail" for bold name styling
                   const colonIdx = line.indexOf(':');
                   const featureName = colonIdx > -1 ? line.slice(0, colonIdx) : line;
                   const featureDetail = colonIdx > -1 ? line.slice(colonIdx + 1).trim() : '';
@@ -450,7 +344,6 @@ const PricingCards = () => {
                 })}
               </ul>
 
-              {/* ── CTA button ── */}
               <button
                 type="button"
                 onClick={() => handleCheckout(plan)}
