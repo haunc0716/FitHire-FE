@@ -1,5 +1,5 @@
 import React, { useMemo, useRef, useState, useEffect, useCallback } from 'react';
-import { NavLink, Link, useNavigate, useLocation } from 'react-router-dom';
+import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { 
   Menu, 
   X, 
@@ -15,7 +15,7 @@ import {
   Crown
 } from 'lucide-react';
 import { getAuthSession, clearAuthSession } from '../../auth/services/authSession';
-import { fetchMyProfile, fetchMyEntitlements } from '../services/userApi';
+import { fetchMyProfile, fetchMySubscriptions } from '../services/userApi';
 
 const navGroups = [
   {
@@ -55,16 +55,25 @@ export default function UserHeader() {
   const refreshHeaderData = useCallback(() => {
     if (!session?.accessToken) return;
 
-    Promise.allSettled([fetchMyProfile(), fetchMyEntitlements()])
-      .then(([profileResult, entitlementsResult]) => {
+    Promise.allSettled([fetchMyProfile(), fetchMySubscriptions()])
+      .then(([profileResult, subscriptionsResult]) => {
         if (profileResult.status === 'fulfilled') {
           setUserProfile(profileResult.value);
         }
-        if (entitlementsResult.status === 'fulfilled') {
-          const entitlements = entitlementsResult.value;
-          const currentPlan = entitlements?.currentPlan?.name || entitlements?.currentPlan?.code || entitlements?.subscription?.name;
-          const active = Boolean(entitlements?.activeSubscription || currentPlan || entitlements?.isPremium);
-          setSubscriptionLabel(active ? String(currentPlan || 'PRO').toUpperCase() : 'FREE');
+
+        if (subscriptionsResult.status === 'fulfilled') {
+          const snapshot = subscriptionsResult.value;
+          const now = Date.now();
+          const activeSubscription = (snapshot?.userSubscriptions ?? [])
+            .filter((item) => item?.status === 'ACTIVE')
+            .sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime())
+            .find((item) => {
+              if (!item?.endDate) return true;
+              return new Date(item.endDate).getTime() > now;
+            });
+
+          const currentPlan = activeSubscription?.subscriptionName || activeSubscription?.subscriptionCode;
+          setSubscriptionLabel(currentPlan ? String(currentPlan).toUpperCase() : 'FREE');
         }
       })
       .catch(() => {});
