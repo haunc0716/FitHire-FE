@@ -57,11 +57,36 @@ export default function UserPricingPage() {
         {!loading && subscriptions.length > 0 ? (
           (() => {
             const priority = { LUOT_LE: 4, PRO: 3, PLUS: 2, FREE: 1 };
-            const sortedSubscriptions = [...subscriptions].sort((a, b) => {
-              const aScore = priority[a?.subscriptionCode] ?? 0;
-              const bScore = priority[b?.subscriptionCode] ?? 0;
-              return bScore - aScore;
-            });
+            const toneMap = {
+              LUOT_LE: {
+                ring: 'from-amber-300/40 via-orange-200/20 to-transparent',
+                bg: 'bg-gradient-to-br from-amber-50/90 via-white to-white',
+                accent: 'bg-amber-500',
+                text: 'text-amber-700',
+                badge: 'bg-amber-100 text-amber-700',
+              },
+              PRO: {
+                ring: 'from-emerald-300/40 via-teal-200/20 to-transparent',
+                bg: 'bg-gradient-to-br from-emerald-50/90 via-white to-white',
+                accent: 'bg-emerald-500',
+                text: 'text-emerald-700',
+                badge: 'bg-emerald-100 text-emerald-700',
+              },
+              PLUS: {
+                ring: 'from-indigo-300/35 via-sky-200/20 to-transparent',
+                bg: 'bg-gradient-to-br from-indigo-50/90 via-white to-white',
+                accent: 'bg-indigo-500',
+                text: 'text-indigo-700',
+                badge: 'bg-indigo-100 text-indigo-700',
+              },
+              FREE: {
+                ring: 'from-slate-300/35 via-slate-200/20 to-transparent',
+                bg: 'bg-gradient-to-br from-slate-50/90 via-white to-white',
+                accent: 'bg-slate-500',
+                text: 'text-slate-700',
+                badge: 'bg-slate-100 text-slate-700',
+              },
+            };
 
             const formatPlanName = (code) => {
               if (code === 'LUOT_LE') return 'Gói Lượt Lẻ';
@@ -79,57 +104,106 @@ export default function UserPricingPage() {
               return 'Gói đang sử dụng của bạn.';
             };
 
-            const getToneClass = (code) => {
-              if (code === 'LUOT_LE') return 'border-amber-200/70 ring-amber-100 bg-amber-50/50 text-amber-700';
-              if (code === 'PRO') return 'border-emerald-200/70 ring-emerald-100 bg-emerald-50/50 text-emerald-700';
-              if (code === 'PLUS') return 'border-indigo-200/70 ring-indigo-100 bg-indigo-50/50 text-indigo-700';
-              return 'border-slate-200/70 ring-slate-100 bg-slate-50/80 text-slate-700';
-            };
+            const sortedSubscriptions = [...subscriptions].sort((a, b) => {
+              const aScore = priority[a?.subscriptionCode] ?? 0;
+              const bScore = priority[b?.subscriptionCode] ?? 0;
+              return bScore - aScore;
+            });
+            const primary = sortedSubscriptions[0];
+            const primaryTone = toneMap[primary?.subscriptionCode] ?? toneMap.FREE;
 
             return (
-              <div className="rounded-2xl border border-slate-200 bg-white p-3 shadow-sm sm:p-4">
-                <div className="mb-3 flex items-center justify-between gap-3">
-                  <h2 className="text-base font-semibold text-slate-900">Gói đang dùng</h2>
-                  <span className="rounded-full bg-slate-100 px-2.5 py-1 text-[11px] font-medium text-slate-600">
-                    {sortedSubscriptions.length} gói
-                  </span>
-                </div>
+              <motion.div
+                initial={{ opacity: 0, y: 12 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.35 }}
+                className={`relative overflow-hidden rounded-[2rem] border border-white/70 bg-white/80 p-5 shadow-[0_18px_50px_rgba(15,23,42,0.08)] backdrop-blur-xl sm:p-6`}
+              >
+                <div className={`pointer-events-none absolute inset-0 bg-gradient-to-br ${primaryTone.ring} opacity-80`} />
+                <div className="pointer-events-none absolute -right-10 -top-10 h-40 w-40 rounded-full bg-white/80 blur-3xl" />
+                <div className="pointer-events-none absolute -bottom-16 -left-16 h-48 w-48 rounded-full bg-emerald-200/20 blur-3xl" />
 
-                <div className="space-y-2">
-                  {sortedSubscriptions.map((sub) => {
-                    const code = sub?.subscriptionCode;
-
-                    return (
-                      <div key={`${code}-${sub?.endDate ?? 'no-end'}`} className="flex items-center gap-3 rounded-xl border border-slate-100 bg-slate-50 px-3 py-2.5">
-                        <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-white text-slate-500 ring-1 ring-slate-200">
-                          <CreditCard className="h-4 w-4" />
-                        </div>
-                        <div className="min-w-0 flex-1">
-                          <div className="flex flex-wrap items-center gap-2">
-                            <h3 className="text-sm font-medium text-slate-900">{formatPlanName(code)}</h3>
-                            <span className="text-[10px] uppercase tracking-wide text-slate-400">đang dùng</span>
-                          </div>
-                          <p className="text-xs text-slate-500">
-                            Hạn dùng: {sub?.endDate ? new Date(sub.endDate).toLocaleDateString('vi-VN') : 'Không thời hạn'}
-                          </p>
-                        </div>
+                <div className="relative flex flex-col gap-5">
+                  <div className="flex flex-wrap items-center justify-between gap-3">
+                    <div>
+                      <div className="mb-2 inline-flex items-center gap-2 rounded-full border border-white/70 bg-white/70 px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.16em] text-slate-500 shadow-sm">
+                        <Sparkles className="h-3.5 w-3.5 text-amber-500" />
+                        Gói đang dùng
                       </div>
-                    );
-                  })}
+                      <h2 className="text-xl font-bold tracking-tight text-slate-900 sm:text-2xl">
+                        Tài khoản hiện tại của bạn
+                      </h2>
+                      <p className="mt-1 text-sm leading-relaxed text-slate-500">
+                        {primary ? formatPlanNote(primary.subscriptionCode) : 'Thông tin gói đăng ký hiện tại.'}
+                      </p>
+                    </div>
+
+                    <div className="inline-flex items-center gap-2 rounded-full border border-white/70 bg-white/80 px-3 py-1.5 text-xs font-semibold text-slate-600 shadow-sm">
+                      <span className={`h-2.5 w-2.5 rounded-full ${primaryTone.accent}`} />
+                      {sortedSubscriptions.length} gói đang hoạt động
+                    </div>
+                  </div>
+
+                  <div className="grid gap-3 sm:grid-cols-2">
+                    {sortedSubscriptions.map((sub) => {
+                      const code = sub?.subscriptionCode;
+                      const tone = toneMap[code] ?? toneMap.FREE;
+
+                      return (
+                        <motion.div
+                          key={`${code}-${sub?.endDate ?? 'no-end'}`}
+                          initial={{ opacity: 0, y: 8 }}
+                          animate={{ opacity: 1, y: 0 }}
+                          transition={{ duration: 0.25 }}
+                          className={`relative overflow-hidden rounded-2xl border border-white/70 ${tone.bg} px-4 py-4 shadow-sm`}
+                        >
+                          <div className={`absolute left-0 top-0 h-full w-1.5 ${tone.accent}`} />
+                          <div className="flex items-start gap-4 pl-2">
+                            <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl bg-white/90 text-slate-500 shadow-sm ring-1 ring-slate-100">
+                              <CreditCard className="h-5 w-5" />
+                            </div>
+
+                            <div className="min-w-0 flex-1">
+                              <div className="flex flex-wrap items-center gap-2">
+                                <h3 className="text-base font-bold text-slate-900">{formatPlanName(code)}</h3>
+                                <span className={`rounded-full px-2.5 py-1 text-[10px] font-bold uppercase tracking-[0.14em] ${tone.badge}`}>
+                                  đang dùng
+                                </span>
+                              </div>
+                              <p className={`mt-1 text-sm font-medium ${tone.text}`}>{formatPlanNote(code)}</p>
+                              <p className="mt-1 text-xs text-slate-500">
+                                Hạn dùng: {sub?.endDate ? new Date(sub.endDate).toLocaleDateString('vi-VN') : 'Không thời hạn'}
+                              </p>
+                            </div>
+                          </div>
+                        </motion.div>
+                      );
+                    })}
+                  </div>
                 </div>
-              </div>
+              </motion.div>
             );
           })()
         ) : !loading && subscriptions.length === 0 ? (
-          <div className="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm flex items-center gap-4">
-            <div className="flex h-12 w-12 items-center justify-center rounded-full bg-slate-50 text-slate-400">
-              <AlertCircle className="h-6 w-6" />
+          <motion.div
+            initial={{ opacity: 0, y: 12 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.35 }}
+            className="relative overflow-hidden rounded-[2rem] border border-white/70 bg-white/85 p-6 shadow-[0_18px_50px_rgba(15,23,42,0.08)] backdrop-blur-xl"
+          >
+            <div className="pointer-events-none absolute inset-0 bg-gradient-to-br from-slate-50 via-white to-sky-50 opacity-90" />
+            <div className="relative flex items-center gap-4">
+              <div className="flex h-14 w-14 items-center justify-center rounded-2xl bg-slate-100 text-slate-500 shadow-sm ring-1 ring-white/80">
+                <AlertCircle className="h-7 w-7" />
+              </div>
+              <div>
+                <h2 className="text-lg font-bold text-slate-900">Bạn đang dùng gói Free</h2>
+                <p className="mt-1 text-sm leading-relaxed text-slate-500">
+                  Bạn có thể nâng cấp lên các gói trả phí bên dưới để trải nghiệm đầy đủ tính năng.
+                </p>
+              </div>
             </div>
-            <div>
-              <h2 className="text-base font-bold text-slate-900">Bạn đang dùng gói Free</h2>
-              <p className="text-sm text-slate-500 mt-1">Bạn có thể nâng cấp lên các gói trả phí bên dưới để trải nghiệm đầy đủ tính năng.</p>
-            </div>
-          </div>
+          </motion.div>
         ) : (
           <div className="h-24 rounded-2xl border border-slate-100 bg-slate-50 animate-pulse" />
         )}

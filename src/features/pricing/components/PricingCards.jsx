@@ -240,11 +240,22 @@ const PricingCards = () => {
           message: 'Hệ thống chưa nhận được liên kết thanh toán PayOS. Vui lòng thử lại.'
         });
       } catch (apiError) {
+        const errorMessage = apiError?.message || 'Vui lòng thử lại sau.';
+        const isPendingConflict =
+          apiError?.status === 409 ||
+          /đơn thanh toán chờ xử lý|pending/i.test(errorMessage);
+
         showToast({
-          type: 'error',
-          title: 'Không thể tạo checkout',
-          message: apiError?.message || 'Vui lòng thử lại sau.'
+          type: isPendingConflict ? 'info' : 'error',
+          title: isPendingConflict ? 'Bạn đang có đơn chờ thanh toán' : 'Không thể tạo checkout',
+          message: isPendingConflict
+            ? 'Hệ thống đã giữ lại đơn thanh toán cũ. Bạn sẽ được chuyển sang lịch sử thanh toán để tiếp tục xử lý.'
+            : errorMessage
         });
+
+        if (isPendingConflict) {
+          navigate('/user/payments');
+        }
       } finally {
         setBusyPlanCode('');
       }
