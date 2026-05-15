@@ -45,12 +45,30 @@ export default function UserHeader() {
   
   const [userProfile, setUserProfile] = useState(null);
   const [subscriptionLabel, setSubscriptionLabel] = useState('FREE');
+  const [avatarLoadError, setAvatarLoadError] = useState(false);
   
   const headerRef = useRef(null);
 
   const userLabel = useMemo(() => userProfile?.fullName || session?.user?.fullName || 'Người dùng', [userProfile, session]);
-  const avatarUrl = useMemo(() => userProfile?.avatarUrl || session?.user?.avatarUrl, [userProfile, session]);
-  const avatarInitial = useMemo(() => (userLabel?.trim()?.charAt(0) || 'U').toUpperCase(), [userLabel]);
+  const rawAvatarUrl = useMemo(() => userProfile?.avatarUrl || session?.user?.avatarUrl, [userProfile, session]);
+  const avatarUrl = useMemo(() => {
+    if (!rawAvatarUrl) return '';
+    const value = String(rawAvatarUrl).trim();
+    if (!value) return '';
+    if (/^(data:|blob:|https?:|\/)/i.test(value)) return value;
+    const normalized = value.replace(/^\/+/, '');
+    return normalized.startsWith('uploads/') ? `/${normalized}` : `/${normalized}`;
+  }, [rawAvatarUrl]);
+  const renderAvatarFallback = () => (
+    <div
+      className="flex h-full w-full items-center justify-center bg-gradient-to-br from-emerald-500 via-emerald-400 to-lime-300 text-white"
+      aria-hidden="true"
+    >
+      <div className="flex h-[82%] w-[82%] items-center justify-center rounded-full bg-white/18 backdrop-blur-sm border border-white/20 shadow-inner">
+        <UserCircle2 className="h-[62%] w-[62%] text-white/95 drop-shadow-sm" />
+      </div>
+    </div>
+  );
 
   const refreshHeaderData = useCallback(() => {
     if (!session?.accessToken) return;
@@ -82,6 +100,10 @@ export default function UserHeader() {
   useEffect(() => {
     refreshHeaderData();
   }, [refreshHeaderData]);
+
+  useEffect(() => {
+    setAvatarLoadError(false);
+  }, [avatarUrl]);
 
   useEffect(() => {
     function onClickOutside(event) {
@@ -197,10 +219,15 @@ export default function UserHeader() {
             >
               <div className="flex items-center gap-2 cursor-pointer py-2 px-1">
                 <div className="flex h-9 w-9 items-center justify-center rounded-full bg-stone-100 text-sm font-bold text-stone-700 border-2 border-white ring-2 ring-[#00b14f] shadow-sm hover:ring-[#009b45] transition-all overflow-hidden">
-                  {avatarUrl ? (
-                    <img src={avatarUrl} alt={userLabel} className="h-full w-full object-cover" />
+                  {avatarUrl && !avatarLoadError ? (
+                    <img
+                      src={avatarUrl}
+                      alt={userLabel}
+                      className="h-full w-full object-cover"
+                      onError={() => setAvatarLoadError(true)}
+                    />
                   ) : (
-                    avatarInitial
+                    renderAvatarFallback()
                   )}
                 </div>
                 <div className="hidden lg:flex flex-col pl-1">
@@ -269,10 +296,15 @@ export default function UserHeader() {
             <div className="p-4 bg-stone-50 border-b border-stone-100">
               <div className="flex items-center gap-3">
                 <div className="flex h-12 w-12 items-center justify-center rounded-full bg-white font-bold text-stone-700 border border-stone-200 shadow-sm overflow-hidden">
-                  {avatarUrl ? (
-                    <img src={avatarUrl} alt={userLabel} className="h-full w-full object-cover" />
+                  {avatarUrl && !avatarLoadError ? (
+                    <img
+                      src={avatarUrl}
+                      alt={userLabel}
+                      className="h-full w-full object-cover"
+                      onError={() => setAvatarLoadError(true)}
+                    />
                   ) : (
-                    avatarInitial
+                    renderAvatarFallback('h-full w-full')
                   )}
                 </div>
                 <div>

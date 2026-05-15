@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { motion, useReducedMotion } from 'framer-motion';
 import { Link, useNavigate } from 'react-router-dom';
-import { ArrowLeft, CheckCircle2 } from 'lucide-react';
+import { ArrowLeft, CheckCircle2, Eye, EyeOff } from 'lucide-react';
 import { registerWithEmailPassword } from '../services/authApi';
 import { saveAuthSession, resolveHomeByRole } from '../services/authSession';
 import { useToast } from '../../../components/ui/ToastProvider';
@@ -18,6 +18,9 @@ const RegisterPage = () => {
   });
   const [acceptTerms, setAcceptTerms] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [showPassword, setShowPassword] = useState(false);
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
+  const [fieldErrors, setFieldErrors] = useState({ password: '', confirmPassword: '' });
   const benefits = [
     'Tối ưu CV chuẩn quốc tế miễn phí',
     'Rèn luyện phỏng vấn với AI 24/7',
@@ -25,12 +28,21 @@ const RegisterPage = () => {
     'Nhận báo cáo phân tích sự nghiệp chuyên sâu'
   ];
 
+  const getPasswordErrorMessage = (message) => {
+    if (!message) return 'Mật khẩu không hợp lệ.';
+    const lower = String(message).toLowerCase();
+    if (lower.includes('8 đến 72') || lower.includes('8-72') || lower.includes('password')) return message;
+    if (lower.includes('exception mk')) return message;
+    return message;
+  };
+
   const handleChange = (key) => (event) => {
     setForm((prev) => ({ ...prev, [key]: event.target.value }));
   };
 
   const handleSubmit = async (event) => {
     event.preventDefault();
+    setFieldErrors({ password: '', confirmPassword: '' });
 
     if (!form.fullName || !form.email || !form.password || !form.confirmPassword) {
       showToast({
@@ -42,10 +54,12 @@ const RegisterPage = () => {
     }
 
     if (form.password !== form.confirmPassword) {
+      const errorMessage = 'Vui lòng kiểm tra lại mật khẩu xác nhận.';
+      setFieldErrors({ password: errorMessage, confirmPassword: errorMessage });
       showToast({
         type: 'warning',
         title: 'Mật khẩu chưa khớp',
-        message: 'Vui lòng kiểm tra lại mật khẩu xác nhận.'
+        message: errorMessage
       });
       return;
     }
@@ -90,10 +104,19 @@ const RegisterPage = () => {
       });
       navigate(`/verify-email?email=${encodeURIComponent(form.email)}`, { replace: true });
     } catch (error) {
+      const errorMessage = error?.message || 'Vui lòng thử lại.';
+      const lowerMessage = errorMessage.toLowerCase();
+      if (lowerMessage.includes('mật khẩu') || lowerMessage.includes('password') || lowerMessage.includes('exception mk')) {
+        setFieldErrors((prev) => ({
+          ...prev,
+          password: getPasswordErrorMessage(errorMessage),
+          confirmPassword: getPasswordErrorMessage(errorMessage),
+        }));
+      }
       showToast({
         type: 'error',
         title: 'Đăng ký thất bại',
-        message: error?.message || 'Vui lòng thử lại.'
+        message: errorMessage
       });
     } finally {
       setIsSubmitting(false);
@@ -192,26 +215,48 @@ const RegisterPage = () => {
 
             <div>
               <label className="text-[10px] font-bold uppercase tracking-widest text-stone-400 block mb-2 ml-1">Mật khẩu</label>
-              <input 
-                type="password" 
-                placeholder="••••••••"
-                value={form.password}
-                onChange={handleChange('password')}
-                className="w-full px-4 py-4 border border-stone-100 bg-stone-50 focus:bg-white focus:border-primary focus:ring-4 focus:ring-primary/5 outline-none transition-all text-sm rounded-2xl"
-                required
-              />
+              <div className="relative">
+                <input 
+                  type={showPassword ? 'text' : 'password'} 
+                  placeholder="••••••••"
+                  value={form.password}
+                  onChange={handleChange('password')}
+                  className={`w-full px-4 py-4 pr-12 border rounded-2xl bg-stone-50 focus:bg-white focus:ring-4 outline-none transition-all text-sm ${fieldErrors.password ? 'border-rose-300 focus:border-rose-400 focus:ring-rose-500/5' : 'border-stone-100 focus:border-primary focus:ring-primary/5'}`}
+                  required
+                />
+                <button
+                  type="button"
+                  onClick={() => setShowPassword((prev) => !prev)}
+                  className="absolute inset-y-0 right-0 flex items-center justify-center px-4 text-stone-400 hover:text-stone-700"
+                  aria-label={showPassword ? 'Ẩn mật khẩu' : 'Hiện mật khẩu'}
+                >
+                  {showPassword ? <EyeOff className="h-5 w-5" /> : <Eye className="h-5 w-5" />}
+                </button>
+              </div>
+              {fieldErrors.password && <p className="mt-2 ml-1 text-xs text-rose-600 leading-relaxed">{fieldErrors.password}</p>}
             </div>
 
             <div>
               <label className="text-[10px] font-bold uppercase tracking-widest text-stone-400 block mb-2 ml-1">Xác nhận mật khẩu</label>
-              <input 
-                type="password" 
-                placeholder="••••••••"
-                value={form.confirmPassword}
-                onChange={handleChange('confirmPassword')}
-                className="w-full px-4 py-4 border border-stone-100 bg-stone-50 focus:bg-white focus:border-primary focus:ring-4 focus:ring-primary/5 outline-none transition-all text-sm rounded-2xl"
-                required
-              />
+              <div className="relative">
+                <input 
+                  type={showConfirmPassword ? 'text' : 'password'} 
+                  placeholder="••••••••"
+                  value={form.confirmPassword}
+                  onChange={handleChange('confirmPassword')}
+                  className={`w-full px-4 py-4 pr-12 border rounded-2xl bg-stone-50 focus:bg-white focus:ring-4 outline-none transition-all text-sm ${fieldErrors.confirmPassword ? 'border-rose-300 focus:border-rose-400 focus:ring-rose-500/5' : 'border-stone-100 focus:border-primary focus:ring-primary/5'}`}
+                  required
+                />
+                <button
+                  type="button"
+                  onClick={() => setShowConfirmPassword((prev) => !prev)}
+                  className="absolute inset-y-0 right-0 flex items-center justify-center px-4 text-stone-400 hover:text-stone-700"
+                  aria-label={showConfirmPassword ? 'Ẩn mật khẩu xác nhận' : 'Hiện mật khẩu xác nhận'}
+                >
+                  {showConfirmPassword ? <EyeOff className="h-5 w-5" /> : <Eye className="h-5 w-5" />}
+                </button>
+              </div>
+              {fieldErrors.confirmPassword && <p className="mt-2 ml-1 text-xs text-rose-600 leading-relaxed">{fieldErrors.confirmPassword}</p>}
             </div>
 
             <div className="flex items-start gap-3 py-2 ml-1">
