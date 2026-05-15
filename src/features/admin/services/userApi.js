@@ -53,6 +53,17 @@ async function requestJson(path, options = {}) {
   return payload;
 }
 
-export async function getAdminUsers() {
+export function getAdminUsers() {
   return requestJson('/api/admin/users');
+}
+
+export function getAdminUserById(id) {
+  return requestJson(`/api/admin/users/${id}`);
+}
+
+export function updateAdminUserStatus(id, status) {
+  return requestJson(`/api/admin/users/${id}/status`, {
+    method: 'PUT',
+    body: JSON.stringify({ status }),
+  });
 }

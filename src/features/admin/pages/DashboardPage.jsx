@@ -99,7 +99,12 @@ export default function DashboardPage() {
             <div className="absolute top-0 right-0 w-24 h-24 bg-stone-50 rounded-full -mr-8 -mt-8 transition-transform group-hover:scale-110 duration-500" />
             
             <div className="flex items-center justify-between mb-5 relative z-10">
-              <div className={`w-12 h-12 rounded-2xl bg-${stat.color}-50 text-${stat.color}-600 flex items-center justify-center`}>
+              <div className={`w-12 h-12 rounded-2xl flex items-center justify-center ${
+                stat.color === 'emerald' ? 'bg-emerald-50 text-emerald-600' :
+                stat.color === 'blue' ? 'bg-blue-50 text-blue-600' :
+                stat.color === 'amber' ? 'bg-amber-50 text-amber-600' :
+                'bg-rose-50 text-rose-600'
+              }`}>
                 <stat.icon className="w-6 h-6" />
               </div>
               <div className={`flex items-center gap-1 text-[11px] font-bold px-2 py-1 rounded-lg ${
