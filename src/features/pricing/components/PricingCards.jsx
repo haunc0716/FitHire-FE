@@ -94,6 +94,27 @@ const PLAN_THEMES = {
   },
 };
 
+const DEFAULT_THEME = {
+  icon: Sparkles,
+  badgeFallback: 'Mới',
+  cardBg: 'bg-white',
+  cardBorder: 'border-stone-200/60',
+  cardHover: 'hover:border-slate-300 hover:shadow-lg',
+  iconBg: 'bg-slate-100',
+  iconColor: 'text-slate-600',
+  priceBg: '',
+  priceColor: 'text-slate-900',
+  badgeBg: 'bg-slate-100 text-slate-700',
+  checkBg: 'bg-sky-50',
+  checkColor: 'text-sky-600',
+  featureColor: 'text-stone-700',
+  descColor: 'text-stone-500',
+  unitColor: 'text-stone-400',
+  dividerColor: 'border-stone-100',
+  ctaClass: 'bg-slate-900 text-white hover:bg-slate-800',
+  ctaLabel: 'Chọn gói',
+};
+
 function formatCurrency(value) {
   const amount = Number(value ?? 0);
   return new Intl.NumberFormat('vi-VN').format(amount);
@@ -188,7 +209,7 @@ const PricingCards = () => {
   const enrichedPlans = useMemo(
     () =>
       plans.map((plan) => {
-        const theme = PLAN_THEMES[plan.code] ?? PLAN_THEMES.FREE;
+        const theme = PLAN_THEMES[plan.code] ?? DEFAULT_THEME;
         const featureLines = (plan.features ?? []).map(buildFeatureLine);
         const description = plan.description || '';
 
@@ -197,10 +218,10 @@ const PricingCards = () => {
           theme,
           formattedPrice: formatCurrency(plan.price),
           priceUnit: resolvePriceUnit(plan),
-          badgeLabel: plan.badgeLabel || theme.badgeFallback,
+          badgeLabel: plan.badgeLabel || theme.badgeFallback || plan.code,
           featureLines,
           description,
-          ctaLabel: theme.ctaLabel,
+          ctaLabel: theme.ctaLabel || 'Chọn gói',
         };
       }),
     [plans]
@@ -287,6 +308,7 @@ const PricingCards = () => {
           const isCurrentPlan = activePlanCodes.includes(plan.code);
           const isDisabled = isBusy || isCurrentPlan;
           const isPro = plan.code === 'PRO';
+          const isDefaultPlan = !PLAN_THEMES[plan.code];
 
           return (
             <article
@@ -297,6 +319,7 @@ const PricingCards = () => {
                 ${plan.theme.cardBg}
                 ${plan.theme.cardBorder}
                 ${plan.theme.cardHover}
+                ${isDefaultPlan ? 'shadow-sm' : ''}
               `}
             >
               <div className="flex items-center justify-between mb-4">
@@ -310,6 +333,7 @@ const PricingCards = () => {
 
               <h3 className={`text-2xl font-display font-black mb-2 ${isPro ? 'text-white' : 'text-stone-900'}`}>
                 {plan.name}
+                {isDefaultPlan && <span className="ml-2 text-xs font-semibold text-stone-400">• Gói mới</span>}
               </h3>
 
               <p className={`text-[13px] leading-relaxed mb-4 ${plan.theme.descColor}`}>
