@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { User, Mail, ShieldCheck, Camera } from 'lucide-react';
@@ -19,6 +19,16 @@ export default function UserProfilePage() {
   });
   const [loading, setLoading] = useState(false);
   const [fetching, setFetching] = useState(true);
+  const [avatarLoadError, setAvatarLoadError] = useState(false);
+
+  const normalizedAvatarUrl = useMemo(() => {
+    if (!form.avatarUrl) return '';
+    const value = String(form.avatarUrl).trim();
+    if (!value) return '';
+    if (/^(data:|blob:|https?:|\/)/i.test(value)) return value;
+    const normalized = value.replace(/^\/+/, '');
+    return normalized.startsWith('uploads/') ? `/${normalized}` : `/${normalized}`;
+  }, [form.avatarUrl]);
 
   useEffect(() => {
     fetchMyProfile()
@@ -42,6 +52,10 @@ export default function UserProfilePage() {
       })
       .finally(() => setFetching(false));
   }, [showToast]);
+
+  useEffect(() => {
+    setAvatarLoadError(false);
+  }, [normalizedAvatarUrl]);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -101,8 +115,13 @@ export default function UserProfilePage() {
             >
               <div className="relative mb-4 group cursor-pointer">
                 <div className="h-28 w-28 rounded-full overflow-hidden border-4 border-white shadow-lg ring-2 ring-emerald-100 bg-stone-100 flex items-center justify-center">
-                  {form.avatarUrl ? (
-                    <img src={form.avatarUrl} alt="Avatar" className="w-full h-full object-cover" />
+                  {normalizedAvatarUrl && !avatarLoadError ? (
+                    <img
+                      src={normalizedAvatarUrl}
+                      alt="Avatar"
+                      className="w-full h-full object-cover"
+                      onError={() => setAvatarLoadError(true)}
+                    />
                   ) : (
                     <User className="h-12 w-12 text-stone-300" />
                   )}

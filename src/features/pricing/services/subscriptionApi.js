@@ -104,3 +104,56 @@ export function fetchMySubscriptions() {
   });
 }
 
+export function fetchMyEntitlements() {
+  return requestJson('/api/subscriptions/me/entitlements', {
+    method: 'GET',
+    headers: {
+      ...buildAuthHeaders(),
+    },
+  });
+}
+
+export function fetchPaymentHistory(params = {}) {
+  const query = new URLSearchParams(params).toString();
+  return requestJson(`/api/payments/me?${query}`, {
+    method: 'GET',
+    headers: {
+      ...buildAuthHeaders(),
+    },
+  });
+}
+
+export function fetchPaymentDetails(paymentId) {
+  return requestJson(`/api/payments/${paymentId}`, {
+    method: 'GET',
+    headers: {
+      ...buildAuthHeaders(),
+    },
+  });
+}
+
+export function reportPayment(paymentId) {
+  return requestJson(`/api/payments/${paymentId}/report`, {
+    method: 'POST',
+    headers: {
+      ...buildAuthHeaders(),
+    },
+  });
+}
+export function cancelPayment(paymentId) {
+  return requestJson(`/api/payments/${paymentId}/cancel`, {
+    method: 'POST',
+    headers: {
+      ...buildAuthHeaders(),
+    },
+  });
+}
+
+export function fetchPaymentSummary() {
+  return requestJson('/api/payments/me/summary', {
+    method: 'GET',
+    headers: {
+      ...buildAuthHeaders(),
+    },
+  });
+}
