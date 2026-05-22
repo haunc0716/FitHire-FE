@@ -39,7 +39,7 @@ export default function AdminHeader({ setMobileMenuOpen }) {
     navigate('/login');
   };
 
-  const displayName = profile?.fullName || 'Admin User';
+  const displayName = profile?.fullName || 'Quản trị viên';
   const displayEmail = profile?.email || 'admin@fithire.com';
   const avatarUrl = profile?.avatarUrl;
   const initial = displayName.charAt(0).toUpperCase();
@@ -59,7 +59,7 @@ export default function AdminHeader({ setMobileMenuOpen }) {
           <Search className="w-4 h-4 text-gray-400 absolute left-3 group-focus-within:text-emerald-500 transition-colors" />
           <input
             type="text"
-            placeholder="Search users, transactions, settings..."
+            placeholder="Tìm người dùng, giao dịch, cài đặt..."
             className="w-full pl-10 pr-4 py-2 bg-gray-50/50 border border-transparent focus:bg-white focus:border-emerald-500 focus:ring-4 focus:ring-emerald-500/10 rounded-2xl text-sm outline-none transition-all duration-300"
           />
           <div className="absolute right-3 flex items-center gap-1">
@@ -72,7 +72,7 @@ export default function AdminHeader({ setMobileMenuOpen }) {
 
       <div className="flex items-center gap-2 lg:gap-4">
         {/* Support/Help */}
-        <button className="hidden md:flex p-2.5 text-gray-400 hover:text-emerald-600 hover:bg-emerald-50 rounded-full transition-all" title="Help Center">
+        <button className="hidden md:flex p-2.5 text-gray-400 hover:text-emerald-600 hover:bg-emerald-50 rounded-full transition-all" title="Trung tâm hỗ trợ">
           <HelpCircle className="w-5 h-5" />
         </button>
 
@@ -130,7 +130,7 @@ export default function AdminHeader({ setMobileMenuOpen }) {
                   <div className="p-1.5 bg-gray-50 rounded-lg group-hover:bg-white transition-colors">
                     <UserCircle className="w-4 h-4" />
                   </div>
-                  Account Settings
+                  Cài đặt tài khoản
                 </Link>
                 <button
                   className="w-full flex items-center gap-3 px-3 py-2.5 text-sm font-medium text-gray-700 hover:bg-emerald-50 hover:text-emerald-600 rounded-xl transition-all"
@@ -138,7 +138,7 @@ export default function AdminHeader({ setMobileMenuOpen }) {
                   <div className="p-1.5 bg-gray-50 rounded-lg group-hover:bg-white transition-colors">
                     <Settings className="w-4 h-4" />
                   </div>
-                  System Config
+                  Cấu hình hệ thống
                 </button>
               </div>
 
@@ -150,7 +150,7 @@ export default function AdminHeader({ setMobileMenuOpen }) {
                   <div className="p-1.5 bg-red-100 text-red-600 rounded-lg">
                     <LogOut className="w-4 h-4" />
                   </div>
-                  Log out
+                  Đăng xuất
                 </button>
               </div>
             </div>

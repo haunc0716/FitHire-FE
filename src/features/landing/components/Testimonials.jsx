@@ -6,19 +6,19 @@ const Testimonials = () => {
   const reviews = [
     {
       name: 'Nguyễn Minh Anh',
-      role: 'Software Engineer @ VNG',
+      role: 'Kỹ sư phần mềm @ VNG',
       text: 'FitHire giúp tôi nhận ra những thiếu sót trong CV mà trước đây tôi chưa từng chú ý tới. Hệ thống phỏng vấn giả lập thực sự rất giống thực tế.',
       avatar: 'https://i.pravatar.cc/150?u=anh',
     },
     {
       name: 'Trần Hoàng Nam',
-      role: 'Fresh Graduate',
+      role: 'Sinh viên mới tốt nghiệp',
       text: 'Một công cụ tuyệt vời cho sinh viên mới ra trường. Giao diện trực quan và các gợi ý từ AI rất sát với yêu cầu của nhà tuyển dụng.',
       avatar: 'https://i.pravatar.cc/150?u=nam',
     },
     {
       name: 'Lê Thu Trang',
-      role: 'HR Manager',
+      role: 'Quản lý nhân sự',
       text: 'Dưới góc độ tuyển dụng, tôi đánh giá cao cách FitHire chuẩn bị cho ứng viên. Những hồ sơ từ người dùng FitHire thường có độ hoàn thiện rất cao.',
       avatar: 'https://i.pravatar.cc/150?u=trang',
     },

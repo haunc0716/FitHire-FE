@@ -6,15 +6,21 @@ function buildApiUrl(path) {
   return path.startsWith('/') ? `${API_BASE_URL}${path}` : `${API_BASE_URL}/${path}`;
 }
 
-function buildAuthHeaders() {
+function buildAuthHeaders({ json = true } = {}) {
   const session = getAuthSession();
   if (!session?.accessToken || Number(session.expiresAt) <= Date.now()) {
     throw new Error('Phiên đăng nhập đã hết hạn. Vui lòng đăng nhập lại.');
   }
-  return {
+
+  const headers = {
     Authorization: `${session.tokenType ?? 'Bearer'} ${session.accessToken}`,
-    'Content-Type': 'application/json',
   };
+
+  if (json) {
+    headers['Content-Type'] = 'application/json';
+  }
+
+  return headers;
 }
 
 async function parseJsonSafely(response) {
@@ -51,6 +57,27 @@ async function requestJson(path, options = {}) {
   return payload;
 }
 
+async function requestBlob(path, options = {}) {
+  let response;
+
+  try {
+    response = await fetch(buildApiUrl(path), {
+      credentials: 'include',
+      ...options,
+    });
+  } catch {
+    throw new Error('Không thể kết nối tới máy chủ. Vui lòng thử lại.');
+  }
+
+  if (!response.ok) {
+    const payload = await parseJsonSafely(response);
+    const message = payload?.message?.trim?.() || `Yêu cầu thất bại (HTTP ${response.status}).`;
+    throw new Error(message);
+  }
+
+  return response.blob();
+}
+
 export function fetchMyProfile() {
   return requestJson('/api/users/me', {
     method: 'GET',
@@ -75,6 +102,122 @@ export function fetchMyEntitlements() {
 
 export function fetchMySubscriptions() {
   return requestJson('/api/subscriptions/me', {
+    method: 'GET',
+    headers: buildAuthHeaders(),
+  });
+}
+
+export function scoreCv(file) {
+  const formData = new FormData();
+  formData.append('file', file);
+
+  return requestJson('/api/cv-scoring', {
+    method: 'POST',
+    headers: buildAuthHeaders({ json: false }),
+    body: formData,
+  });
+}
+
+export function fetchCvScoringHistory({ page = 0, size = 10 } = {}) {
+  const params = new URLSearchParams({
+    page: String(page),
+    size: String(size),
+    sort: 'createdAt,desc',
+  });
+
+  return requestJson(`/api/cv-scoring/history?${params.toString()}`, {
+    method: 'GET',
+    headers: buildAuthHeaders(),
+  });
+}
+
+export function fetchCvScoringDetail(sessionId) {
+  return requestJson(`/api/cv-scoring/${sessionId}`, {
+    method: 'GET',
+    headers: buildAuthHeaders(),
+  });
+}
+
+export function startMockInterviewSession(payload) {
+  return requestJson('/api/mock-interview/sessions', {
+    method: 'POST',
+    headers: buildAuthHeaders(),
+    body: JSON.stringify(payload),
+  });
+}
+
+export function submitMockInterviewAnswer(sessionId, payload) {
+  return requestJson(`/api/mock-interview/sessions/${sessionId}/answers`, {
+    method: 'POST',
+    headers: buildAuthHeaders(),
+    body: JSON.stringify(payload),
+  });
+}
+
+export function submitMockInterviewVoiceAnswer(sessionId, { questionId, file, audioDurationMs }) {
+  const formData = new FormData();
+  formData.append('questionId', questionId);
+  formData.append('file', file);
+
+  if (audioDurationMs != null) {
+    formData.append('audioDurationMs', String(audioDurationMs));
+  }
+
+  return requestJson(`/api/mock-interview/sessions/${sessionId}/answers/voice`, {
+    method: 'POST',
+    headers: buildAuthHeaders({ json: false }),
+    body: formData,
+  });
+}
+
+export function transcribeMockInterviewVoice(file) {
+  const formData = new FormData();
+  formData.append('file', file);
+
+  return requestJson('/api/mock-interview/voice/transcribe', {
+    method: 'POST',
+    headers: buildAuthHeaders({ json: false }),
+    body: formData,
+  });
+}
+
+export function speakMockInterviewText({ text, voice }) {
+  return requestBlob('/api/mock-interview/voice/speak', {
+    method: 'POST',
+    headers: buildAuthHeaders(),
+    body: JSON.stringify({ text, voice }),
+  });
+}
+
+export function fetchMockInterviewAnswerAudio(answerId) {
+  return requestBlob(`/api/mock-interview/answers/${answerId}/audio`, {
+    method: 'GET',
+    headers: buildAuthHeaders({ json: false }),
+  });
+}
+
+export function completeMockInterviewSession(sessionId) {
+  return requestJson(`/api/mock-interview/sessions/${sessionId}/complete`, {
+    method: 'POST',
+    headers: buildAuthHeaders(),
+  });
+}
+
+export function fetchMockInterviewHistory({ page = 0, size = 10 } = {}) {
+  const params = new URLSearchParams({
+    page: String(page),
+    size: String(size),
+    sort: 'createdAt,desc',
+  });
+
+  return requestJson(`/api/mock-interview/sessions/history?${params.toString()}`, {
+    method: 'GET',
+    headers: buildAuthHeaders(),
+  });
+}
+
+export function fetchMockInterviewDetail(sessionId) {
+  return requestJson(`/api/mock-interview/sessions/${sessionId}`, {
     method: 'GET',
     headers: buildAuthHeaders(),
   });

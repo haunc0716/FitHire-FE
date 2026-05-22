@@ -1,69 +1,123 @@
-import React, { useState, useRef, useEffect } from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
+import React, { useState, useRef, useEffect } from "react";
+import { motion, AnimatePresence } from "framer-motion";
 import {
-  Mic2, Sparkles, CheckCircle2, Video, Target, ArrowRight,
-  FileText, Camera, Send, StopCircle, Play,
-  Trash2, ChevronRight
-} from 'lucide-react';
-import { generateMockInterviewPlan } from '../services/userFeatureAdapters';
+  Mic2,
+  Sparkles,
+  CheckCircle2,
+  Video,
+  ArrowRight,
+  FileText,
+  Send,
+  StopCircle,
+  Trash2,
+  ChevronRight,
+} from "lucide-react";
+import { generateMockInterviewPlan } from "../services/userFeatureAdapters";
+import {
+  completeMockInterviewSession,
+  speakMockInterviewText,
+  startMockInterviewSession,
+  submitMockInterviewAnswer,
+  submitMockInterviewVoiceAnswer,
+  transcribeMockInterviewVoice,
+} from "../services/userApi";
 
 export default function MockInterviewPage() {
-  const [role, setRole] = useState('Frontend Developer');
-  const [level, setLevel] = useState('Middle');
-  const [jd, setJd] = useState('');
+  const [role, setRole] = useState("Frontend Developer");
+  const [level, setLevel] = useState("Middle");
+  const [jd, setJd] = useState("");
   const [plan, setPlan] = useState(null);
   const [loading, setLoading] = useState(false);
   const [isInterviewing, setIsInterviewing] = useState(false);
   const [transcript, setTranscript] = useState([
-    { role: 'AI', text: 'Chào bạn! Tôi là AI Mentor của FitHire. Bạn đã sẵn sàng chưa?' }
+    {
+      role: "AI",
+      text: "Chào bạn! Tôi là AI Mentor của FitHire. Bạn đã sẵn sàng chưa?",
+    },
   ]);
-  const [userInput, setUserInput] = useState('');
+  const [userInput, setUserInput] = useState("");
   const [history, setHistory] = useState([
     {
       id: 1,
-      role: 'Frontend Developer',
-      date: '08/05/2026',
+      role: "Frontend Developer",
+      date: "08/05/2026",
       score: 85,
-      duration: '24:45',
+      duration: "24:45",
       turns: 12,
-      detail: 'Mở đầu tự tin, nêu rõ 2 dự án nổi bật. Kỹ thuật React tốt, nhưng phần tối ưu hiệu năng còn thiếu ví dụ cụ thể. Khuyến nghị luyện thêm phần đo lường và giải thích trade-off.',
+      detail:
+        "Mở đầu tự tin, nêu rõ 2 dự án nổi bật. Kỹ thuật React tốt, nhưng phần tối ưu hiệu năng còn thiếu ví dụ cụ thể. Khuyến nghị luyện thêm phần đo lường và giải thích trade-off.",
       transcript: [
-        { role: 'AI', text: 'Chào bạn! Hãy giới thiệu ngắn gọn về bản thân.' },
-        { role: 'User', text: 'Mình là Frontend Developer với 3 năm kinh nghiệm, tập trung vào React và tối ưu UI.' },
-        { role: 'AI', text: 'Bạn có thể kể về một dự án nổi bật gần đây?' },
-        { role: 'User', text: 'Mình xây dựng dashboard cho đội sales, tối ưu hiệu năng và trải nghiệm tương tác.' }
+        { role: "AI", text: "Chào bạn! Hãy giới thiệu ngắn gọn về bản thân." },
+        {
+          role: "User",
+          text: "Mình là Frontend Developer với 3 năm kinh nghiệm, tập trung vào React và tối ưu UI.",
+        },
+        { role: "AI", text: "Bạn có thể kể về một dự án nổi bật gần đây?" },
+        {
+          role: "User",
+          text: "Mình xây dựng dashboard cho đội sales, tối ưu hiệu năng và trải nghiệm tương tác.",
+        },
       ],
       aiEvaluation: {
-        summary: 'Giao tiếp rõ ràng, mạch lạc. Cần bổ sung số liệu và trade-off kỹ thuật khi nói về tối ưu hiệu năng.',
-        strengths: ['Mạch lạc', 'Tập trung vào người dùng', 'Nắm chắc React cơ bản'],
-        improvements: ['Bổ sung số liệu hiệu năng', 'Nêu rõ trade-off và lý do lựa chọn']
-      }
+        summary:
+          "Giao tiếp rõ ràng, mạch lạc. Cần bổ sung số liệu và trade-off kỹ thuật khi nói về tối ưu hiệu năng.",
+        strengths: [
+          "Mạch lạc",
+          "Tập trung vào người dùng",
+          "Nắm chắc React cơ bản",
+        ],
+        improvements: [
+          "Bổ sung số liệu hiệu năng",
+          "Nêu rõ trade-off và lý do lựa chọn",
+        ],
+      },
     },
     {
       id: 2,
-      role: 'React Developer',
-      date: '05/05/2026',
+      role: "React Developer",
+      date: "05/05/2026",
       score: 72,
-      duration: '18:20',
+      duration: "18:20",
       turns: 8,
-      detail: 'Trả lời đúng trọng tâm nhưng thiếu cấu trúc STAR ở phần behavioral. Cần làm rõ vai trò cá nhân, kết quả định lượng và bài học rút ra.',
+      detail:
+        "Trả lời đúng trọng tâm nhưng thiếu cấu trúc STAR ở phần behavioral. Cần làm rõ vai trò cá nhân, kết quả định lượng và bài học rút ra.",
       transcript: [
-        { role: 'AI', text: 'Hãy chia sẻ cách bạn xử lý conflict trong team.' },
-        { role: 'User', text: 'Mình trao đổi thẳng thắn với team, đưa ra dữ liệu và thống nhất cách làm.' }
+        { role: "AI", text: "Hãy chia sẻ cách bạn xử lý conflict trong team." },
+        {
+          role: "User",
+          text: "Mình trao đổi thẳng thắn với team, đưa ra dữ liệu và thống nhất cách làm.",
+        },
       ],
       aiEvaluation: {
-        summary: 'Có tinh thần hợp tác, nhưng thiếu cấu trúc STAR và kết quả định lượng.',
-        strengths: ['Thái độ hợp tác', 'Giải thích rõ ràng'],
-        improvements: ['Cấu trúc STAR', 'Đưa ví dụ định lượng']
-      }
-    }
+        summary:
+          "Có tinh thần hợp tác, nhưng thiếu cấu trúc STAR và kết quả định lượng.",
+        strengths: ["Thái độ hợp tác", "Giải thích rõ ràng"],
+        improvements: ["Cấu trúc STAR", "Đưa ví dụ định lượng"],
+      },
+    },
   ]);
-  const [activeTab, setActiveTab] = useState('config');
+  const [activeTab, setActiveTab] = useState("config");
   const [selectedHistory, setSelectedHistory] = useState(null);
   const [lastResult, setLastResult] = useState(null);
+  const [isRecording, setIsRecording] = useState(false);
+  const [isTranscribing, setIsTranscribing] = useState(false);
+  const [isSubmittingAnswer, setIsSubmittingAnswer] = useState(false);
+  const [isStartingInterview, setIsStartingInterview] = useState(false);
+  const [voiceError, setVoiceError] = useState("");
+  const [activeSessionId, setActiveSessionId] = useState(null);
+  const [currentQuestion, setCurrentQuestion] = useState(null);
+  const [answeredCount, setAnsweredCount] = useState(0);
+  const [targetQuestionCount, setTargetQuestionCount] = useState(0);
 
   const videoRef = useRef(null);
   const transcriptEndRef = useRef(null);
+  const mediaRecorderRef = useRef(null);
+  const audioChunksRef = useRef([]);
+  const audioStreamRef = useRef(null);
+  const recordStartedAtRef = useRef(null);
+  const lastSpokenAiTextRef = useRef("");
+  const sessionStartedAtRef = useRef(null);
+  const transcriptSnapshotRef = useRef(transcript);
 
   const scrollToBottom = () => {
     transcriptEndRef.current?.scrollIntoView({ behavior: "smooth" });
@@ -72,6 +126,343 @@ export default function MockInterviewPage() {
   useEffect(() => {
     scrollToBottom();
   }, [transcript]);
+
+  useEffect(() => {
+    transcriptSnapshotRef.current = transcript;
+  }, [transcript]);
+
+  useEffect(() => {
+    if (!isInterviewing || transcript.length === 0) {
+      return;
+    }
+
+    const lastMessage = transcript[transcript.length - 1];
+    if (lastMessage.role !== "AI") {
+      return;
+    }
+
+    if (lastSpokenAiTextRef.current === lastMessage.text) {
+      return;
+    }
+
+    lastSpokenAiTextRef.current = lastMessage.text;
+    playAiSpeech(lastMessage.text);
+  }, [isInterviewing, transcript]);
+
+  useEffect(
+    () => () => {
+      if (
+        mediaRecorderRef.current &&
+        mediaRecorderRef.current.state !== "inactive"
+      ) {
+        try {
+          mediaRecorderRef.current.stop();
+        } catch (error) {
+          console.error(error);
+        }
+      }
+      if (audioStreamRef.current) {
+        audioStreamRef.current.getTracks().forEach((track) => track.stop());
+      }
+      if (videoRef.current?.srcObject) {
+        videoRef.current.srcObject.getTracks().forEach((track) => track.stop());
+        videoRef.current.srcObject = null;
+      }
+    },
+    []
+  );
+
+  const stopAudioCaptureStream = () => {
+    if (audioStreamRef.current) {
+      audioStreamRef.current.getTracks().forEach((track) => track.stop());
+      audioStreamRef.current = null;
+    }
+  };
+
+  const resetRecordingState = () => {
+    mediaRecorderRef.current = null;
+    audioChunksRef.current = [];
+    recordStartedAtRef.current = null;
+    setIsRecording(false);
+  };
+
+  const cleanupInterviewMedia = () => {
+    if (
+      mediaRecorderRef.current &&
+      mediaRecorderRef.current.state !== "inactive"
+    ) {
+      try {
+        mediaRecorderRef.current.stop();
+      } catch (error) {
+        console.error(error);
+      }
+    }
+    stopAudioCaptureStream();
+    resetRecordingState();
+
+    if (videoRef.current?.srcObject) {
+      videoRef.current.srcObject.getTracks().forEach((track) => track.stop());
+      videoRef.current.srcObject = null;
+    }
+  };
+
+  const resetSessionState = () => {
+    setActiveSessionId(null);
+    setCurrentQuestion(null);
+    setAnsweredCount(0);
+    setTargetQuestionCount(0);
+    sessionStartedAtRef.current = null;
+  };
+
+  const normalizeList = (items) =>
+    (items ?? []).filter((item) => typeof item === "string" && item.trim());
+
+  const formatDurationFromMs = (durationMs) => {
+    if (!durationMs || durationMs <= 0) {
+      return "00:00";
+    }
+    const totalSeconds = Math.max(1, Math.floor(durationMs / 1000));
+    const minutes = Math.floor(totalSeconds / 60);
+    const seconds = totalSeconds % 60;
+    return `${String(minutes).padStart(2, "0")}:${String(seconds).padStart(
+      2,
+      "0"
+    )}`;
+  };
+
+  const buildResultEntry = ({
+    finalReport,
+    transcriptItems,
+    answered,
+    target,
+  }) => {
+    const strengths = normalizeList(finalReport?.strengths);
+    const recommendations = normalizeList(finalReport?.recommendations);
+    const weaknesses = normalizeList(finalReport?.weaknesses);
+    const improvements =
+      recommendations.length > 0 ? recommendations : weaknesses;
+    const normalizedTranscript = transcriptItems ?? [];
+    const score = Number.isFinite(finalReport?.overallScore)
+      ? finalReport.overallScore
+      : 0;
+    const turns =
+      Number.isFinite(answered) && answered > 0
+        ? answered
+        : normalizedTranscript.filter((item) => item.role === "User").length;
+
+    return {
+      id: Date.now(),
+      role,
+      date: new Date().toLocaleDateString("vi-VN"),
+      score,
+      duration: formatDurationFromMs(
+        sessionStartedAtRef.current
+          ? Date.now() - sessionStartedAtRef.current
+          : 0
+      ),
+      turns:
+        Number.isFinite(target) && target > 0 ? `${turns}/${target}` : turns,
+      transcript: [...normalizedTranscript],
+      aiEvaluation: {
+        summary:
+          finalReport?.summary?.trim() || "Bạn đã hoàn thành phiên phỏng vấn.",
+        strengths:
+          strengths.length > 0 ? strengths : ["Tư duy trả lời rõ ràng"],
+        improvements:
+          improvements.length > 0
+            ? improvements
+            : ["Tiếp tục luyện tập với các ví dụ cụ thể hơn"],
+      },
+    };
+  };
+
+  const finalizeInterview = ({
+    finalReport,
+    transcriptItems,
+    answered,
+    target,
+  }) => {
+    cleanupInterviewMedia();
+    setIsInterviewing(false);
+    setIsTranscribing(false);
+    setIsSubmittingAnswer(false);
+    const resultEntry = buildResultEntry({
+      finalReport,
+      transcriptItems,
+      answered,
+      target,
+    });
+    setHistory((prev) => [resultEntry, ...prev]);
+    setLastResult(resultEntry);
+    setActiveTab("result");
+    resetSessionState();
+  };
+
+  const applyAnswerResponse = (response, answerText) => {
+    const incomingMessages = [];
+    if (answerText?.trim()) {
+      incomingMessages.push({ role: "User", text: answerText.trim() });
+    }
+    const feedbackText = response?.evaluation?.feedback?.trim();
+    if (feedbackText) {
+      incomingMessages.push({ role: "AI", text: feedbackText });
+    }
+    const nextQuestionText = response?.nextQuestion?.questionText?.trim();
+    if (nextQuestionText) {
+      incomingMessages.push({ role: "AI", text: nextQuestionText });
+    }
+
+    const updatedTranscript = [
+      ...transcriptSnapshotRef.current,
+      ...incomingMessages,
+    ];
+    setTranscript(updatedTranscript);
+    setCurrentQuestion(response?.nextQuestion ?? null);
+    setAnsweredCount((prev) => response?.answeredQuestionCount ?? prev);
+    setTargetQuestionCount((prev) => response?.targetQuestionCount ?? prev);
+
+    const isCompleted =
+      response?.status === "COMPLETED" || Boolean(response?.finalReport);
+    if (isCompleted) {
+      finalizeInterview({
+        finalReport: response?.finalReport,
+        transcriptItems: updatedTranscript,
+        answered: response?.answeredQuestionCount,
+        target: response?.targetQuestionCount,
+      });
+    }
+  };
+
+  const playAiSpeech = async (text) => {
+    if (!text?.trim()) {
+      return;
+    }
+
+    try {
+      const audioBlob = await speakMockInterviewText({ text });
+      const audioUrl = URL.createObjectURL(audioBlob);
+      const audio = new Audio(audioUrl);
+      audio.onended = () => URL.revokeObjectURL(audioUrl);
+      audio.onerror = () => URL.revokeObjectURL(audioUrl);
+      await audio.play();
+    } catch (error) {
+      console.error(error);
+    }
+  };
+
+  const startVoiceRecording = async () => {
+    if (isRecording || isTranscribing || isSubmittingAnswer) {
+      return;
+    }
+    if (!activeSessionId || !currentQuestion?.questionId) {
+      setVoiceError("Hệ thống chưa sẵn sàng nhận câu trả lời voice.");
+      return;
+    }
+
+    setVoiceError("");
+
+    try {
+      const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+      const mimeType = MediaRecorder.isTypeSupported("audio/webm;codecs=opus")
+        ? "audio/webm;codecs=opus"
+        : undefined;
+      const recorder = mimeType
+        ? new MediaRecorder(stream, { mimeType })
+        : new MediaRecorder(stream);
+
+      audioChunksRef.current = [];
+      recorder.ondataavailable = (event) => {
+        if (event.data?.size > 0) {
+          audioChunksRef.current.push(event.data);
+        }
+      };
+
+      recorder.start();
+      recordStartedAtRef.current = Date.now();
+      mediaRecorderRef.current = recorder;
+      audioStreamRef.current = stream;
+      setIsRecording(true);
+    } catch (error) {
+      console.error(error);
+      setVoiceError(
+        "Không mở được microphone. Vui lòng kiểm tra quyền truy cập mic."
+      );
+    }
+  };
+
+  const stopVoiceRecordingAndTranscribe = async () => {
+    if (
+      !mediaRecorderRef.current ||
+      !isRecording ||
+      !activeSessionId ||
+      !currentQuestion?.questionId
+    ) {
+      return;
+    }
+
+    const recorder = mediaRecorderRef.current;
+    const recordedStartedAt = recordStartedAtRef.current;
+    setIsRecording(false);
+    setIsTranscribing(true);
+    setVoiceError("");
+
+    const audioBlob = await new Promise((resolve) => {
+      recorder.onstop = () => {
+        const blobType = recorder.mimeType || "audio/webm";
+        resolve(new Blob(audioChunksRef.current, { type: blobType }));
+      };
+      recorder.stop();
+    });
+
+    const audioDurationMs = recordedStartedAt
+      ? Math.max(1, Date.now() - recordedStartedAt)
+      : undefined;
+    stopAudioCaptureStream();
+    resetRecordingState();
+
+    try {
+      const inferredExtension = audioBlob.type?.includes("ogg")
+        ? "ogg"
+        : audioBlob.type?.includes("wav")
+        ? "wav"
+        : "webm";
+
+      const file = new File(
+        [audioBlob],
+        `voice-answer-${Date.now()}.${inferredExtension}`,
+        {
+          type: audioBlob.type || "audio/webm",
+        }
+      );
+
+      let transcriptText = "";
+      try {
+        const sttPreview = await transcribeMockInterviewVoice(file);
+        transcriptText = sttPreview?.transcript?.trim?.() ?? "";
+      } catch (previewError) {
+        console.warn(previewError);
+      }
+
+      const response = await submitMockInterviewVoiceAnswer(activeSessionId, {
+        questionId: currentQuestion.questionId,
+        file,
+        audioDurationMs,
+      });
+
+      applyAnswerResponse(
+        response,
+        transcriptText || "(Đã gửi câu trả lời bằng giọng nói)"
+      );
+      setUserInput("");
+    } catch (error) {
+      console.error(error);
+      setVoiceError(
+        error.message || "Gửi câu trả lời voice thất bại. Vui lòng thử lại."
+      );
+    } finally {
+      setIsTranscribing(false);
+    }
+  };
 
   const handleGenerate = async (e) => {
     e.preventDefault();
@@ -85,64 +476,155 @@ export default function MockInterviewPage() {
   };
 
   const startInterview = async () => {
-    setIsInterviewing(true);
-    try {
-      const stream = await navigator.mediaDevices.getUserMedia({ video: true, audio: true });
-      if (videoRef.current) videoRef.current.srcObject = stream;
-    } catch (err) { console.error(err); }
-  };
-
-  const stopInterview = () => {
-    setIsInterviewing(false);
-    if (videoRef.current?.srcObject) {
-      videoRef.current.srcObject.getTracks().forEach(track => track.stop());
+    if (isStartingInterview) {
+      return;
     }
-    const newEntry = {
-      id: Date.now(),
-      role,
-      date: new Date().toLocaleDateString('vi-VN'),
-      score: Math.floor(Math.random() * 40) + 60,
-      duration: '24:45',
-      turns: transcript.length,
-      transcript: [...transcript],
-      aiEvaluation: {
-        summary: 'Chúc mừng bạn đã hoàn thành buổi phỏng vấn! Bạn đã thể hiện rất tốt các kỹ năng chuyên môn và khả năng tư duy giải quyết vấn đề. AI Mentor nhận thấy bạn có nền tảng kiến thức vững chắc nhưng cần chú trọng thêm vào việc giải thích các ví dụ thực tế một cách chi tiết hơn.',
-        strengths: ['Tự tin trong giao tiếp', 'Nắm vững kiến thức React cơ bản', 'Giải quyết vấn đề logic'],
-        improvements: ['Cần thêm ví dụ định lượng', 'Giải thích sâu hơn về kiến trúc hệ thống']
+    if (!jd?.trim()) {
+      setVoiceError("Vui lòng nhập JD trước khi bắt đầu phỏng vấn.");
+      return;
+    }
+
+    setVoiceError("");
+    setIsStartingInterview(true);
+    try {
+      const response = await startMockInterviewSession({
+        level,
+        interviewType: role?.trim() || "mixed",
+        jd: jd.trim(),
+      });
+
+      const firstQuestion = response?.nextQuestion;
+      const firstQuestionText = firstQuestion?.questionText?.trim();
+      if (
+        !response?.sessionId ||
+        !firstQuestion?.questionId ||
+        !firstQuestionText
+      ) {
+        throw new Error("Hệ thống chưa tạo được câu hỏi đầu tiên.");
       }
-    };
-    setHistory([newEntry, ...history]);
-    setLastResult(newEntry);
-    setActiveTab('result');
+
+      setActiveSessionId(response.sessionId);
+      setCurrentQuestion(firstQuestion);
+      setAnsweredCount(0);
+      setTargetQuestionCount(response?.targetQuestionCount ?? 0);
+      setTranscript([{ role: "AI", text: firstQuestionText }]);
+      setUserInput("");
+      setIsInterviewing(true);
+      lastSpokenAiTextRef.current = "";
+      sessionStartedAtRef.current = Date.now();
+
+      try {
+        const stream = await navigator.mediaDevices.getUserMedia({
+          video: true,
+          audio: true,
+        });
+        if (videoRef.current) {
+          videoRef.current.srcObject = stream;
+        }
+      } catch (cameraError) {
+        console.error(cameraError);
+      }
+    } catch (error) {
+      console.error(error);
+      setVoiceError(error.message || "Không thể bắt đầu phiên phỏng vấn.");
+      resetSessionState();
+    } finally {
+      setIsStartingInterview(false);
+    }
   };
 
-  const handleSendMessage = (e) => {
+  const stopInterview = async () => {
+    if (isSubmittingAnswer) {
+      return;
+    }
+
+    const sessionIdToComplete = activeSessionId;
+    const answeredToComplete = answeredCount;
+    const targetToComplete = targetQuestionCount;
+    const transcriptSnapshot = [...transcriptSnapshotRef.current];
+
+    if (!sessionIdToComplete || answeredToComplete <= 0) {
+      cleanupInterviewMedia();
+      setIsInterviewing(false);
+      setIsTranscribing(false);
+      resetSessionState();
+      setActiveTab("config");
+      return;
+    }
+
+    setIsSubmittingAnswer(true);
+    try {
+      const completed = await completeMockInterviewSession(sessionIdToComplete);
+      finalizeInterview({
+        finalReport: completed?.finalReport,
+        transcriptItems: transcriptSnapshot,
+        answered: completed?.answeredQuestionCount ?? answeredToComplete,
+        target: completed?.targetQuestionCount ?? targetToComplete,
+      });
+    } catch (error) {
+      console.error(error);
+      cleanupInterviewMedia();
+      setIsInterviewing(false);
+      setVoiceError(error.message || "Không thể kết thúc phiên phỏng vấn.");
+      resetSessionState();
+      setActiveTab("config");
+    } finally {
+      setIsSubmittingAnswer(false);
+    }
+  };
+
+  const handleSendMessage = async (e) => {
     e.preventDefault();
-    if (!userInput.trim()) return;
-    setTranscript([...transcript, { role: 'User', text: userInput }]);
-    setUserInput('');
-    setTimeout(() => {
-      setTranscript(prev => [...prev, {
-        role: 'AI', text: 'Tôi hiểu rồi. Bạn có thể giải thích chi tiết hơn không?'
-      }]);
-    }, 1200);
+
+    const answerText = userInput.trim();
+    if (
+      !answerText ||
+      !activeSessionId ||
+      !currentQuestion?.questionId ||
+      isSubmittingAnswer ||
+      isTranscribing
+    ) {
+      return;
+    }
+
+    setVoiceError("");
+    setIsSubmittingAnswer(true);
+    setUserInput("");
+
+    try {
+      const response = await submitMockInterviewAnswer(activeSessionId, {
+        questionId: currentQuestion.questionId,
+        answerText,
+        inputType: "TEXT",
+      });
+      applyAnswerResponse(response, answerText);
+    } catch (error) {
+      console.error(error);
+      setVoiceError(
+        error.message || "Gửi câu trả lời thất bại. Vui lòng thử lại."
+      );
+      setUserInput(answerText);
+    } finally {
+      setIsSubmittingAnswer(false);
+    }
   };
 
   const handleResetPlan = () => {
     setPlan(null);
-    setActiveTab('config');
+    setVoiceError("");
+    setUserInput("");
+    resetSessionState();
+    setActiveTab("config");
   };
 
   return (
     <div className="relative min-h-screen bg-[#f8f9fa] overflow-hidden font-body text-slate-800 pb-16">
-
       {/* Background Bubbles (Rainbow effect from CV Manager) */}
       <div className="absolute top-0 left-0 h-[500px] w-[500px] -translate-x-1/3 -translate-y-1/4 rounded-full bg-emerald-200/40 blur-[120px] z-0 pointer-events-none" />
       <div className="absolute top-40 right-0 h-[400px] w-[400px] translate-x-1/3 rounded-full bg-indigo-200/30 blur-[100px] z-0 pointer-events-none" />
       <div className="absolute bottom-0 left-1/4 h-[300px] w-[300px] translate-y-1/3 rounded-full bg-rose-200/20 blur-[100px] z-0 pointer-events-none" />
 
       <div className="relative z-10 mx-auto max-w-6xl space-y-6 p-6 lg:p-8">
-
         {/* Header Section */}
         <div className="flex flex-col md:flex-row md:items-center justify-between gap-6 pb-2">
           <div className="flex flex-col gap-2">
@@ -155,75 +637,185 @@ export default function MockInterviewPage() {
           </div>
 
           <button
-            onClick={() => setActiveTab(activeTab === 'history' ? 'config' : 'history')}
+            onClick={() =>
+              setActiveTab(activeTab === "history" ? "config" : "history")
+            }
             className="inline-flex items-center gap-2 text-base font-bold text-emerald-700 hover:text-emerald-800 transition-all"
           >
-            {activeTab === 'history' ? 'Quay lại phiên mới' : 'Lịch sử'}
+            {activeTab === "history" ? "Quay lại phiên mới" : "Lịch sử"}
             <ArrowRight size={16} className="translate-y-[1px]" />
           </button>
         </div>
 
         <AnimatePresence mode="wait">
           {isInterviewing ? (
-            <motion.div key="int" initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="grid lg:grid-cols-12 gap-6 items-stretch">
+            <motion.div
+              key="int"
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              className="grid lg:grid-cols-12 gap-6 items-stretch"
+            >
               <div className="lg:col-span-7 flex flex-col gap-4">
                 <div className="flex-1 bg-slate-900 rounded-2xl overflow-hidden relative shadow-xl border-4 border-white min-h-[350px]">
-                  <video ref={videoRef} autoPlay muted playsInline className="w-full h-full object-cover" />
+                  <video
+                    ref={videoRef}
+                    autoPlay
+                    muted
+                    playsInline
+                    className="w-full h-full object-cover"
+                  />
                   <div className="absolute top-4 left-4 bg-red-600/90 backdrop-blur-md px-3 py-1 rounded-full text-[10px] font-bold text-white uppercase flex items-center gap-1.5 border border-white/20">
-                    <div className="w-1.5 h-1.5 bg-white rounded-full animate-pulse" /> Live
+                    <div className="w-1.5 h-1.5 bg-white rounded-full animate-pulse" />{" "}
+                    Live
                   </div>
                 </div>
                 <div className="bg-white p-4 rounded-xl border border-slate-200 shadow-sm flex justify-between items-center">
                   <div className="flex items-center gap-4">
-                    <div className="w-10 h-10 bg-emerald-50 rounded-lg flex items-center justify-center text-emerald-600 border border-emerald-100"><Mic2 size={20} /></div>
+                    <div className="w-10 h-10 bg-emerald-50 rounded-lg flex items-center justify-center text-emerald-600 border border-emerald-100">
+                      <Mic2 size={20} />
+                    </div>
                     <p className="text-xl font-bold">24:45</p>
                   </div>
-                  <button onClick={stopInterview} className="bg-emerald-600 text-white px-8 py-2.5 rounded-xl text-xs font-bold uppercase shadow-md shadow-emerald-600/10">Kết thúc</button>
+                  <button
+                    onClick={stopInterview}
+                    className="bg-emerald-600 text-white px-8 py-2.5 rounded-xl text-xs font-bold uppercase shadow-md shadow-emerald-600/10"
+                  >
+                    Kết thúc
+                  </button>
                 </div>
               </div>
 
               <div className="lg:col-span-5 flex flex-col bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden h-[500px]">
                 <div className="px-5 py-3 border-b border-slate-100 bg-slate-50/50 flex justify-between items-center">
-                  <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Hội thoại</span>
+                  <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">
+                    Hội thoại
+                  </span>
                   <FileText size={16} className="text-slate-300" />
                 </div>
                 <div className="flex-1 overflow-y-auto p-5 space-y-4 scrollbar-hide text-sm">
                   {transcript.map((msg, i) => (
-                    <div key={i} className={`flex flex-col ${msg.role === 'User' ? 'items-end' : 'items-start'}`}>
-                      <div className={`max-w-[85%] p-3 rounded-xl ${msg.role === 'User' ? 'bg-emerald-600 text-white shadow-sm' : 'bg-emerald-50 text-emerald-900 border border-emerald-100'}`}>
+                    <div
+                      key={i}
+                      className={`flex flex-col ${
+                        msg.role === "User" ? "items-end" : "items-start"
+                      }`}
+                    >
+                      <div
+                        className={`max-w-[85%] p-3 rounded-xl ${
+                          msg.role === "User"
+                            ? "bg-emerald-600 text-white shadow-sm"
+                            : "bg-emerald-50 text-emerald-900 border border-emerald-100"
+                        }`}
+                      >
                         {msg.text}
                       </div>
                     </div>
                   ))}
                   <div ref={transcriptEndRef} />
                 </div>
-                <form onSubmit={handleSendMessage} className="p-3 bg-slate-50 border-t flex gap-2">
-                  <input value={userInput} onChange={(e) => setUserInput(e.target.value)} placeholder="Nhập câu trả lời..." className="flex-1 bg-white border border-slate-200 rounded-xl px-4 py-2 text-sm outline-none" />
-                  <button className="bg-emerald-600 text-white p-2.5 rounded-xl"><Send size={16} /></button>
+                <form
+                  onSubmit={handleSendMessage}
+                  className="p-3 bg-slate-50 border-t flex gap-2"
+                >
+                  <button
+                    type="button"
+                    onClick={
+                      isRecording
+                        ? stopVoiceRecordingAndTranscribe
+                        : startVoiceRecording
+                    }
+                    disabled={
+                      isTranscribing ||
+                      isSubmittingAnswer ||
+                      !activeSessionId ||
+                      !currentQuestion?.questionId
+                    }
+                    className={`p-2.5 rounded-xl border ${
+                      isRecording
+                        ? "bg-rose-600 text-white border-rose-600"
+                        : "bg-white text-emerald-700 border-slate-200"
+                    } disabled:opacity-60`}
+                    title={isRecording ? "Dừng ghi âm" : "Bắt đầu ghi âm"}
+                  >
+                    {isRecording ? (
+                      <StopCircle size={16} />
+                    ) : (
+                      <Mic2 size={16} />
+                    )}
+                  </button>
+                  <input
+                    value={userInput}
+                    onChange={(e) => setUserInput(e.target.value)}
+                    placeholder="Nhập câu trả lời..."
+                    disabled={
+                      isTranscribing ||
+                      isSubmittingAnswer ||
+                      !currentQuestion?.questionId
+                    }
+                    className="flex-1 bg-white border border-slate-200 rounded-xl px-4 py-2 text-sm outline-none disabled:bg-slate-100"
+                  />
+                  <button
+                    type="submit"
+                    disabled={
+                      isTranscribing ||
+                      isSubmittingAnswer ||
+                      !currentQuestion?.questionId
+                    }
+                    className="bg-emerald-600 text-white p-2.5 rounded-xl disabled:opacity-60"
+                  >
+                    <Send size={16} />
+                  </button>
                 </form>
+                {isTranscribing && (
+                  <p className="px-3 pb-2 text-xs text-emerald-700">
+                    Đang chuyển giọng nói thành văn bản...
+                  </p>
+                )}
+                {voiceError && (
+                  <p className="px-3 pb-2 text-xs text-rose-600">
+                    {voiceError}
+                  </p>
+                )}
               </div>
             </motion.div>
-          ) : activeTab === 'result' && lastResult ? (
-            <motion.div key="result" initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="space-y-6">
+          ) : activeTab === "result" && lastResult ? (
+            <motion.div
+              key="result"
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              className="space-y-6"
+            >
               <div className="flex items-center justify-between gap-6">
                 <div className="rounded-2xl border border-emerald-100 bg-gradient-to-r from-emerald-50 via-emerald-50/60 to-white shadow-sm px-6 py-5 flex-1">
                   <div className="flex items-center gap-2 mb-1">
                     <Sparkles size={16} className="text-emerald-600" />
-                    <p className="text-[10px] font-bold text-emerald-700 uppercase tracking-widest">Kết quả phỏng vấn AI</p>
+                    <p className="text-[10px] font-bold text-emerald-700 uppercase tracking-widest">
+                      Kết quả phỏng vấn AI
+                    </p>
                   </div>
-                  <h3 className="text-xl font-bold text-slate-900">{lastResult.role}</h3>
+                  <h3 className="text-xl font-bold text-slate-900">
+                    {lastResult.role}
+                  </h3>
                   <div className="mt-3 flex flex-wrap items-center gap-2 text-xs text-emerald-700">
-                    <span className="rounded-full border border-emerald-200 bg-white px-3 py-1 font-semibold">{lastResult.date}</span>
-                    <span className="rounded-full border border-emerald-200 bg-white px-3 py-1 font-semibold">Điểm số: {lastResult.score}%</span>
-                    <span className="rounded-full border border-emerald-200 bg-white px-3 py-1 font-semibold">{lastResult.duration}</span>
-                    <span className="rounded-full border border-emerald-200 bg-white px-3 py-1 font-semibold">{lastResult.turns} lượt trao đổi</span>
+                    <span className="rounded-full border border-emerald-200 bg-white px-3 py-1 font-semibold">
+                      {lastResult.date}
+                    </span>
+                    <span className="rounded-full border border-emerald-200 bg-white px-3 py-1 font-semibold">
+                      Điểm số: {lastResult.score}%
+                    </span>
+                    <span className="rounded-full border border-emerald-200 bg-white px-3 py-1 font-semibold">
+                      {lastResult.duration}
+                    </span>
+                    <span className="rounded-full border border-emerald-200 bg-white px-3 py-1 font-semibold">
+                      {lastResult.turns} lượt trao đổi
+                    </span>
                   </div>
                 </div>
                 <button
                   onClick={() => {
                     setLastResult(null);
                     setPlan(null);
-                    setActiveTab('config');
+                    setActiveTab("config");
                   }}
                   className="bg-[#00b14f] text-white px-8 py-5 rounded-2xl font-bold text-sm shadow-xl shadow-emerald-600/20 hover:bg-[#009b45] transition-all flex items-center gap-3 shrink-0"
                 >
@@ -234,13 +826,26 @@ export default function MockInterviewPage() {
               <div className="grid lg:grid-cols-2 gap-6">
                 <div className="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden flex flex-col max-h-[500px]">
                   <div className="px-5 py-3 border-b border-slate-100 bg-slate-50/50 flex items-center justify-between">
-                    <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Nội dung cuộc hội thoại</span>
+                    <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">
+                      Nội dung cuộc hội thoại
+                    </span>
                     <FileText size={16} className="text-slate-300" />
                   </div>
                   <div className="p-5 space-y-4 overflow-y-auto text-sm">
                     {lastResult.transcript.map((msg, i) => (
-                      <div key={i} className={`flex flex-col ${msg.role === 'User' ? 'items-end' : 'items-start'}`}>
-                        <div className={`max-w-[85%] p-3 rounded-xl ${msg.role === 'User' ? 'bg-emerald-600 text-white shadow-sm' : 'bg-emerald-50 text-emerald-900 border border-emerald-100'}`}>
+                      <div
+                        key={i}
+                        className={`flex flex-col ${
+                          msg.role === "User" ? "items-end" : "items-start"
+                        }`}
+                      >
+                        <div
+                          className={`max-w-[85%] p-3 rounded-xl ${
+                            msg.role === "User"
+                              ? "bg-emerald-600 text-white shadow-sm"
+                              : "bg-emerald-50 text-emerald-900 border border-emerald-100"
+                          }`}
+                        >
                           {msg.text}
                         </div>
                       </div>
@@ -252,7 +857,9 @@ export default function MockInterviewPage() {
                   <div>
                     <div className="flex items-center gap-2 mb-3">
                       <CheckCircle2 size={20} className="text-emerald-600" />
-                      <p className="text-base font-bold text-slate-900">Đánh giá từ AI Mentor</p>
+                      <p className="text-base font-bold text-slate-900">
+                        Đánh giá từ AI Mentor
+                      </p>
                     </div>
                     <p className="text-sm text-slate-600 leading-relaxed italic">
                       "{lastResult.aiEvaluation.summary}"
@@ -261,28 +868,43 @@ export default function MockInterviewPage() {
 
                   <div className="grid grid-cols-3 gap-4">
                     <div className="bg-emerald-50 rounded-2xl p-4 text-center border border-emerald-100">
-                      <p className="text-[10px] font-bold text-emerald-600 uppercase mb-1">Giao tiếp</p>
+                      <p className="text-[10px] font-bold text-emerald-600 uppercase mb-1">
+                        Giao tiếp
+                      </p>
                       <p className="text-2xl font-bold text-emerald-700">88%</p>
                     </div>
                     <div className="bg-emerald-50 rounded-2xl p-4 text-center border border-emerald-100">
-                      <p className="text-[10px] font-bold text-emerald-600 uppercase mb-1">Kỹ thuật</p>
+                      <p className="text-[10px] font-bold text-emerald-600 uppercase mb-1">
+                        Kỹ thuật
+                      </p>
                       <p className="text-2xl font-bold text-emerald-700">82%</p>
                     </div>
                     <div className="bg-emerald-50 rounded-2xl p-4 text-center border border-emerald-100">
-                      <p className="text-[10px] font-bold text-emerald-600 uppercase mb-1">Tư duy</p>
-                      <p className="text-2xl font-bold text-emerald-700">{lastResult.score}%</p>
+                      <p className="text-[10px] font-bold text-emerald-600 uppercase mb-1">
+                        Tư duy
+                      </p>
+                      <p className="text-2xl font-bold text-emerald-700">
+                        {lastResult.score}%
+                      </p>
                     </div>
                   </div>
 
                   <div className="grid sm:grid-cols-2 gap-6">
                     <div className="space-y-3">
                       <p className="text-xs font-bold text-emerald-700 flex items-center gap-2">
-                        <span className="w-1.5 h-1.5 rounded-full bg-emerald-500" /> Điểm mạnh
+                        <span className="w-1.5 h-1.5 rounded-full bg-emerald-500" />{" "}
+                        Điểm mạnh
                       </p>
                       <ul className="space-y-2">
                         {lastResult.aiEvaluation.strengths.map((s, i) => (
-                          <li key={i} className="text-sm text-slate-600 flex items-start gap-2">
-                            <ChevronRight size={14} className="mt-0.5 text-emerald-300 shrink-0" />
+                          <li
+                            key={i}
+                            className="text-sm text-slate-600 flex items-start gap-2"
+                          >
+                            <ChevronRight
+                              size={14}
+                              className="mt-0.5 text-emerald-300 shrink-0"
+                            />
                             {s}
                           </li>
                         ))}
@@ -290,12 +912,19 @@ export default function MockInterviewPage() {
                     </div>
                     <div className="space-y-3">
                       <p className="text-xs font-bold text-rose-600 flex items-center gap-2">
-                        <span className="w-1.5 h-1.5 rounded-full bg-rose-500" /> Cần cải thiện
+                        <span className="w-1.5 h-1.5 rounded-full bg-rose-500" />{" "}
+                        Cần cải thiện
                       </p>
                       <ul className="space-y-2">
                         {lastResult.aiEvaluation.improvements.map((s, i) => (
-                          <li key={i} className="text-sm text-slate-600 flex items-start gap-2">
-                            <ChevronRight size={14} className="mt-0.5 text-rose-300 shrink-0" />
+                          <li
+                            key={i}
+                            className="text-sm text-slate-600 flex items-start gap-2"
+                          >
+                            <ChevronRight
+                              size={14}
+                              className="mt-0.5 text-rose-300 shrink-0"
+                            />
                             {s}
                           </li>
                         ))}
@@ -305,20 +934,32 @@ export default function MockInterviewPage() {
                 </div>
               </div>
             </motion.div>
-          ) : activeTab === 'history' ? (
-            <motion.div key="hist" initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="grid md:grid-cols-3 gap-6">
+          ) : activeTab === "history" ? (
+            <motion.div
+              key="hist"
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              className="grid md:grid-cols-3 gap-6"
+            >
               {history.map((item) => (
-                <div key={item.id} className="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm hover:border-emerald-200 transition-all">
+                <div
+                  key={item.id}
+                  className="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm hover:border-emerald-200 transition-all"
+                >
                   <div className="flex justify-between items-start mb-4">
                     <Video size={24} className="text-emerald-400" />
-                    <p className="text-2xl font-bold text-emerald-600">{item.score}%</p>
+                    <p className="text-2xl font-bold text-emerald-600">
+                      {item.score}%
+                    </p>
                   </div>
-                  <h4 className="font-bold text-sm text-slate-900 mb-1">{item.role}</h4>
+                  <h4 className="font-bold text-sm text-slate-900 mb-1">
+                    {item.role}
+                  </h4>
                   <p className="text-[10px] text-zinc-400 mb-4">{item.date}</p>
                   <button
                     onClick={() => {
                       setSelectedHistory(item);
-                      setActiveTab('historyDetail');
+                      setActiveTab("historyDetail");
                     }}
                     className="w-full bg-emerald-600 text-white py-2.5 rounded-xl text-[10px] font-bold uppercase shadow-md shadow-emerald-600/10"
                   >
@@ -327,29 +968,59 @@ export default function MockInterviewPage() {
                 </div>
               ))}
             </motion.div>
-          ) : activeTab === 'historyDetail' && selectedHistory ? (
-            <motion.div key="histDetail" initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="space-y-6">
+          ) : activeTab === "historyDetail" && selectedHistory ? (
+            <motion.div
+              key="histDetail"
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              className="space-y-6"
+            >
               <div className="rounded-2xl border border-emerald-100 bg-gradient-to-r from-emerald-50 via-emerald-50/60 to-white shadow-sm px-5 py-4">
-                <p className="text-[10px] font-bold text-emerald-700 uppercase tracking-widest">Lịch sử phỏng vấn</p>
-                <h3 className="text-lg font-bold text-slate-900 mt-1">{selectedHistory.role}</h3>
+                <p className="text-[10px] font-bold text-emerald-700 uppercase tracking-widest">
+                  Lịch sử phỏng vấn
+                </p>
+                <h3 className="text-lg font-bold text-slate-900 mt-1">
+                  {selectedHistory.role}
+                </h3>
                 <div className="mt-2 flex flex-wrap items-center gap-2 text-xs text-emerald-700">
-                  <span className="rounded-full border border-emerald-200 bg-white px-2.5 py-1 font-semibold">{selectedHistory.date}</span>
-                  <span className="rounded-full border border-emerald-200 bg-white px-2.5 py-1 font-semibold">{selectedHistory.score}%</span>
-                  <span className="rounded-full border border-emerald-200 bg-white px-2.5 py-1 font-semibold">{selectedHistory.duration}</span>
-                  <span className="rounded-full border border-emerald-200 bg-white px-2.5 py-1 font-semibold">{selectedHistory.turns} lượt hỏi</span>
+                  <span className="rounded-full border border-emerald-200 bg-white px-2.5 py-1 font-semibold">
+                    {selectedHistory.date}
+                  </span>
+                  <span className="rounded-full border border-emerald-200 bg-white px-2.5 py-1 font-semibold">
+                    {selectedHistory.score}%
+                  </span>
+                  <span className="rounded-full border border-emerald-200 bg-white px-2.5 py-1 font-semibold">
+                    {selectedHistory.duration}
+                  </span>
+                  <span className="rounded-full border border-emerald-200 bg-white px-2.5 py-1 font-semibold">
+                    {selectedHistory.turns} lượt hỏi
+                  </span>
                 </div>
               </div>
 
               <div className="grid lg:grid-cols-2 gap-6">
                 <div className="bg-emerald-50/40 rounded-2xl border border-emerald-100 shadow-sm overflow-hidden">
                   <div className="px-5 py-3 border-b border-slate-100 bg-slate-50/50 flex items-center justify-between">
-                    <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Ghi am cuoc phong van</span>
+                    <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">
+                      Ghi âm cuộc phỏng vấn
+                    </span>
                     <Mic2 size={16} className="text-slate-300" />
                   </div>
                   <div className="p-5 space-y-3 text-sm">
                     {selectedHistory.transcript.map((msg, i) => (
-                      <div key={i} className={`flex ${msg.role === 'User' ? 'justify-end' : 'justify-start'}`}>
-                        <div className={`max-w-[85%] rounded-xl px-3 py-2 ${msg.role === 'User' ? 'bg-emerald-600 text-white' : 'bg-emerald-50 text-emerald-900 border border-emerald-100'}`}>
+                      <div
+                        key={i}
+                        className={`flex ${
+                          msg.role === "User" ? "justify-end" : "justify-start"
+                        }`}
+                      >
+                        <div
+                          className={`max-w-[85%] rounded-xl px-3 py-2 ${
+                            msg.role === "User"
+                              ? "bg-emerald-600 text-white"
+                              : "bg-emerald-50 text-emerald-900 border border-emerald-100"
+                          }`}
+                        >
                           {msg.text}
                         </div>
                       </div>
@@ -360,46 +1031,68 @@ export default function MockInterviewPage() {
                 <div className="bg-white rounded-2xl border border-slate-200 shadow-sm p-5">
                   <div className="flex items-center gap-2 mb-3">
                     <CheckCircle2 size={18} className="text-emerald-600" />
-                    <p className="text-sm font-bold text-slate-900">Danh gia AI</p>
+                    <p className="text-sm font-bold text-slate-900">
+                      Đánh giá AI
+                    </p>
                   </div>
                   <p className="text-sm text-slate-700 leading-relaxed mb-4">
                     {selectedHistory.aiEvaluation.summary}
                   </p>
                   <div className="mb-4 grid grid-cols-3 gap-3 text-center">
                     <div className="rounded-xl border border-emerald-100 bg-emerald-50/60 py-2">
-                      <p className="text-xs text-emerald-700 font-semibold">Giao tiep</p>
-                      <p className="text-lg font-bold text-emerald-700">{Math.min(95, selectedHistory.score + 5)}%</p>
+                      <p className="text-xs text-emerald-700 font-semibold">
+                        Giao tiếp
+                      </p>
+                      <p className="text-lg font-bold text-emerald-700">
+                        {Math.min(95, selectedHistory.score + 5)}%
+                      </p>
                     </div>
                     <div className="rounded-xl border border-emerald-100 bg-emerald-50/60 py-2">
-                      <p className="text-xs text-emerald-700 font-semibold">Ky thuat</p>
-                      <p className="text-lg font-bold text-emerald-700">{Math.max(60, selectedHistory.score - 10)}%</p>
+                      <p className="text-xs text-emerald-700 font-semibold">
+                        Kỹ thuật
+                      </p>
+                      <p className="text-lg font-bold text-emerald-700">
+                        {Math.max(60, selectedHistory.score - 10)}%
+                      </p>
                     </div>
                     <div className="rounded-xl border border-emerald-100 bg-emerald-50/60 py-2">
-                      <p className="text-xs text-emerald-700 font-semibold">Tu duy</p>
-                      <p className="text-lg font-bold text-emerald-700">{selectedHistory.score}%</p>
+                      <p className="text-xs text-emerald-700 font-semibold">
+                        Tư duy
+                      </p>
+                      <p className="text-lg font-bold text-emerald-700">
+                        {selectedHistory.score}%
+                      </p>
                     </div>
                   </div>
                   <div className="grid sm:grid-cols-2 gap-4">
                     <div>
-                      <p className="text-xs font-bold text-emerald-700 mb-2">Diem manh</p>
+                      <p className="text-xs font-bold text-emerald-700 mb-2">
+                        Điểm mạnh
+                      </p>
                       <ul className="text-sm text-slate-700 space-y-1">
-                        {selectedHistory.aiEvaluation.strengths.map((item, i) => (
-                          <li key={i} className="flex items-start gap-2">
-                            <span className="mt-1 h-1.5 w-1.5 rounded-full bg-emerald-400" />
-                            <span>{item}</span>
-                          </li>
-                        ))}
+                        {selectedHistory.aiEvaluation.strengths.map(
+                          (item, i) => (
+                            <li key={i} className="flex items-start gap-2">
+                              <span className="mt-1 h-1.5 w-1.5 rounded-full bg-emerald-400" />
+                              <span>{item}</span>
+                            </li>
+                          )
+                        )}
                       </ul>
                     </div>
                     <div>
-                      <p className="text-xs font-bold text-rose-600 mb-2">Can cai thien</p>
+                      <p className="text-xs font-bold text-rose-600 mb-2">
+                        Cần cải thiện
+                      </p>
                       <ul className="text-sm text-slate-700 space-y-1">
-                        {selectedHistory.aiEvaluation.improvements.map((item, i) => (
-                          <li key={i} className="flex items-start gap-2">
-                            <span className="mt-1 h-1.5 w-1.5 rounded-full bg-rose-400" />
-                            <span>{item}</span>
-                          </li>
-                        ))}
+                        {selectedHistory.aiEvaluation.improvements.map(
+                          (item, i) => (
+                            <li key={i} className="flex items-start gap-2">
+                              <span className="mt-1 h-1.5 w-1.5 rounded-full bg-rose-400" />
+                              <span>{item}</span>
+                            </li>
+                          )
+                        )}
                       </ul>
                     </div>
                   </div>
@@ -407,32 +1100,76 @@ export default function MockInterviewPage() {
               </div>
             </motion.div>
           ) : (
-            <motion.div key="cfg" initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="grid lg:grid-cols-12 gap-6 items-stretch">
+            <motion.div
+              key="cfg"
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              className="grid lg:grid-cols-12 gap-6 items-stretch"
+            >
               <div className="lg:col-span-5 flex flex-col relative">
-                <div className={plan ? 'bg-white rounded-2xl border border-slate-200 p-6 shadow-sm flex-1 flex flex-col gap-6 opacity-60 select-none' : 'bg-white rounded-2xl border border-slate-200 p-6 shadow-sm flex-1 flex flex-col gap-6'}>
-                  <h2 className="text-sm font-bold text-slate-900 border-b border-slate-100 pb-3">Cấu hình phỏng vấn</h2>
+                <div
+                  className={
+                    plan
+                      ? "bg-white rounded-2xl border border-slate-200 p-6 shadow-sm flex-1 flex flex-col gap-6 opacity-60 select-none"
+                      : "bg-white rounded-2xl border border-slate-200 p-6 shadow-sm flex-1 flex flex-col gap-6"
+                  }
+                >
+                  <h2 className="text-sm font-bold text-slate-900 border-b border-slate-100 pb-3">
+                    Cấu hình phỏng vấn
+                  </h2>
 
-                  <form onSubmit={handleGenerate} className="flex flex-col gap-5 flex-1">
+                  <form
+                    onSubmit={handleGenerate}
+                    className="flex flex-col gap-5 flex-1"
+                  >
                     <div className="space-y-4 flex-1">
                       <div>
-                        <label className="block text-sm font-semibold text-slate-700 mb-1.5">Vị trí ứng tuyển</label>
-                        <input value={role} onChange={(e) => setRole(e.target.value)} required className="w-full rounded-xl border border-slate-200 bg-zinc-50 px-4 py-2.5 text-sm text-slate-700 outline-none focus:border-emerald-500 focus:bg-white transition-all" />
+                        <label className="block text-sm font-semibold text-slate-700 mb-1.5">
+                          Vị trí ứng tuyển
+                        </label>
+                        <input
+                          value={role}
+                          onChange={(e) => setRole(e.target.value)}
+                          required
+                          className="w-full rounded-xl border border-slate-200 bg-zinc-50 px-4 py-2.5 text-sm text-slate-700 outline-none focus:border-emerald-500 focus:bg-white transition-all"
+                        />
                       </div>
                       <div>
-                        <label className="block text-sm font-semibold text-slate-700 mb-1.5">Cấp độ mục tiêu</label>
-                        <select value={level} onChange={(e) => setLevel(e.target.value)} className="w-full rounded-xl border border-slate-200 bg-zinc-50 px-4 py-2.5 text-sm text-slate-700 outline-none focus:border-emerald-500 focus:bg-white transition-all">
-                          <option>Intern</option><option>Fresher</option><option>Junior</option><option>Middle</option><option>Senior</option>
+                        <label className="block text-sm font-semibold text-slate-700 mb-1.5">
+                          Cấp độ mục tiêu
+                        </label>
+                        <select
+                          value={level}
+                          onChange={(e) => setLevel(e.target.value)}
+                          className="w-full rounded-xl border border-slate-200 bg-zinc-50 px-4 py-2.5 text-sm text-slate-700 outline-none focus:border-emerald-500 focus:bg-white transition-all"
+                        >
+                          <option>Intern</option>
+                          <option>Fresher</option>
+                          <option>Junior</option>
+                          <option>Middle</option>
+                          <option>Senior</option>
                         </select>
                       </div>
                       <div>
-                        <label className="block text-sm font-semibold text-slate-700 mb-1.5">Mô tả công việc (JD)</label>
-                        <textarea value={jd} onChange={(e) => setJd(e.target.value)} rows={4} className="w-full rounded-xl border border-slate-200 bg-zinc-50 px-4 py-2.5 text-sm text-slate-700 outline-none focus:border-emerald-500 focus:bg-white transition-all resize-none h-[140px]" />
+                        <label className="block text-sm font-semibold text-slate-700 mb-1.5">
+                          Mô tả công việc (JD)
+                        </label>
+                        <textarea
+                          value={jd}
+                          onChange={(e) => setJd(e.target.value)}
+                          rows={4}
+                          className="w-full rounded-xl border border-slate-200 bg-zinc-50 px-4 py-2.5 text-sm text-slate-700 outline-none focus:border-emerald-500 focus:bg-white transition-all resize-none h-[140px]"
+                        />
                       </div>
                     </div>
 
                     <div className="mt-2 pt-5 border-t border-slate-100">
-                      <button type="submit" disabled={loading} className="w-full bg-emerald-600 text-white py-3.5 rounded-xl text-sm font-bold shadow-lg shadow-emerald-600/20 hover:bg-emerald-700 transition-all flex justify-center items-center gap-2">
-                        {loading ? 'Đang phân tích...' : 'Tạo lộ trình'}
+                      <button
+                        type="submit"
+                        disabled={loading}
+                        className="w-full bg-emerald-600 text-white py-3.5 rounded-xl text-sm font-bold shadow-lg shadow-emerald-600/20 hover:bg-emerald-700 transition-all flex justify-center items-center gap-2"
+                      >
+                        {loading ? "Đang phân tích..." : "Tạo lộ trình"}
                         {!loading && <ArrowRight size={16} />}
                       </button>
                     </div>
@@ -449,16 +1186,29 @@ export default function MockInterviewPage() {
                     <div className="w-16 h-16 bg-white/60 rounded-xl shadow-sm border border-white flex items-center justify-center text-emerald-200 mb-6 group-hover:scale-105 transition-all">
                       <Sparkles size={28} />
                     </div>
-                    <h3 className="text-lg font-bold text-emerald-900 mb-1">Chờ phân tích</h3>
-                    <p className="text-xs text-emerald-700/50 max-w-[200px]">Nhập cấu hình bên trái để chuẩn bị kịch bản.</p>
+                    <h3 className="text-lg font-bold text-emerald-900 mb-1">
+                      Chờ phân tích
+                    </h3>
+                    <p className="text-xs text-emerald-700/50 max-w-[200px]">
+                      Nhập cấu hình bên trái để chuẩn bị kịch bản.
+                    </p>
                   </div>
                 ) : (
-                  <motion.div initial={{ scale: 0.98 }} animate={{ scale: 1 }} className="bg-emerald-50/30 backdrop-blur-md rounded-2xl border border-emerald-100 p-6 shadow-xl flex-1 flex flex-col">
+                  <motion.div
+                    initial={{ scale: 0.98 }}
+                    animate={{ scale: 1 }}
+                    className="bg-emerald-50/30 backdrop-blur-md rounded-2xl border border-emerald-100 p-6 shadow-xl flex-1 flex flex-col"
+                  >
                     <div className="flex-1">
                       <div className="flex items-center justify-between gap-3 mb-6">
                         <div className="flex items-center gap-2">
-                          <CheckCircle2 size={18} className="text-emerald-600" />
-                          <span className="text-xs font-bold text-emerald-700 tracking-tight">Kịch bản sẵn sàng</span>
+                          <CheckCircle2
+                            size={18}
+                            className="text-emerald-600"
+                          />
+                          <span className="text-xs font-bold text-emerald-700 tracking-tight">
+                            Kịch bản sẵn sàng
+                          </span>
                         </div>
                         <button
                           type="button"
@@ -468,20 +1218,40 @@ export default function MockInterviewPage() {
                           <Trash2 size={14} /> Quay lại tạo mới
                         </button>
                       </div>
-                      <h2 className="text-2xl font-bold text-slate-900 mb-1 tracking-tight">{plan.role}</h2>
-                      <p className="text-xs font-medium text-slate-500 mb-8">Cấp độ: {plan.level}</p>
+                      <h2 className="text-2xl font-bold text-slate-900 mb-1 tracking-tight">
+                        {plan.role}
+                      </h2>
+                      <p className="text-xs font-medium text-slate-500 mb-8">
+                        Cấp độ: {plan.level}
+                      </p>
 
                       <div className="space-y-3 mb-8">
                         {plan.stages.map((stage, idx) => (
-                          <div key={idx} className="flex items-center gap-4 bg-white/60 p-4 rounded-xl border border-white shadow-sm text-sm">
-                            <span className="font-bold text-emerald-300">0{idx + 1}</span>
+                          <div
+                            key={idx}
+                            className="flex items-center gap-4 bg-white/60 p-4 rounded-xl border border-white shadow-sm text-sm"
+                          >
+                            <span className="font-bold text-emerald-300">
+                              0{idx + 1}
+                            </span>
                             <p className="text-slate-700 truncate">{stage}</p>
-                            <ChevronRight size={14} className="ml-auto text-emerald-100" />
+                            <ChevronRight
+                              size={14}
+                              className="ml-auto text-emerald-100"
+                            />
                           </div>
                         ))}
                       </div>
                     </div>
-                    <button onClick={startInterview} className="w-full bg-emerald-600 text-white py-3.5 rounded-xl text-sm font-bold shadow-xl shadow-emerald-600/20 hover:bg-emerald-700 transition-all">Bắt đầu ngay</button>
+                    <button
+                      onClick={startInterview}
+                      disabled={isStartingInterview}
+                      className="w-full bg-emerald-600 text-white py-3.5 rounded-xl text-sm font-bold shadow-xl shadow-emerald-600/20 hover:bg-emerald-700 transition-all disabled:opacity-60"
+                    >
+                      {isStartingInterview
+                        ? "Đang khởi tạo..."
+                        : "Bắt đầu ngay"}
+                    </button>
                   </motion.div>
                 )}
               </div>

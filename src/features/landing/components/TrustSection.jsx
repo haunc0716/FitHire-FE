@@ -6,7 +6,7 @@ const TrustSection = () => {
     { label: 'Sinh viên tin dùng', value: '15,000+' },
     { label: 'Tỷ lệ trúng tuyển', value: '94%' },
     { label: 'Đối tác chiến lược', value: '120+' },
-    { label: 'AI Processing', value: '24/7' },
+    { label: 'Xử lý AI', value: '24/7' },
   ];
 
   return (

@@ -31,7 +31,7 @@ const BentoFeatures = () => {
               Sử dụng công nghệ phân tích ngữ nghĩa hiện đại giúp hồ sơ của bạn nổi bật, vượt qua các hệ thống lọc ATS khắt khe nhất.
             </p>
             <div className="flex flex-wrap gap-3">
-              {['ATS Standard', 'Impact Score', 'Keywords'].map((text, i) => (
+              {['Chuẩn ATS', 'Điểm tác động', 'Từ khóa'].map((text, i) => (
                 <span key={i} className="text-xs font-semibold bg-stone-50 border border-stone-100 px-5 py-2.5 rounded-full text-stone-600 hover:border-primary hover:text-primary transition-all cursor-default">
                   {text}
                 </span>
@@ -39,7 +39,7 @@ const BentoFeatures = () => {
             </div>
           </div>
           <div className="flex-1 image-reveal-container aspect-square border border-stone-50 shadow-sm relative group/img">
-            <img alt="CV Analysis" className="w-full h-full object-cover" src="/images/cv-analysis.png" />
+            <img alt="Phân tích CV" className="w-full h-full object-cover" src="/images/cv-analysis.png" />
             <div className="absolute inset-0 bg-primary/0 group-hover/img:bg-primary/5 transition-colors duration-500" />
           </div>
         </div>
@@ -56,7 +56,7 @@ const BentoFeatures = () => {
         <h3 className="text-3xl font-display font-bold mb-6 text-stone-900 group-hover:text-primary transition-colors">Luyện tập thông minh</h3>
         <p className="text-stone-500 mb-12 text-lg leading-relaxed">Nhận phản hồi tức thì về ngôn ngữ cơ thể và chiến thuật trả lời phỏng vấn hiệu quả.</p>
         <div className="image-reveal-container aspect-video border border-stone-50 shadow-sm relative group/img2">
-          <img alt="Mock Interview" className="w-full h-full object-cover" src="/images/mock-interview.png" />
+          <img alt="Phỏng vấn mô phỏng" className="w-full h-full object-cover" src="/images/mock-interview.png" />
           <div className="absolute inset-0 bg-primary/0 group-hover/img2:bg-primary/5 transition-colors duration-500" />
         </div>
         <span className="absolute -bottom-10 -right-10 text-[180px] font-display font-black text-primary opacity-[0.02] group-hover:opacity-[0.05] transition-opacity">02</span>
