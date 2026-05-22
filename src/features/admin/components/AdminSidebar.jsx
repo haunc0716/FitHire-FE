@@ -20,32 +20,32 @@ import { motion } from 'framer-motion';
 
 const navigation = [
   { 
-    group: 'Analytics',
+    group: 'Phân tích',
     items: [
-      { name: 'Overview', href: '/admin', icon: LayoutDashboard },
-      { name: 'Reports & Analytics', href: '/admin/reports', icon: BarChart3 },
+      { name: 'Tổng quan', href: '/admin', icon: LayoutDashboard },
+      { name: 'Báo cáo & phân tích', href: '/admin/reports', icon: BarChart3 },
     ]
   },
   { 
-    group: 'Management',
+    group: 'Quản lý',
     items: [
-      { name: 'User Management', href: '/admin/users', icon: Users },
-      { name: 'Plan Management', href: '/admin/plans', icon: Package },
-      { name: 'Subscription & Billing', href: '/admin/billing', icon: CreditCard },
+      { name: 'Quản lý người dùng', href: '/admin/users', icon: Users },
+      { name: 'Quản lý gói dịch vụ', href: '/admin/plans', icon: Package },
+      { name: 'Gói dịch vụ & thanh toán', href: '/admin/billing', icon: CreditCard },
     ]
   },
   { 
-    group: 'AI Features',
+    group: 'Tính năng AI',
     items: [
-      { name: 'CV Analysis', href: '/admin/cv-analysis', icon: FileText },
-      { name: 'Mock Interviews', href: '/admin/interviews', icon: Video },
-      { name: 'Cultural Fit', href: '/admin/cultural-fit', icon: BrainCircuit },
+      { name: 'Phân tích CV', href: '/admin/cv-analysis', icon: FileText },
+      { name: 'Phỏng vấn mô phỏng', href: '/admin/interviews', icon: Video },
+      { name: 'Độ phù hợp văn hóa', href: '/admin/cultural-fit', icon: BrainCircuit },
     ]
   },
   { 
-    group: 'System',
+    group: 'Hệ thống',
     items: [
-      { name: 'AI Settings', href: '/admin/ai-settings', icon: Settings },
+      { name: 'Cài đặt AI', href: '/admin/ai-settings', icon: Settings },
     ]
   },
 ];

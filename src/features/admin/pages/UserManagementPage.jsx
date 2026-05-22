@@ -91,12 +91,12 @@ export default function UserManagementPage() {
     <div className="space-y-6">
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
         <div>
-          <h1 className="text-2xl font-bold text-gray-900 font-display">User Management</h1>
-          <p className="text-sm text-gray-500 mt-1">Manage platform users, roles, and account statuses.</p>
+          <h1 className="text-2xl font-bold text-gray-900 font-display">Quản lý người dùng</h1>
+          <p className="text-sm text-gray-500 mt-1">Quản lý tài khoản, vai trò và trạng thái người dùng trên nền tảng.</p>
         </div>
         <button className="px-4 py-2 flex items-center gap-2 bg-white border border-stone-200 text-stone-700 text-sm font-medium rounded-xl hover:bg-stone-50 transition-colors shadow-sm">
           <Download className="w-4 h-4" />
-          Export CSV
+          Xuất CSV
         </button>
       </div>
 
@@ -106,7 +106,7 @@ export default function UserManagementPage() {
             <Search className="w-4 h-4 text-stone-400 absolute left-3 top-1/2 -translate-y-1/2" />
             <input 
               type="text" 
-              placeholder="Search by name or email..." 
+              placeholder="Tìm theo tên hoặc email..." 
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
               className="w-full pl-9 pr-4 py-2 bg-white border border-gray-200 focus:border-emerald-500 focus:ring-2 focus:ring-emerald-200 rounded-xl text-sm outline-none transition-all duration-200"
@@ -114,11 +114,11 @@ export default function UserManagementPage() {
           </div>
           <button onClick={fetchUsers} className="w-full sm:w-auto px-4 py-2 flex items-center justify-center gap-2 bg-white border border-stone-200 text-stone-700 text-sm font-medium rounded-xl hover:bg-stone-50 transition-colors">
             <RotateCcw className="w-4 h-4" />
-            Refresh
+            Làm mới
           </button>
           <button className="w-full sm:w-auto px-4 py-2 flex items-center justify-center gap-2 bg-white border border-stone-200 text-stone-700 text-sm font-medium rounded-xl hover:bg-stone-50 transition-colors">
             <Filter className="w-4 h-4" />
-            Filter
+            Bộ lọc
           </button>
         </div>
 
@@ -132,11 +132,11 @@ export default function UserManagementPage() {
             <table className="w-full text-sm text-left">
               <thead className="text-xs text-stone-500 uppercase bg-stone-50/50 border-b border-stone-100">
                 <tr>
-                  <th className="px-6 py-4 font-bold">User</th>
-                  <th className="px-6 py-4 font-bold">Role</th>
-                  <th className="px-6 py-4 font-bold">Status</th>
-                  <th className="px-6 py-4 font-bold">Joined Date</th>
-                  <th className="px-6 py-4 font-bold text-right">Actions</th>
+                  <th className="px-6 py-4 font-bold">Người dùng</th>
+                  <th className="px-6 py-4 font-bold">Vai trò</th>
+                  <th className="px-6 py-4 font-bold">Trạng thái</th>
+                  <th className="px-6 py-4 font-bold">Ngày tham gia</th>
+                  <th className="px-6 py-4 font-bold text-right">Thao tác</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-stone-50">
@@ -199,10 +199,10 @@ export default function UserManagementPage() {
         </div>
 
         <div className="p-4 border-t border-stone-100 flex items-center justify-between text-xs font-medium text-stone-500 bg-stone-50/30">
-          <span>Showing {filteredUsers.length} results</span>
+          <span>Hiển thị {filteredUsers.length} kết quả</span>
           <div className="flex gap-2">
-            <button className="px-4 py-1.5 bg-white border border-stone-200 rounded-lg hover:bg-stone-50 disabled:opacity-50 transition-colors">Prev</button>
-            <button className="px-4 py-1.5 bg-white border border-stone-200 rounded-lg hover:bg-stone-50 transition-colors">Next</button>
+            <button className="px-4 py-1.5 bg-white border border-stone-200 rounded-lg hover:bg-stone-50 disabled:opacity-50 transition-colors">Trước</button>
+            <button className="px-4 py-1.5 bg-white border border-stone-200 rounded-lg hover:bg-stone-50 transition-colors">Sau</button>
           </div>
         </div>
       </div>
@@ -240,19 +240,19 @@ export default function UserManagementPage() {
                   <>
                     <div className="grid grid-cols-2 gap-4 text-sm">
                       <div className="rounded-2xl bg-stone-50 p-4">
-                        <div className="text-stone-400">Role</div>
+                        <div className="text-stone-400">Vai trò</div>
                         <div className="font-semibold text-stone-900">{selectedUser.role || 'N/A'}</div>
                       </div>
                       <div className="rounded-2xl bg-stone-50 p-4">
-                        <div className="text-stone-400">Status</div>
+                        <div className="text-stone-400">Trạng thái</div>
                         <div className="font-semibold text-stone-900">{selectedUser.status || 'ACTIVE'}</div>
                       </div>
                       <div className="rounded-2xl bg-stone-50 p-4">
-                        <div className="text-stone-400">Created At</div>
+                        <div className="text-stone-400">Ngày tạo</div>
                         <div className="font-semibold text-stone-900">{selectedUser.createdAt ? new Date(selectedUser.createdAt).toLocaleString() : 'N/A'}</div>
                       </div>
                       <div className="rounded-2xl bg-stone-50 p-4">
-                        <div className="text-stone-400">Last Login</div>
+                        <div className="text-stone-400">Đăng nhập gần nhất</div>
                         <div className="font-semibold text-stone-900">{selectedUser.lastLoginAt ? new Date(selectedUser.lastLoginAt).toLocaleString() : 'N/A'}</div>
                       </div>
                     </div>

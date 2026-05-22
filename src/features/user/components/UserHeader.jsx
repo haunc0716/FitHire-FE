@@ -22,7 +22,7 @@ const navGroups = [
     name: 'Hồ sơ & CV',
     items: [
       { name: 'Quản lý CV', href: '/user/cv-manager', icon: FileText, desc: 'Quản lý các bản CV của bạn' },
-      { name: 'Phân tích CV theo JD', href: '/user/cv-jd', icon: FileSearch, desc: 'Chấm điểm CV với công nghệ AI' }
+      { name: 'Chấm điểm CV ATS', href: '/user/cv-jd', icon: FileSearch, desc: 'Chấm điểm CV tự động với AI' }
     ]
   },
   {

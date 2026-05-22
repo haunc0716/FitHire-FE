@@ -2,10 +2,10 @@ import React from 'react';
 
 const ComparisonTable = () => {
   const rows = [
-    { name: 'Scan CV', free: '3 / tháng', luotLe: '-', plus: '15 / tháng', pro: 'Không giới hạn' },
-    { name: 'Mock Interview', free: '1 / tháng', luotLe: '1 / lượt', plus: '10 / tháng', pro: 'Không giới hạn' },
-    { name: 'CV Generation', free: '-', luotLe: '-', plus: '5 / tháng', pro: 'Không giới hạn' },
-    { name: 'Culture Fit', free: '-', luotLe: '-', plus: '5 / tháng', pro: 'Không giới hạn' },
+    { name: 'Quét CV', free: '3 / tháng', luotLe: '-', plus: '15 / tháng', pro: 'Không giới hạn' },
+    { name: 'Phỏng vấn mô phỏng', free: '1 / tháng', luotLe: '1 / lượt', plus: '10 / tháng', pro: 'Không giới hạn' },
+    { name: 'Tạo CV', free: '-', luotLe: '-', plus: '5 / tháng', pro: 'Không giới hạn' },
+    { name: 'Độ phù hợp văn hóa', free: '-', luotLe: '-', plus: '5 / tháng', pro: 'Không giới hạn' },
   ];
 
   return (
@@ -39,4 +39,3 @@ const ComparisonTable = () => {
 };
 
 export default ComparisonTable;
-

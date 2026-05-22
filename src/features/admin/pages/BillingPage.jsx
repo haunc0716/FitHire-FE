@@ -39,7 +39,7 @@ function extractUserLabel(transaction) {
     transaction?.metadata?.fullName;
 
   if (candidate) return candidate;
-  if (transaction?.userId) return `User #${transaction.userId}`;
+  if (transaction?.userId) return `Người dùng #${transaction.userId}`;
   return `Khách hàng #${transaction?.id ?? ''}`.trim();
 }
 
@@ -129,12 +129,12 @@ export default function BillingPage() {
     <div className="space-y-6">
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
         <div>
-          <h1 className="text-2xl font-bold text-gray-900 font-display">Subscription & Billing</h1>
-          <p className="text-sm text-gray-500 mt-1">Monitor revenue, active subscriptions, and payment history.</p>
+          <h1 className="text-2xl font-bold text-gray-900 font-display">Gói dịch vụ & thanh toán</h1>
+          <p className="text-sm text-gray-500 mt-1">Theo dõi doanh thu, gói dịch vụ đang hoạt động và lịch sử thanh toán.</p>
         </div>
         <button className="px-4 py-2 flex items-center gap-2 bg-[#00b14f] text-white text-sm font-bold rounded-xl hover:bg-[#009b45] transition-colors shadow-sm shadow-emerald-100">
           <Download className="w-4 h-4" />
-          Download Report
+          Tải báo cáo
         </button>
       </div>
 
@@ -144,12 +144,12 @@ export default function BillingPage() {
             <div className="p-2 bg-emerald-50 rounded-lg text-emerald-600">
               <CreditCard className="w-5 h-5" />
             </div>
-            <h3 className="font-bold text-stone-600 text-sm">Total Transactions</h3>
+            <h3 className="font-bold text-stone-600 text-sm">Tổng giao dịch</h3>
           </div>
           <div className="flex items-end gap-3 mt-4">
             <span className="text-3xl font-bold text-stone-900">{stats.total}</span>
             <span className="flex items-center text-xs font-bold text-emerald-600 mb-1 bg-emerald-50 px-2 py-0.5 rounded-full">
-              <ArrowUpRight className="w-3 h-3 mr-0.5" /> Live
+              <ArrowUpRight className="w-3 h-3 mr-0.5" /> Trực tiếp
             </span>
           </div>
         </div>
@@ -159,11 +159,11 @@ export default function BillingPage() {
             <div className="p-2 bg-violet-50 rounded-lg text-violet-600">
               <CreditCard className="w-5 h-5" />
             </div>
-            <h3 className="font-bold text-stone-600 text-sm">Completed</h3>
+            <h3 className="font-bold text-stone-600 text-sm">Hoàn tất</h3>
           </div>
           <div className="flex items-end gap-3 mt-4">
             <span className="text-3xl font-bold text-stone-900">{stats.completed}</span>
-            <span className="text-xs font-medium text-stone-400 mb-1">transactions</span>
+            <span className="text-xs font-medium text-stone-400 mb-1">giao dịch</span>
           </div>
         </div>
 
@@ -172,21 +172,21 @@ export default function BillingPage() {
             <div className="p-2 bg-rose-50 rounded-lg text-rose-600">
               <CreditCard className="w-5 h-5" />
             </div>
-            <h3 className="font-bold text-stone-600 text-sm">Pending</h3>
+            <h3 className="font-bold text-stone-600 text-sm">Đang chờ</h3>
           </div>
           <div className="flex items-end gap-3 mt-4">
             <span className="text-3xl font-bold text-stone-900">{stats.pending}</span>
-            <span className="text-xs font-medium text-stone-400 mb-1">waiting</span>
+            <span className="text-xs font-medium text-stone-400 mb-1">chờ xử lý</span>
           </div>
         </div>
       </div>
 
       <div className="bg-white rounded-2xl border border-stone-100 shadow-[0_2px_10px_rgba(0,0,0,0.02)] overflow-hidden">
         <div className="p-5 border-b border-stone-100 bg-stone-50/30 flex items-center justify-between gap-4">
-          <h2 className="text-base font-bold text-stone-900">Recent Transactions</h2>
+          <h2 className="text-base font-bold text-stone-900">Giao dịch gần đây</h2>
           <button onClick={fetchTransactions} className="inline-flex items-center gap-2 px-3 py-2 text-sm font-semibold text-stone-700 border border-stone-200 rounded-xl hover:bg-stone-50 transition-colors">
             <Loader2 className={`w-4 h-4 ${isLoading ? 'animate-spin' : ''}`} />
-            Refresh
+            Làm mới
           </button>
         </div>
         <div className="overflow-x-auto">
@@ -200,13 +200,13 @@ export default function BillingPage() {
               <table className="w-full text-sm text-left">
                 <thead className="text-xs text-stone-500 uppercase bg-stone-50/50 border-b border-stone-100">
                   <tr>
-                    <th className="px-6 py-4 font-bold">Transaction ID</th>
-                    <th className="px-6 py-4 font-bold">User</th>
-                    <th className="px-6 py-4 font-bold">Plan</th>
-                    <th className="px-6 py-4 font-bold">Amount</th>
-                    <th className="px-6 py-4 font-bold">Date</th>
-                    <th className="px-6 py-4 font-bold">Status</th>
-                    <th className="px-6 py-4 font-bold text-right">Actions</th>
+                    <th className="px-6 py-4 font-bold">Mã giao dịch</th>
+                    <th className="px-6 py-4 font-bold">Người dùng</th>
+                    <th className="px-6 py-4 font-bold">Gói</th>
+                    <th className="px-6 py-4 font-bold">Số tiền</th>
+                    <th className="px-6 py-4 font-bold">Ngày</th>
+                    <th className="px-6 py-4 font-bold">Trạng thái</th>
+                    <th className="px-6 py-4 font-bold text-right">Thao tác</th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-stone-50">
@@ -235,10 +235,10 @@ export default function BillingPage() {
                           </button>
                           {String(trx.status).toUpperCase() === 'PENDING' ? (
                             <>
-                              <button onClick={() => handleUpdateStatus(trx.id, true)} disabled={updatingId === trx.id} title="Approve" className="p-1.5 text-emerald-600 hover:bg-emerald-50 rounded-lg transition-colors border border-emerald-100">
+                              <button onClick={() => handleUpdateStatus(trx.id, true)} disabled={updatingId === trx.id} title="Duyệt" className="p-1.5 text-emerald-600 hover:bg-emerald-50 rounded-lg transition-colors border border-emerald-100">
                                 {updatingId === trx.id ? <Loader2 className="h-4 w-4 animate-spin" /> : <Check className="h-4 w-4" />}
                               </button>
-                              <button onClick={() => handleUpdateStatus(trx.id, false)} disabled={updatingId === trx.id} title="Reject" className="p-1.5 text-rose-600 hover:bg-rose-50 rounded-lg transition-colors border border-rose-100">
+                              <button onClick={() => handleUpdateStatus(trx.id, false)} disabled={updatingId === trx.id} title="Từ chối" className="p-1.5 text-rose-600 hover:bg-rose-50 rounded-lg transition-colors border border-rose-100">
                                 {updatingId === trx.id ? <Loader2 className="h-4 w-4 animate-spin" /> : <X className="h-4 w-4" />}
                               </button>
                             </>
@@ -303,27 +303,27 @@ export default function BillingPage() {
               ) : (
                 <div className="grid grid-cols-2 gap-4 text-sm">
                   <div className="rounded-2xl bg-stone-50 p-4">
-                    <div className="text-stone-400">Payment ID</div>
+                    <div className="text-stone-400">Mã thanh toán</div>
                     <div className="font-semibold text-stone-900">{selectedTransaction.id}</div>
                   </div>
                   <div className="rounded-2xl bg-stone-50 p-4">
-                    <div className="text-stone-400">Status</div>
+                    <div className="text-stone-400">Trạng thái</div>
                     <div className="font-semibold text-stone-900">{selectedTransaction.status || 'N/A'}</div>
                   </div>
                   <div className="rounded-2xl bg-stone-50 p-4">
-                    <div className="text-stone-400">Amount</div>
+                    <div className="text-stone-400">Số tiền</div>
                     <div className="font-semibold text-stone-900">{formatMoney(selectedTransaction.amount ?? selectedTransaction.totalAmount ?? selectedTransaction.price, selectedTransaction.currency)}</div>
                   </div>
                   <div className="rounded-2xl bg-stone-50 p-4">
-                    <div className="text-stone-400">Created At</div>
+                    <div className="text-stone-400">Thời gian tạo</div>
                     <div className="font-semibold text-stone-900">{formatDate(selectedTransaction.createdAt)}</div>
                   </div>
                   <div className="rounded-2xl bg-stone-50 p-4 col-span-2">
-                    <div className="text-stone-400">User</div>
+                    <div className="text-stone-400">Người dùng</div>
                     <div className="font-semibold text-stone-900">{extractUserLabel(selectedTransaction)}</div>
                   </div>
                   <div className="rounded-2xl bg-stone-50 p-4 col-span-2">
-                    <div className="text-stone-400">Plan</div>
+                    <div className="text-stone-400">Gói</div>
                     <div className="font-semibold text-stone-900">{extractPlanLabel(selectedTransaction)}</div>
                   </div>
                 </div>
