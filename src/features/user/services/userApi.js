@@ -203,6 +203,13 @@ export function completeMockInterviewSession(sessionId) {
   });
 }
 
+export function cancelMockInterviewSession(sessionId) {
+  return requestJson(`/api/mock-interview/sessions/${sessionId}/cancel`, {
+    method: 'POST',
+    headers: buildAuthHeaders(),
+  });
+}
+
 export function fetchMockInterviewHistory({ page = 0, size = 10 } = {}) {
   const params = new URLSearchParams({
     page: String(page),

@@ -14,12 +14,14 @@ import {
 } from "lucide-react";
 import { generateMockInterviewPlan } from "../services/userFeatureAdapters";
 import {
+  cancelMockInterviewSession,
   completeMockInterviewSession,
+  fetchMockInterviewDetail,
+  fetchMockInterviewHistory,
   speakMockInterviewText,
   startMockInterviewSession,
   submitMockInterviewAnswer,
   submitMockInterviewVoiceAnswer,
-  transcribeMockInterviewVoice,
 } from "../services/userApi";
 
 export default function MockInterviewPage() {
@@ -36,68 +38,12 @@ export default function MockInterviewPage() {
     },
   ]);
   const [userInput, setUserInput] = useState("");
-  const [history, setHistory] = useState([
-    {
-      id: 1,
-      role: "Frontend Developer",
-      date: "08/05/2026",
-      score: 85,
-      duration: "24:45",
-      turns: 12,
-      detail:
-        "Mở đầu tự tin, nêu rõ 2 dự án nổi bật. Kỹ thuật React tốt, nhưng phần tối ưu hiệu năng còn thiếu ví dụ cụ thể. Khuyến nghị luyện thêm phần đo lường và giải thích trade-off.",
-      transcript: [
-        { role: "AI", text: "Chào bạn! Hãy giới thiệu ngắn gọn về bản thân." },
-        {
-          role: "User",
-          text: "Mình là Frontend Developer với 3 năm kinh nghiệm, tập trung vào React và tối ưu UI.",
-        },
-        { role: "AI", text: "Bạn có thể kể về một dự án nổi bật gần đây?" },
-        {
-          role: "User",
-          text: "Mình xây dựng dashboard cho đội sales, tối ưu hiệu năng và trải nghiệm tương tác.",
-        },
-      ],
-      aiEvaluation: {
-        summary:
-          "Giao tiếp rõ ràng, mạch lạc. Cần bổ sung số liệu và trade-off kỹ thuật khi nói về tối ưu hiệu năng.",
-        strengths: [
-          "Mạch lạc",
-          "Tập trung vào người dùng",
-          "Nắm chắc React cơ bản",
-        ],
-        improvements: [
-          "Bổ sung số liệu hiệu năng",
-          "Nêu rõ trade-off và lý do lựa chọn",
-        ],
-      },
-    },
-    {
-      id: 2,
-      role: "React Developer",
-      date: "05/05/2026",
-      score: 72,
-      duration: "18:20",
-      turns: 8,
-      detail:
-        "Trả lời đúng trọng tâm nhưng thiếu cấu trúc STAR ở phần behavioral. Cần làm rõ vai trò cá nhân, kết quả định lượng và bài học rút ra.",
-      transcript: [
-        { role: "AI", text: "Hãy chia sẻ cách bạn xử lý conflict trong team." },
-        {
-          role: "User",
-          text: "Mình trao đổi thẳng thắn với team, đưa ra dữ liệu và thống nhất cách làm.",
-        },
-      ],
-      aiEvaluation: {
-        summary:
-          "Có tinh thần hợp tác, nhưng thiếu cấu trúc STAR và kết quả định lượng.",
-        strengths: ["Thái độ hợp tác", "Giải thích rõ ràng"],
-        improvements: ["Cấu trúc STAR", "Đưa ví dụ định lượng"],
-      },
-    },
-  ]);
+  const [history, setHistory] = useState([]);
   const [activeTab, setActiveTab] = useState("config");
   const [selectedHistory, setSelectedHistory] = useState(null);
+  const [isLoadingHistory, setIsLoadingHistory] = useState(false);
+  const [isLoadingHistoryDetail, setIsLoadingHistoryDetail] = useState(false);
+  const [historyError, setHistoryError] = useState("");
   const [lastResult, setLastResult] = useState(null);
   const [isRecording, setIsRecording] = useState(false);
   const [isTranscribing, setIsTranscribing] = useState(false);
@@ -148,6 +94,12 @@ export default function MockInterviewPage() {
     lastSpokenAiTextRef.current = lastMessage.text;
     playAiSpeech(lastMessage.text);
   }, [isInterviewing, transcript]);
+
+  useEffect(() => {
+    if (activeTab === "history") {
+      loadHistory();
+    }
+  }, [activeTab]);
 
   useEffect(
     () => () => {
@@ -230,6 +182,122 @@ export default function MockInterviewPage() {
     )}`;
   };
 
+  const formatDisplayDate = (value) => {
+    if (!value) {
+      return "--";
+    }
+
+    const date = new Date(value);
+    if (Number.isNaN(date.getTime())) {
+      return "--";
+    }
+
+    return date.toLocaleDateString("vi-VN");
+  };
+
+  const formatDurationFromIsoRange = (startValue, endValue) => {
+    if (!startValue || !endValue) {
+      return "--:--";
+    }
+
+    const startedAt = new Date(startValue).getTime();
+    const endedAt = new Date(endValue).getTime();
+    if (!Number.isFinite(startedAt) || !Number.isFinite(endedAt)) {
+      return "--:--";
+    }
+
+    return formatDurationFromMs(Math.max(0, endedAt - startedAt));
+  };
+
+  const mapHistoryItem = (item) => {
+    const answered = Number.isFinite(item?.answeredQuestionCount)
+      ? item.answeredQuestionCount
+      : 0;
+    const target = Number.isFinite(item?.targetQuestionCount)
+      ? item.targetQuestionCount
+      : 0;
+
+    return {
+      id: item?.sessionId ?? `${Date.now()}-${Math.random()}`,
+      sessionId: item?.sessionId ?? null,
+      role: item?.interviewType?.trim?.() || item?.level?.trim?.() || "Mixed",
+      date: formatDisplayDate(item?.createdAt),
+      score: Number.isFinite(item?.overallScore) ? item.overallScore : 0,
+      duration: formatDurationFromIsoRange(item?.createdAt, item?.completedAt),
+      turns: target > 0 ? `${answered}/${target}` : answered,
+      rawCreatedAt: item?.createdAt ?? null,
+      rawCompletedAt: item?.completedAt ?? null,
+    };
+  };
+
+  const buildTranscriptFromQaItems = (qaItems) => {
+    const messages = [];
+    (qaItems ?? []).forEach((qa) => {
+      const questionText = qa?.questionText?.trim?.();
+      const answerText = qa?.answerText?.trim?.();
+
+      if (questionText) {
+        messages.push({ role: "AI", text: questionText });
+      }
+      if (answerText) {
+        messages.push({ role: "User", text: answerText });
+      }
+    });
+    return messages;
+  };
+
+  const mapHistoryDetail = (detail, fallbackItem) => {
+    const finalReport = detail?.finalReport;
+    const strengths = normalizeList(finalReport?.strengths);
+    const recommendations = normalizeList(finalReport?.recommendations);
+    const weaknesses = normalizeList(finalReport?.weaknesses);
+    const improvements =
+      recommendations.length > 0 ? recommendations : weaknesses;
+    const answered = Number.isFinite(detail?.answeredQuestionCount)
+      ? detail.answeredQuestionCount
+      : 0;
+    const target = Number.isFinite(detail?.targetQuestionCount)
+      ? detail.targetQuestionCount
+      : 0;
+    const transcriptItems = buildTranscriptFromQaItems(detail?.qaItems);
+
+    return {
+      id: detail?.sessionId ?? fallbackItem?.id ?? Date.now(),
+      sessionId: detail?.sessionId ?? fallbackItem?.sessionId ?? null,
+      role:
+        detail?.interviewType?.trim?.() ||
+        fallbackItem?.role ||
+        detail?.level?.trim?.() ||
+        "Mixed",
+      date: formatDisplayDate(detail?.startedAt ?? fallbackItem?.rawCreatedAt),
+      score: Number.isFinite(finalReport?.overallScore)
+        ? finalReport.overallScore
+        : Number.isFinite(fallbackItem?.score)
+        ? fallbackItem.score
+        : 0,
+      duration: formatDurationFromIsoRange(
+        detail?.startedAt ?? fallbackItem?.rawCreatedAt,
+        detail?.completedAt ?? fallbackItem?.rawCompletedAt
+      ),
+      turns: target > 0 ? `${answered}/${target}` : answered,
+      transcript:
+        transcriptItems.length > 0
+          ? transcriptItems
+          : [{ role: "AI", text: "Phiên này chưa có dữ liệu hội thoại." }],
+      aiEvaluation: {
+        summary:
+          finalReport?.summary?.trim?.() ||
+          "Phiên này chưa có báo cáo tổng kết cuối buổi.",
+        strengths:
+          strengths.length > 0 ? strengths : ["Chưa có dữ liệu điểm mạnh."],
+        improvements:
+          improvements.length > 0
+            ? improvements
+            : ["Chưa có dữ liệu đề xuất cải thiện."],
+      },
+    };
+  };
+
   const buildResultEntry = ({
     finalReport,
     transcriptItems,
@@ -299,9 +367,11 @@ export default function MockInterviewPage() {
   };
 
   const applyAnswerResponse = (response, answerText) => {
+    const normalizedAnswerText =
+      response?.submittedAnswerText?.trim?.() ?? answerText?.trim?.() ?? "";
     const incomingMessages = [];
-    if (answerText?.trim()) {
-      incomingMessages.push({ role: "User", text: answerText.trim() });
+    if (normalizedAnswerText) {
+      incomingMessages.push({ role: "User", text: normalizedAnswerText });
     }
     const feedbackText = response?.evaluation?.feedback?.trim();
     if (feedbackText) {
@@ -435,24 +505,13 @@ export default function MockInterviewPage() {
         }
       );
 
-      let transcriptText = "";
-      try {
-        const sttPreview = await transcribeMockInterviewVoice(file);
-        transcriptText = sttPreview?.transcript?.trim?.() ?? "";
-      } catch (previewError) {
-        console.warn(previewError);
-      }
-
       const response = await submitMockInterviewVoiceAnswer(activeSessionId, {
         questionId: currentQuestion.questionId,
         file,
         audioDurationMs,
       });
 
-      applyAnswerResponse(
-        response,
-        transcriptText || "(Đã gửi câu trả lời bằng giọng nói)"
-      );
+      applyAnswerResponse(response, "");
       setUserInput("");
     } catch (error) {
       console.error(error);
@@ -544,6 +603,13 @@ export default function MockInterviewPage() {
     const transcriptSnapshot = [...transcriptSnapshotRef.current];
 
     if (!sessionIdToComplete || answeredToComplete <= 0) {
+      if (sessionIdToComplete) {
+        try {
+          await cancelMockInterviewSession(sessionIdToComplete);
+        } catch (cancelError) {
+          console.error(cancelError);
+        }
+      }
       cleanupInterviewMedia();
       setIsInterviewing(false);
       setIsTranscribing(false);
@@ -609,10 +675,51 @@ export default function MockInterviewPage() {
     }
   };
 
+  const loadHistory = async () => {
+    setIsLoadingHistory(true);
+    setHistoryError("");
+    try {
+      const response = await fetchMockInterviewHistory({ page: 0, size: 20 });
+      const items = (response?.content ?? []).map(mapHistoryItem);
+      setHistory(items);
+    } catch (error) {
+      console.error(error);
+      setHistoryError(
+        error.message || "Không thể tải lịch sử phỏng vấn. Vui lòng thử lại."
+      );
+    } finally {
+      setIsLoadingHistory(false);
+    }
+  };
+
+  const openHistoryDetail = async (item) => {
+    if (!item?.sessionId) {
+      return;
+    }
+
+    setIsLoadingHistoryDetail(true);
+    setHistoryError("");
+    try {
+      const detail = await fetchMockInterviewDetail(item.sessionId);
+      setSelectedHistory(mapHistoryDetail(detail, item));
+      setActiveTab("historyDetail");
+    } catch (error) {
+      console.error(error);
+      setHistoryError(
+        error.message ||
+          "Không thể tải chi tiết phiên phỏng vấn. Vui lòng thử lại."
+      );
+    } finally {
+      setIsLoadingHistoryDetail(false);
+    }
+  };
+
   const handleResetPlan = () => {
     setPlan(null);
     setVoiceError("");
+    setHistoryError("");
     setUserInput("");
+    setSelectedHistory(null);
     resetSessionState();
     setActiveTab("config");
   };
@@ -941,32 +1048,45 @@ export default function MockInterviewPage() {
               animate={{ opacity: 1 }}
               className="grid md:grid-cols-3 gap-6"
             >
-              {history.map((item) => (
-                <div
-                  key={item.id}
-                  className="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm hover:border-emerald-200 transition-all"
-                >
-                  <div className="flex justify-between items-start mb-4">
-                    <Video size={24} className="text-emerald-400" />
-                    <p className="text-2xl font-bold text-emerald-600">
-                      {item.score}%
-                    </p>
-                  </div>
-                  <h4 className="font-bold text-sm text-slate-900 mb-1">
-                    {item.role}
-                  </h4>
-                  <p className="text-[10px] text-zinc-400 mb-4">{item.date}</p>
-                  <button
-                    onClick={() => {
-                      setSelectedHistory(item);
-                      setActiveTab("historyDetail");
-                    }}
-                    className="w-full bg-emerald-600 text-white py-2.5 rounded-xl text-[10px] font-bold uppercase shadow-md shadow-emerald-600/10"
-                  >
-                    Chi tiết
-                  </button>
+              {isLoadingHistory ? (
+                <div className="md:col-span-3 rounded-2xl border border-slate-200 bg-white p-6 text-sm text-slate-500">
+                  Đang tải lịch sử phỏng vấn...
                 </div>
-              ))}
+              ) : history.length === 0 ? (
+                <div className="md:col-span-3 rounded-2xl border border-slate-200 bg-white p-6 text-sm text-slate-500">
+                  Bạn chưa có phiên phỏng vấn nào.
+                </div>
+              ) : (
+                history.map((item) => (
+                  <div
+                    key={item.id}
+                    className="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm hover:border-emerald-200 transition-all"
+                  >
+                    <div className="flex justify-between items-start mb-4">
+                      <Video size={24} className="text-emerald-400" />
+                      <p className="text-2xl font-bold text-emerald-600">
+                        {item.score}%
+                      </p>
+                    </div>
+                    <h4 className="font-bold text-sm text-slate-900 mb-1">
+                      {item.role}
+                    </h4>
+                    <p className="text-[10px] text-zinc-400 mb-4">{item.date}</p>
+                    <button
+                      onClick={() => openHistoryDetail(item)}
+                      disabled={isLoadingHistoryDetail}
+                      className="w-full bg-emerald-600 text-white py-2.5 rounded-xl text-[10px] font-bold uppercase shadow-md shadow-emerald-600/10 disabled:opacity-60"
+                    >
+                      {isLoadingHistoryDetail ? "Đang tải..." : "Chi tiết"}
+                    </button>
+                  </div>
+                ))
+              )}
+              {historyError && (
+                <p className="md:col-span-3 text-sm text-rose-600">
+                  {historyError}
+                </p>
+              )}
             </motion.div>
           ) : activeTab === "historyDetail" && selectedHistory ? (
             <motion.div
