@@ -1,7 +1,7 @@
 import React, { useCallback, useEffect, useRef, useState } from 'react';
 import { motion, useReducedMotion } from 'framer-motion';
 import { Link, useNavigate } from 'react-router-dom';
-import { ArrowLeft } from 'lucide-react';
+import { ArrowLeft, Eye, EyeOff } from 'lucide-react';
 import { loginWithEmailPassword, loginWithGoogle } from '../services/authApi';
 import { useToast } from '../../../components/ui/ToastProvider';
 import {
@@ -37,6 +37,7 @@ const LoginPage = () => {
   const [googleInitFailed, setGoogleInitFailed] = useState(false);
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [showPassword, setShowPassword] = useState(false);
 
   const handleEmailSubmit = async (e) => {
     e.preventDefault();
@@ -315,14 +316,24 @@ const LoginPage = () => {
                   <label className="block text-[10px] font-bold uppercase tracking-widest text-stone-400">Mật khẩu</label>
                   <Link to="/forgot-password" className="text-[10px] font-bold uppercase tracking-widest text-primary hover:text-primary-dark">Quên mật khẩu?</Link>
                 </div>
-                <input
-                  type="password"
-                  placeholder="••••••••"
-                  value={password}
-                  onChange={(e) => setPassword(e.target.value)}
-                  className="w-full px-4 py-4 rounded-2xl border border-stone-100 bg-stone-50 focus:bg-white focus:outline-none focus:ring-4 focus:ring-primary/5 focus:border-primary transition-all text-stone-900 placeholder:text-stone-400 text-sm"
-                  required
-                />
+                <div className="relative">
+                  <input
+                    type={showPassword ? 'text' : 'password'}
+                    placeholder="••••••••"
+                    value={password}
+                    onChange={(e) => setPassword(e.target.value)}
+                    className="w-full px-4 py-4 pr-12 rounded-2xl border border-stone-100 bg-stone-50 focus:bg-white focus:outline-none focus:ring-4 focus:ring-primary/5 focus:border-primary transition-all text-stone-900 placeholder:text-stone-400 text-sm"
+                    required
+                  />
+                  <button
+                    type="button"
+                    onClick={() => setShowPassword((prev) => !prev)}
+                    aria-label={showPassword ? 'Ẩn mật khẩu' : 'Hiện mật khẩu'}
+                    className="absolute inset-y-0 right-0 flex items-center justify-center w-12 text-stone-400 hover:text-stone-700 transition-colors"
+                  >
+                    {showPassword ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
+                  </button>
+                </div>
               </div>
               <button
                 type="submit"
