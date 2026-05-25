@@ -9,10 +9,8 @@ import {
   FileText,
   Send,
   StopCircle,
-  Trash2,
   ChevronRight,
 } from "lucide-react";
-import { generateMockInterviewPlan } from "../services/userFeatureAdapters";
 import {
   cancelMockInterviewSession,
   completeMockInterviewSession,
@@ -28,8 +26,6 @@ export default function MockInterviewPage() {
   const [role, setRole] = useState("Frontend Developer");
   const [level, setLevel] = useState("Middle");
   const [jd, setJd] = useState("");
-  const [plan, setPlan] = useState(null);
-  const [loading, setLoading] = useState(false);
   const [isInterviewing, setIsInterviewing] = useState(false);
   const [transcript, setTranscript] = useState([
     {
@@ -523,17 +519,6 @@ export default function MockInterviewPage() {
     }
   };
 
-  const handleGenerate = async (e) => {
-    e.preventDefault();
-    setLoading(true);
-    try {
-      const data = await generateMockInterviewPlan({ role, level, jd });
-      setPlan(data);
-    } finally {
-      setLoading(false);
-    }
-  };
-
   const startInterview = async () => {
     if (isStartingInterview) {
       return;
@@ -712,16 +697,6 @@ export default function MockInterviewPage() {
     } finally {
       setIsLoadingHistoryDetail(false);
     }
-  };
-
-  const handleResetPlan = () => {
-    setPlan(null);
-    setVoiceError("");
-    setHistoryError("");
-    setUserInput("");
-    setSelectedHistory(null);
-    resetSessionState();
-    setActiveTab("config");
   };
 
   return (
@@ -921,7 +896,6 @@ export default function MockInterviewPage() {
                 <button
                   onClick={() => {
                     setLastResult(null);
-                    setPlan(null);
                     setActiveTab("config");
                   }}
                   className="bg-[#00b14f] text-white px-8 py-5 rounded-2xl font-bold text-sm shadow-xl shadow-emerald-600/20 hover:bg-[#009b45] transition-all flex items-center gap-3 shrink-0"
@@ -1227,19 +1201,16 @@ export default function MockInterviewPage() {
               className="grid lg:grid-cols-12 gap-6 items-stretch"
             >
               <div className="lg:col-span-5 flex flex-col relative">
-                <div
-                  className={
-                    plan
-                      ? "bg-white rounded-2xl border border-slate-200 p-6 shadow-sm flex-1 flex flex-col gap-6 opacity-60 select-none"
-                      : "bg-white rounded-2xl border border-slate-200 p-6 shadow-sm flex-1 flex flex-col gap-6"
-                  }
-                >
+                <div className="bg-white rounded-2xl border border-slate-200 p-6 shadow-sm flex-1 flex flex-col gap-6">
                   <h2 className="text-sm font-bold text-slate-900 border-b border-slate-100 pb-3">
                     Cấu hình phỏng vấn
                   </h2>
 
                   <form
-                    onSubmit={handleGenerate}
+                    onSubmit={(event) => {
+                      event.preventDefault();
+                      startInterview();
+                    }}
                     className="flex flex-col gap-5 flex-1"
                   >
                     <div className="space-y-4 flex-1">
@@ -1286,94 +1257,29 @@ export default function MockInterviewPage() {
                     <div className="mt-2 pt-5 border-t border-slate-100">
                       <button
                         type="submit"
-                        disabled={loading}
+                        disabled={isStartingInterview}
                         className="w-full bg-emerald-600 text-white py-3.5 rounded-xl text-sm font-bold shadow-lg shadow-emerald-600/20 hover:bg-emerald-700 transition-all flex justify-center items-center gap-2"
                       >
-                        {loading ? "Đang phân tích..." : "Tạo lộ trình"}
-                        {!loading && <ArrowRight size={16} />}
+                        {isStartingInterview ? "Đang khởi tạo..." : "Bắt đầu ngay"}
+                        {!isStartingInterview && <ArrowRight size={16} />}
                       </button>
                     </div>
                   </form>
                 </div>
-                {plan && (
-                  <div className="absolute inset-0 rounded-2xl bg-white/40 backdrop-blur-[1px] border border-slate-200 pointer-events-auto" />
-                )}
               </div>
 
               <div className="lg:col-span-7 flex flex-col">
-                {!plan ? (
-                  <div className="flex-1 bg-white/40 backdrop-blur-md border border-white rounded-2xl flex flex-col items-center justify-center p-10 text-center shadow-inner group">
-                    <div className="w-16 h-16 bg-white/60 rounded-xl shadow-sm border border-white flex items-center justify-center text-emerald-200 mb-6 group-hover:scale-105 transition-all">
-                      <Sparkles size={28} />
-                    </div>
-                    <h3 className="text-lg font-bold text-emerald-900 mb-1">
-                      Chờ phân tích
-                    </h3>
-                    <p className="text-xs text-emerald-700/50 max-w-[200px]">
-                      Nhập cấu hình bên trái để chuẩn bị kịch bản.
-                    </p>
+                <div className="flex-1 bg-white/40 backdrop-blur-md border border-white rounded-2xl flex flex-col items-center justify-center p-10 text-center shadow-inner group">
+                  <div className="w-16 h-16 bg-white/60 rounded-xl shadow-sm border border-white flex items-center justify-center text-emerald-200 mb-6 group-hover:scale-105 transition-all">
+                    <Sparkles size={28} />
                   </div>
-                ) : (
-                  <motion.div
-                    initial={{ scale: 0.98 }}
-                    animate={{ scale: 1 }}
-                    className="bg-emerald-50/30 backdrop-blur-md rounded-2xl border border-emerald-100 p-6 shadow-xl flex-1 flex flex-col"
-                  >
-                    <div className="flex-1">
-                      <div className="flex items-center justify-between gap-3 mb-6">
-                        <div className="flex items-center gap-2">
-                          <CheckCircle2
-                            size={18}
-                            className="text-emerald-600"
-                          />
-                          <span className="text-xs font-bold text-emerald-700 tracking-tight">
-                            Kịch bản sẵn sàng
-                          </span>
-                        </div>
-                        <button
-                          type="button"
-                          onClick={handleResetPlan}
-                          className="inline-flex items-center gap-2 rounded-full bg-emerald-600 px-4 py-2 text-xs font-bold text-white shadow-lg shadow-emerald-600/30 hover:bg-emerald-700 transition-all"
-                        >
-                          <Trash2 size={14} /> Quay lại tạo mới
-                        </button>
-                      </div>
-                      <h2 className="text-2xl font-bold text-slate-900 mb-1 tracking-tight">
-                        {plan.role}
-                      </h2>
-                      <p className="text-xs font-medium text-slate-500 mb-8">
-                        Cấp độ: {plan.level}
-                      </p>
-
-                      <div className="space-y-3 mb-8">
-                        {plan.stages.map((stage, idx) => (
-                          <div
-                            key={idx}
-                            className="flex items-center gap-4 bg-white/60 p-4 rounded-xl border border-white shadow-sm text-sm"
-                          >
-                            <span className="font-bold text-emerald-300">
-                              0{idx + 1}
-                            </span>
-                            <p className="text-slate-700 truncate">{stage}</p>
-                            <ChevronRight
-                              size={14}
-                              className="ml-auto text-emerald-100"
-                            />
-                          </div>
-                        ))}
-                      </div>
-                    </div>
-                    <button
-                      onClick={startInterview}
-                      disabled={isStartingInterview}
-                      className="w-full bg-emerald-600 text-white py-3.5 rounded-xl text-sm font-bold shadow-xl shadow-emerald-600/20 hover:bg-emerald-700 transition-all disabled:opacity-60"
-                    >
-                      {isStartingInterview
-                        ? "Đang khởi tạo..."
-                        : "Bắt đầu ngay"}
-                    </button>
-                  </motion.div>
-                )}
+                  <h3 className="text-lg font-bold text-emerald-900 mb-1">
+                    Sẵn sàng bắt đầu
+                  </h3>
+                  <p className="text-xs text-emerald-700/50 max-w-[240px]">
+                    Nhập cấu hình bên trái và bấm "Bắt đầu ngay" để tạo câu hỏi đầu tiên.
+                  </p>
+                </div>
               </div>
             </motion.div>
           )}

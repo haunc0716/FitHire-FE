@@ -9,7 +9,6 @@ import {
   MessageSquareText,
   UserCircle2,
   FileText,
-  Target,
   FileSearch,
   History,
   Crown
@@ -29,7 +28,7 @@ const navGroups = [
     name: 'Công cụ',
     items: [
       { name: 'Luyện Phỏng vấn', href: '/user/mock-interview', icon: MessageSquareText, desc: 'Mô phỏng phỏng vấn thực tế' },
-      { name: 'Đo Văn hóa', href: '/user/cultural-fit', icon: Target, desc: 'Đo lường mức độ phù hợp' }
+      { name: 'Quyền sử dụng', href: '/user/cultural-fit', icon: Crown, desc: 'Theo dõi hạn mức tính năng' }
     ]
   }
 ];

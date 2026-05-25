@@ -1,28 +1,96 @@
-import React from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 import { motion } from 'framer-motion';
-import { Link } from 'react-router-dom';
-import { Plus, MoreVertical, Download, Eye, Trash2, FileText, CheckCircle2 } from 'lucide-react';
+import { Plus, MoreVertical, Download, Eye, FileText, CheckCircle2 } from 'lucide-react';
+import { fetchMyCvs } from '../services/userApi';
+import { useToast } from '../../../components/ui/ToastProvider';
 
-const mockCvs = [
-  {
-    id: 1,
-    title: 'CV Frontend Developer 2026',
-    updatedAt: 'Cập nhật 2 giờ trước',
-    status: 'Hoàn thiện 95%',
-    thumbnail: 'https://images.unsplash.com/photo-1586281380349-632531db7ed4?w=500&auto=format&fit=crop&q=60',
-    isPrimary: true
-  },
-  {
-    id: 2,
-    title: 'CV UX/UI Designer',
-    updatedAt: 'Cập nhật 3 ngày trước',
-    status: 'Hoàn thiện 80%',
-    thumbnail: 'https://images.unsplash.com/photo-1626785774573-4b799315345d?w=500&auto=format&fit=crop&q=60',
-    isPrimary: false
-  }
-];
+function formatDateLabel(value) {
+  if (!value) return 'Chưa có cập nhật';
+  const date = new Date(value);
+  if (Number.isNaN(date.getTime())) return 'Chưa có cập nhật';
+  return `Cập nhật ${date.toLocaleString('vi-VN')}`;
+}
+
+function resolveCvTitle(cv) {
+  return (
+    cv?.title ||
+    cv?.name ||
+    cv?.originalFileName ||
+    cv?.fileName ||
+    (cv?.id ? `CV #${cv.id}` : 'CV không tên')
+  );
+}
+
+function resolveCvThumbnail(cv) {
+  return (
+    cv?.thumbnailUrl ||
+    cv?.previewUrl ||
+    cv?.fileUrl ||
+    '/images/cv-analysis.png'
+  );
+}
+
+function resolveCvStatus(cv) {
+  const raw = cv?.status || cv?.parseStatus || cv?.state;
+  if (!raw) return 'Đã tải lên';
+  return String(raw).replace(/_/g, ' ');
+}
+
+function resolveCvProgress(cv) {
+  const candidate = cv?.completionPercent ?? cv?.progress ?? cv?.score;
+  const numeric = Number(candidate);
+  if (!Number.isFinite(numeric)) return null;
+  return Math.max(0, Math.min(100, Math.round(numeric)));
+}
 
 export default function CvManagerPage() {
+  const { showToast } = useToast();
+  const [cvs, setCvs] = useState([]);
+  const [isLoading, setIsLoading] = useState(true);
+  const [loadError, setLoadError] = useState('');
+
+  useEffect(() => {
+    let isMounted = true;
+    setIsLoading(true);
+    setLoadError('');
+
+    fetchMyCvs()
+      .then((data) => {
+        if (!isMounted) return;
+        const items = Array.isArray(data) ? data : data?.items || data?.content || [];
+        setCvs(items);
+      })
+      .catch((error) => {
+        if (!isMounted) return;
+        const message = error?.message || 'Không thể tải danh sách CV.';
+        setLoadError(message);
+        showToast({ type: 'error', title: 'Tải CV thất bại', message });
+      })
+      .finally(() => {
+        if (!isMounted) return;
+        setIsLoading(false);
+      });
+
+    return () => {
+      isMounted = false;
+    };
+  }, [showToast]);
+
+  const normalizedCvs = useMemo(() => (
+    cvs.map((cv) => {
+      const progress = resolveCvProgress(cv);
+      return {
+        id: cv?.id ?? `${Math.random()}`,
+        title: resolveCvTitle(cv),
+        updatedAt: formatDateLabel(cv?.updatedAt || cv?.createdAt || cv?.uploadedAt),
+        status: resolveCvStatus(cv),
+        thumbnail: resolveCvThumbnail(cv),
+        isPrimary: Boolean(cv?.isPrimary || cv?.primary || cv?.isDefault),
+        progress,
+      };
+    })
+  ), [cvs]);
+
   return (
     <div className="relative min-h-screen bg-[#f8f9fa] overflow-hidden font-body">
       
@@ -70,7 +138,23 @@ export default function CvManagerPage() {
           </motion.div>
 
           {/* CV Items */}
-          {mockCvs.map((cv) => (
+          {isLoading ? (
+            [1, 2, 3].map((item) => (
+              <div
+                key={item}
+                className="h-[340px] rounded-2xl border border-stone-200 bg-white animate-pulse"
+              />
+            ))
+          ) : loadError ? (
+            <div className="col-span-full rounded-2xl border border-dashed border-stone-200 bg-white p-8 text-center text-sm text-stone-500">
+              {loadError}
+            </div>
+          ) : normalizedCvs.length === 0 ? (
+            <div className="col-span-full rounded-2xl border border-dashed border-stone-200 bg-white p-8 text-center text-sm text-stone-500">
+              Bạn chưa có CV nào. Hãy tạo CV mới để bắt đầu.
+            </div>
+          ) : (
+            normalizedCvs.map((cv) => (
             <motion.div 
               key={cv.id}
               whileHover={{ y: -4 }}
@@ -111,16 +195,19 @@ export default function CvManagerPage() {
                   <div className="flex items-center justify-between text-xs mb-2">
                     <span className="font-medium text-stone-600">{cv.status}</span>
                   </div>
-                  <div className="h-1.5 w-full bg-stone-100 rounded-full overflow-hidden">
-                    <div 
-                      className="h-full bg-emerald-500 rounded-full" 
-                      style={{ width: cv.status.replace(/[^0-9]/g, '') + '%' }}
-                    />
-                  </div>
+                  {cv.progress != null && (
+                    <div className="h-1.5 w-full bg-stone-100 rounded-full overflow-hidden">
+                      <div
+                        className="h-full bg-emerald-500 rounded-full"
+                        style={{ width: `${cv.progress}%` }}
+                      />
+                    </div>
+                  )}
                 </div>
               </div>
             </motion.div>
-          ))}
+            ))
+          )}
 
         </div>
       </div>

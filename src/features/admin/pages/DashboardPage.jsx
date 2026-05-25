@@ -1,7 +1,8 @@
 import React, { Suspense, useEffect, useState } from 'react';
-import { Users, Activity, TrendingUp, ArrowUpRight, ArrowDownRight, Package, Calendar } from 'lucide-react';
+import { Users, CreditCard, Clock3, ArrowUpRight, ArrowDownRight, Package, Calendar } from 'lucide-react';
 import { getAdminUsers } from '../services/userApi';
 import { getAdminSubscriptions } from '../services/subscriptionApi';
+import { getAdminPayments } from '../services/paymentApi';
 
 const DashboardCharts = React.lazy(() => import('../components/DashboardCharts'));
 
@@ -9,26 +10,75 @@ export default function DashboardPage() {
   const [stats, setStats] = useState({
     totalUsers: { value: '0', change: '0%', isPositive: true },
     activeSubs: { value: '0', change: '0%', isPositive: true },
-    cvsAnalyzed: { value: '45,678', change: '+12.5%', isPositive: true },
-    interviews: { value: '1,245', change: '+8.4%', isPositive: true },
+    totalPayments: { value: '0', change: '0%', isPositive: true },
+    pendingPayments: { value: '0', change: '0%', isPositive: true },
   });
+  const [revenueSeries, setRevenueSeries] = useState([]);
+  const [planSeries, setPlanSeries] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
     async function loadStats() {
       try {
-        const [users, subs] = await Promise.all([
+        const [users, subs, payments] = await Promise.all([
           getAdminUsers(),
-          getAdminSubscriptions()
+          getAdminSubscriptions(),
+          getAdminPayments()
         ]);
 
         const activeSubsCount = subs.filter(s => s.status === 'ACTIVE' || s.status === 'PENDING').length;
+        const paymentItems = Array.isArray(payments) ? payments : payments?.items || payments?.content || [];
+        const successStatuses = new Set(['SUCCESS', 'COMPLETED', 'PAID']);
+        const successPayments = paymentItems.filter((p) => successStatuses.has(String(p.status).toUpperCase()));
+        const pendingPaymentsCount = paymentItems.filter((p) => String(p.status).toUpperCase() === 'PENDING').length;
+
+        const now = new Date();
+        const months = Array.from({ length: 7 }, (_, index) => {
+          const date = new Date(now.getFullYear(), now.getMonth() - (6 - index), 1);
+          return {
+            key: `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}`,
+            label: `Tháng ${date.getMonth() + 1}`,
+            revenue: 0,
+          };
+        });
+
+        const monthMap = new Map(months.map((item) => [item.key, item]));
+        const getAmount = (payment) => {
+          const raw = payment?.amount ?? payment?.totalAmount ?? payment?.price ?? payment?.paidAmount ?? 0;
+          const value = Number(raw);
+          return Number.isFinite(value) ? value : 0;
+        };
+
+        successPayments.forEach((payment) => {
+          const createdAt = payment?.createdAt || payment?.paidAt || payment?.updatedAt;
+          const date = createdAt ? new Date(createdAt) : null;
+          if (!date || Number.isNaN(date.getTime())) return;
+          const key = `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}`;
+          const bucket = monthMap.get(key);
+          if (bucket) {
+            bucket.revenue += getAmount(payment);
+          }
+        });
+
+        const planCounts = new Map();
+        successPayments.forEach((payment) => {
+          const label = payment?.planName || payment?.subscriptionName || payment?.packageName || payment?.productName || payment?.plan?.name || 'Khác';
+          planCounts.set(label, (planCounts.get(label) ?? 0) + 1);
+        });
+        const planSeriesData = Array.from(planCounts.entries())
+          .map(([name, count]) => ({ name, count }))
+          .sort((a, b) => b.count - a.count)
+          .slice(0, 6);
 
         setStats(prev => ({
           ...prev,
           totalUsers: { value: users.length.toLocaleString(), change: '+5.2%', isPositive: true },
           activeSubs: { value: activeSubsCount.toLocaleString(), change: '+3.1%', isPositive: true },
+          totalPayments: { value: paymentItems.length.toLocaleString(), change: '+2.4%', isPositive: true },
+          pendingPayments: { value: pendingPaymentsCount.toLocaleString(), change: '-1.1%', isPositive: false },
         }));
+        setRevenueSeries(months);
+        setPlanSeries(planSeriesData);
       } catch (error) {
         console.error('Failed to load dashboard stats:', error);
       } finally {
@@ -56,19 +106,19 @@ export default function DashboardPage() {
       color: 'blue'
     },
     { 
-      name: 'CV đã phân tích', 
-      value: stats.cvsAnalyzed.value, 
-      change: stats.cvsAnalyzed.change, 
-      isPositive: stats.cvsAnalyzed.isPositive,
-      icon: Activity,
+      name: 'Tổng giao dịch', 
+      value: stats.totalPayments.value, 
+      change: stats.totalPayments.change, 
+      isPositive: stats.totalPayments.isPositive,
+      icon: CreditCard,
       color: 'amber'
     },
     { 
-      name: 'Phỏng vấn Mock', 
-      value: stats.interviews.value, 
-      change: stats.interviews.change, 
-      isPositive: stats.interviews.isPositive,
-      icon: TrendingUp,
+      name: 'Giao dịch chờ', 
+      value: stats.pendingPayments.value, 
+      change: stats.pendingPayments.change, 
+      isPositive: stats.pendingPayments.isPositive,
+      icon: Clock3,
       color: 'rose'
     },
   ];
@@ -132,7 +182,7 @@ export default function DashboardPage() {
           </div>
         )}
       >
-        <DashboardCharts />
+        <DashboardCharts revenueSeries={revenueSeries} planSeries={planSeries} />
       </Suspense>
     </div>
   );
