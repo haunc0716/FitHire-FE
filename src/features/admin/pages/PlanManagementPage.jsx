@@ -1,11 +1,12 @@
 import React, { useEffect, useMemo, useState } from 'react';
-import { Package, Plus, MoreVertical, Check, Edit2, Trash2, X, CreditCard, Layout, Star, ChevronRight } from 'lucide-react';
+import { Package, Plus, Check, Edit2, Trash2, X, CreditCard, Layout, Star } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
   createAdminSubscription,
   deleteAdminSubscription,
   getAdminSubscriptions,
   updateAdminSubscription,
+  getAdminFeatureOptions,
 } from '../services/subscriptionApi';
 import { useToast } from '../../../components/ui/ToastProvider';
 
@@ -23,7 +24,59 @@ const emptyFormState = {
   displayOrder: 0,
   badgeLabel: '',
   highlighted: false,
+  features: [],
 };
+
+const createEmptyFeature = () => ({
+  featureCode: '',
+  featureName: '',
+  displayLimit: '',
+  featureDescription: '',
+  unlimited: false,
+});
+
+function normalizeFeature(feature) {
+  if (!feature) return createEmptyFeature();
+  return {
+    featureCode: feature.featureCode ?? feature.featureKey ?? '',
+    featureName: feature.featureName ?? '',
+    displayLimit: feature.displayLimit ?? '',
+    featureDescription: feature.featureDescription ?? '',
+    unlimited: Boolean(feature.unlimited),
+  };
+}
+
+function toVietnamesePeriod(displayLimit) {
+  if (!displayLimit) {
+    return '';
+  }
+  return displayLimit
+    .replace('/month', '/tháng')
+    .replace('/day', '/ngày')
+    .replace('/year', '/năm')
+    .replace('unlimited', 'không giới hạn');
+}
+
+function buildFeatureParts(feature) {
+  if (!feature?.featureName) return null;
+
+  if (feature.unlimited) {
+    return {
+      featureName: feature.featureName,
+      featureDetail: 'không giới hạn',
+    };
+  }
+
+  const limitText = toVietnamesePeriod(feature.displayLimit);
+  const featureDetail = feature.featureDescription
+    ? `${limitText} · ${feature.featureDescription}`
+    : limitText;
+
+  return {
+    featureName: feature.featureName,
+    featureDetail,
+  };
+}
 
 function formatPrice(value, currency) {
   if (value === null || value === undefined) return '-';
@@ -54,6 +107,7 @@ function normalizeSubscription(subscription) {
     description: subscription.description ?? '',
     badgeLabel: subscription.badgeLabel ?? '',
     highlighted: Boolean(subscription.highlighted),
+    features: Array.isArray(subscription.features) ? subscription.features.map(normalizeFeature) : [],
     raw: subscription,
   };
 }
@@ -66,6 +120,7 @@ export default function PlanManagementPage() {
   const [isSaving, setIsSaving] = useState(false);
   const [editingPlan, setEditingPlan] = useState(null);
   const [formState, setFormState] = useState(emptyFormState);
+  const [featureOptions, setFeatureOptions] = useState([]);
 
   const sortedPlans = useMemo(() => {
     return [...plans].sort((a, b) => {
@@ -75,15 +130,26 @@ export default function PlanManagementPage() {
     });
   }, [plans]);
 
+  const getPlanAccent = (plan) => {
+    if (plan.raw?.code === 'PRO') return 'from-emerald-600 via-teal-700 to-emerald-900';
+    if (plan.raw?.code === 'PLUS') return 'from-emerald-50 via-white to-white';
+    if (plan.raw?.code === 'LUOT_LE') return 'from-amber-50 via-white to-white';
+    return 'from-stone-50 via-white to-white';
+  };
+
   const fetchSubscriptions = async () => {
     setIsLoading(true);
     try {
-      const data = await getAdminSubscriptions();
-      setPlans(Array.isArray(data) ? data.map(normalizeSubscription) : []);
+      const [planData, optionData] = await Promise.all([
+        getAdminSubscriptions(),
+        getAdminFeatureOptions(),
+      ]);
+      setPlans(Array.isArray(planData) ? planData.map(normalizeSubscription) : []);
+      setFeatureOptions(Array.isArray(optionData) ? optionData : []);
     } catch (error) {
       showToast({
         type: 'error',
-        title: 'Không thể tải gói dịch vụ',
+        title: 'Không thể tải dữ liệu gói dịch vụ',
         message: error?.message || 'Vui lòng thử lại sau.'
       });
     } finally {
@@ -118,6 +184,7 @@ export default function PlanManagementPage() {
       displayOrder: raw.displayOrder ?? 0,
       badgeLabel: raw.badgeLabel ?? '',
       highlighted: Boolean(raw.highlighted),
+      features: Array.isArray(raw.features) ? raw.features.map(normalizeFeature) : [],
     });
     setIsModalOpen(true);
   };
@@ -153,6 +220,14 @@ export default function PlanManagementPage() {
         introDurationMonths: formState.introDurationMonths === '' ? null : Number(formState.introDurationMonths),
         durationDays: Number(formState.durationDays),
         displayOrder: Number(formState.displayOrder),
+        features: (formState.features ?? [])
+          .map((feature) => ({
+            featureCode: feature.featureCode || null,
+            displayLimit: feature.displayLimit?.trim(),
+            featureDescription: feature.featureDescription?.trim(),
+            unlimited: Boolean(feature.unlimited),
+          }))
+          .filter((feature) => feature.featureCode),
       };
 
       if (editingPlan?.id) {
@@ -201,80 +276,120 @@ export default function PlanManagementPage() {
       </div>
 
       {/* Grid Layout */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+      <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-6 items-stretch">
         {isLoading ? (
-          [1, 2, 3].map(i => (
-            <div key={i} className="h-[400px] bg-stone-50 rounded-[32px] animate-pulse border border-stone-100" />
+          [1, 2, 3, 4].map((i) => (
+            <div key={i} className="h-[420px] bg-stone-50 rounded-[32px] animate-pulse border border-stone-100" />
           ))
         ) : (
-          sortedPlans.map((plan) => (
-            <motion.div 
-              layout
-              key={plan.id} 
-              className={`bg-white rounded-[32px] border-2 transition-all group relative flex flex-col ${
-                plan.highlighted ? 'border-emerald-500 shadow-xl shadow-emerald-50' : 'border-stone-100 hover:border-stone-200'
-              }`}
-            >
-              {plan.highlighted && (
-                <div className="absolute -top-4 left-1/2 -translate-x-1/2 bg-emerald-500 text-white text-[10px] font-bold uppercase tracking-[0.2em] px-4 py-1.5 rounded-full shadow-lg z-10">
-                  {plan.badgeLabel || 'Đề xuất'}
-                </div>
-              )}
+          sortedPlans.map((plan) => {
+            const accent = getPlanAccent(plan);
+            const isPro = plan.raw?.code === 'PRO';
+            const isCurrentStyle = plan.highlighted || isPro;
 
-              <div className="p-8 flex-1">
-                <div className="flex justify-between items-start mb-8">
-                  <div className={`w-14 h-14 rounded-2xl flex items-center justify-center ${
-                    plan.highlighted ? 'bg-emerald-500 text-white shadow-lg shadow-emerald-100' : 'bg-stone-50 text-stone-400'
-                  }`}>
-                    <Package className="w-7 h-7" />
+            return (
+              <motion.div
+                layout
+                key={plan.id}
+                className={`relative flex h-full flex-col overflow-hidden rounded-[32px] border transition-all duration-500 group ${
+                  isCurrentStyle ? 'border-emerald-500 shadow-xl shadow-emerald-50' : 'border-stone-100 hover:border-stone-200'
+                }`}
+              >
+                <div className={`pointer-events-none absolute inset-0 bg-gradient-to-br ${accent}`} />
+                {plan.highlighted && (
+                  <div className="absolute left-1/2 top-4 z-10 -translate-x-1/2 rounded-full bg-emerald-600 px-4 py-1.5 text-[10px] font-bold uppercase tracking-[0.2em] text-white shadow-lg">
+                    {plan.badgeLabel || 'Phổ biến'}
                   </div>
-                  <div className="flex items-center gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
-                    <button
-                      onClick={() => openEditModal(plan)}
-                      className="p-2 text-stone-400 hover:text-emerald-600 hover:bg-emerald-50 rounded-xl transition-all"
-                    >
-                      <Edit2 className="w-5 h-5" />
-                    </button>
-                    <button
-                      onClick={() => handleDelete(plan)}
-                      className="p-2 text-stone-400 hover:text-red-600 hover:bg-red-50 rounded-xl transition-all"
-                    >
-                      <Trash2 className="w-5 h-5" />
-                    </button>
-                  </div>
-                </div>
+                )}
 
-                <div className="mb-8">
-                  <h3 className="text-2xl font-bold text-stone-900 tracking-tight">{plan.name}</h3>
-                  <div className="flex items-baseline gap-1 mt-3">
-                    <span className="text-4xl font-black text-stone-900 tracking-tighter">{plan.price}</span>
-                    <span className="text-stone-400 font-bold text-sm">/{plan.interval}</span>
+                <div className="relative z-10 flex flex-1 flex-col p-8">
+                  <div className="mb-8 flex items-start justify-between gap-4">
+                    <div className={`flex h-14 w-14 items-center justify-center rounded-2xl ${
+                      isCurrentStyle ? 'bg-emerald-500 text-white shadow-lg shadow-emerald-100' : 'bg-stone-50 text-stone-400'
+                    }`}>
+                      <Package className="w-7 h-7" />
+                    </div>
+                    <div className="flex items-center gap-2 opacity-0 transition-opacity group-hover:opacity-100">
+                      <button
+                        onClick={() => openEditModal(plan)}
+                        className="rounded-xl p-2 text-stone-400 transition-all hover:bg-emerald-50 hover:text-emerald-600"
+                      >
+                        <Edit2 className="w-5 h-5" />
+                      </button>
+                      <button
+                        onClick={() => handleDelete(plan)}
+                        className="rounded-xl p-2 text-stone-400 transition-all hover:bg-red-50 hover:text-red-600"
+                      >
+                        <Trash2 className="w-5 h-5" />
+                      </button>
+                    </div>
                   </div>
-                </div>
 
-                <div className="space-y-4 pt-6 border-t border-stone-50">
-                   <p className="text-[10px] font-bold text-stone-400 uppercase tracking-widest">Quyền lợi gói</p>
-                   <div className="flex items-start gap-3">
-                      <div className="w-5 h-5 rounded-full bg-emerald-50 text-emerald-600 flex items-center justify-center shrink-0 mt-0.5">
-                        <Check className="w-3.5 h-3.5" strokeWidth={3} />
+                  <div className="mb-6">
+                    <h3 className={`text-2xl font-bold tracking-tight ${isPro ? 'text-white' : 'text-stone-900'}`}>{plan.name}</h3>
+                    <p className={`mt-2 text-sm leading-relaxed ${isPro ? 'text-emerald-100/80' : 'text-stone-500'}`}>
+                      {plan.description || 'Gói dịch vụ cao cấp tối ưu trải nghiệm.'}
+                    </p>
+                  </div>
+
+                  <div className="mb-1 flex items-baseline gap-1">
+                    <span className={`text-4xl font-black leading-none tracking-tighter ${isPro ? 'text-white' : 'text-stone-900'}`}>
+                      {plan.price}
+                    </span>
+                    <span className={`text-sm font-bold ${isPro ? 'text-emerald-200/80' : 'text-stone-400'}`}>/{plan.interval}</span>
+                  </div>
+
+                  <div className="mt-5 border-t border-white/30 pt-5">
+                    <p className={`text-[10px] font-bold uppercase tracking-widest ${isPro ? 'text-emerald-100/80' : 'text-stone-400'}`}>
+                      Quyền lợi gói
+                    </p>
+                    {plan.features?.length ? (
+                      <ul className="mt-4 space-y-3 flex-grow mb-1">
+                        {plan.features.map((feature, idx) => {
+                          const parts = buildFeatureParts(feature);
+                          if (!parts) return null;
+                          return (
+                            <li
+                              key={`${plan.code ?? plan.id}-feat-${idx}`}
+                              className={`flex items-start gap-2.5 text-[13px] leading-snug ${isPro ? 'text-emerald-100' : 'text-stone-700'}`}
+                            >
+                              <span className="mt-0.5 inline-flex h-[18px] w-[18px] shrink-0 items-center justify-center rounded-full bg-emerald-50">
+                                <Check className="h-3 w-3 text-emerald-600" strokeWidth={3} />
+                              </span>
+                              <span>
+                                <strong className="font-semibold">{parts.featureName}</strong>
+                                {parts.featureDetail && <span className="font-normal">: {parts.featureDetail}</span>}
+                              </span>
+                            </li>
+                          );
+                        })}
+                      </ul>
+                    ) : (
+                      <div className="mt-4 flex items-start gap-3">
+                        <div className="mt-0.5 flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-emerald-50 text-emerald-600">
+                          <Check className="w-3.5 h-3.5" strokeWidth={3} />
+                        </div>
+                        <p className={`text-sm leading-relaxed font-medium ${isPro ? 'text-emerald-50' : 'text-stone-600'}`}>
+                          {plan.description || 'Gói dịch vụ cao cấp tối ưu trải nghiệm.'}
+                        </p>
                       </div>
-                      <p className="text-sm text-stone-600 leading-relaxed font-medium">
-                        {plan.description || 'Gói dịch vụ cao cấp tối ưu trải nghiệm.'}
-                      </p>
-                   </div>
-                </div>
-              </div>
+                    )}
+                  </div>
 
-              <div className="px-8 py-6 bg-stone-50/50 rounded-b-[32px] flex justify-between items-center border-t border-stone-50">
-                <span className={`text-[10px] font-bold px-2.5 py-1 rounded-lg uppercase tracking-wider ${
-                  plan.status === 'ACTIVE' ? 'bg-emerald-100 text-emerald-700' : 'bg-stone-200 text-stone-600'
-                }`}>
-                  {plan.status}
-                </span>
-                <span className="text-[10px] font-bold text-stone-400">Order: {plan.raw?.displayOrder ?? 0}</span>
-              </div>
-            </motion.div>
-          ))
+                  <div className="mt-auto flex items-center justify-between pt-8">
+                    <span className={`rounded-lg px-2.5 py-1 text-[10px] font-bold uppercase tracking-wider ${
+                      plan.status === 'ACTIVE' ? 'bg-emerald-100 text-emerald-700' : 'bg-stone-200 text-stone-600'
+                    }`}>
+                      {plan.status}
+                    </span>
+                    <span className={`text-[10px] font-bold ${isPro ? 'text-emerald-100/80' : 'text-stone-400'}`}>
+                      Order: {plan.raw?.displayOrder ?? 0}
+                    </span>
+                  </div>
+                </div>
+              </motion.div>
+            );
+          })
         )}
       </div>
 
@@ -453,6 +568,106 @@ export default function PlanManagementPage() {
                         className="h-6 w-6 rounded-lg border-stone-200 text-emerald-500 focus:ring-emerald-500/20 transition-all"
                       />
                       <span className="text-sm font-bold text-stone-700">Làm nổi bật gói này</span>
+                    </div>
+                  </div>
+
+                  {/* Section: Tính năng */}
+                  <div className="md:col-span-3 border-t border-stone-50 pt-8">
+                    <div className="mb-4 flex items-center justify-between gap-4">
+                      <div>
+                        <label className="text-[11px] font-bold text-stone-400 uppercase tracking-widest ml-1 mb-3 block">Tính năng hiển thị cho user</label>
+                        <p className="text-xs text-stone-400 font-medium ml-1">Nội dung ở đây sẽ hiện y chang trên trang bảng giá của user.</p>
+                      </div>
+                      <button
+                        type="button"
+                        onClick={() => setFormState((prev) => ({ ...prev, features: [...(prev.features ?? []), createEmptyFeature()] }))}
+                        className="rounded-xl bg-emerald-50 px-4 py-2 text-xs font-bold text-emerald-700 transition-colors hover:bg-emerald-100"
+                      >
+                        Thêm tính năng
+                      </button>
+                    </div>
+                    <div className="space-y-4">
+                      {(formState.features ?? []).map((feature, index) => (
+                        <div key={`feature-${index}`} className="rounded-[24px] border border-stone-100 bg-stone-50/70 p-4">
+                          <div className="grid grid-cols-1 gap-4 md:grid-cols-4">
+                            <div className="md:col-span-2">
+                              <label className="mb-2 block text-[11px] font-bold uppercase tracking-widest text-stone-400">Mã tính năng (Feature Code)</label>
+                              <select
+                                value={feature.featureCode}
+                                onChange={(e) => setFormState((prev) => {
+                                  const next = [...(prev.features ?? [])];
+                                  const selected = featureOptions.find((item) => item.code === e.target.value);
+                                  next[index] = {
+                                    ...next[index],
+                                    featureCode: e.target.value,
+                                    featureName: selected?.name ?? next[index].featureName,
+                                    featureDescription: next[index].featureDescription || selected?.description || '',
+                                  };
+                                  return { ...prev, features: next };
+                                })}
+                                className="w-full rounded-2xl border-2 border-transparent bg-white px-5 py-3.5 font-medium text-stone-900 outline-none transition-all focus:border-emerald-500"
+                              >
+                                <option value="">Chọn feature code</option>
+                                {featureOptions.map((option) => (
+                                  <option key={option.code} value={option.code}>
+                                    {option.code} - {option.name}
+                                  </option>
+                                ))}
+                              </select>
+                            </div>
+                            <div>
+                              <label className="mb-2 block text-[11px] font-bold uppercase tracking-widest text-stone-400">Giới hạn hiển thị</label>
+                              <input
+                                value={feature.displayLimit}
+                                onChange={(e) => setFormState((prev) => {
+                                  const next = [...(prev.features ?? [])];
+                                  next[index] = { ...next[index], displayLimit: e.target.value };
+                                  return { ...prev, features: next };
+                                })}
+                                className="w-full rounded-2xl border-2 border-transparent bg-white px-5 py-3.5 font-medium text-stone-900 outline-none transition-all focus:border-emerald-500"
+                                placeholder="VD: 3/tháng"
+                              />
+                            </div>
+                            <div className="flex items-end">
+                              <label className="flex w-full items-center gap-3 rounded-2xl bg-white px-4 py-3.5 text-sm font-bold text-stone-700">
+                                <input
+                                  type="checkbox"
+                                  checked={feature.unlimited}
+                                  onChange={(e) => setFormState((prev) => {
+                                    const next = [...(prev.features ?? [])];
+                                    next[index] = { ...next[index], unlimited: e.target.checked };
+                                    return { ...prev, features: next };
+                                  })}
+                                  className="h-5 w-5 rounded border-stone-200 text-emerald-500 focus:ring-emerald-500/20"
+                                />
+                                Không giới hạn
+                              </label>
+                            </div>
+                            <div className="md:col-span-4 flex items-center gap-3">
+                              <input
+                                value={feature.featureDescription}
+                                onChange={(e) => setFormState((prev) => {
+                                  const next = [...(prev.features ?? [])];
+                                  next[index] = { ...next[index], featureDescription: e.target.value };
+                                  return { ...prev, features: next };
+                                })}
+                                className="w-full rounded-2xl border-2 border-transparent bg-white px-5 py-3.5 font-medium text-stone-900 outline-none transition-all focus:border-emerald-500"
+                                placeholder="VD: Đánh giá CV và gợi ý cải thiện"
+                              />
+                              <button
+                                type="button"
+                                onClick={() => setFormState((prev) => ({
+                                  ...prev,
+                                  features: (prev.features ?? []).filter((_, i) => i !== index),
+                                }))}
+                                className="rounded-xl bg-red-50 px-4 py-3 text-xs font-bold text-red-600 transition-colors hover:bg-red-100"
+                              >
+                                Xóa
+                              </button>
+                            </div>
+                          </div>
+                        </div>
+                      ))}
                     </div>
                   </div>
 

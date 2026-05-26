@@ -88,3 +88,7 @@ export async function deleteAdminSubscription(id) {
   });
   return true;
 }
+
+export async function getAdminFeatureOptions() {
+  return requestJson('/api/admin/subscriptions/feature-options');
+}

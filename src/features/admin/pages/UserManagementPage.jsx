@@ -4,14 +4,45 @@ import { getAdminUserById, getAdminUsers, updateAdminUserStatus } from '../servi
 import { useToast } from '../../../components/ui/ToastProvider';
 
 const STATUS_OPTIONS = [
-  { id: 'ACTIVE', label: 'ACTIVE' },
-  { id: 'INACTIVE', label: 'INACTIVE' },
-  { id: 'SUSPENDED', label: 'SUSPENDED' },
-  { id: 'LOCKED', label: 'LOCKED' },
+  { id: 'ACTIVE', label: 'Hoạt động' },
+  { id: 'INACTIVE', label: 'Không hoạt động' },
+  { id: 'SUSPENDED', label: 'Tạm khóa' },
+  { id: 'LOCKED', label: 'Khóa' },
 ];
+
+const ROLE_LABELS = {
+  ADMIN: 'Quản trị viên',
+  USER: 'Người dùng',
+};
+
+const STATUS_LABELS = {
+  ACTIVE: 'Hoạt động',
+  INACTIVE: 'Không hoạt động',
+  SUSPENDED: 'Tạm khóa',
+  LOCKED: 'Khóa',
+};
 
 function getAvatarInitial(name) {
   return (name || 'U').trim().charAt(0).toUpperCase();
+}
+
+function resolveJoinDate(user) {
+  return (
+    user?.createdAt ||
+    user?.createdDate ||
+    user?.createdOn ||
+    user?.joinedAt ||
+    user?.registeredAt ||
+    user?.registeredDate ||
+    null
+  );
+}
+
+function formatDateTime(value) {
+  if (!value) return 'N/A';
+  const date = new Date(value);
+  if (Number.isNaN(date.getTime())) return 'N/A';
+  return date.toLocaleString('vi-VN');
 }
 
 export default function UserManagementPage() {
@@ -165,7 +196,7 @@ export default function UserManagementPage() {
                       }`}>
                         {user.role === 'ADMIN' && <Shield className="w-3 h-3" />}
                         {user.role === 'USER' && <User className="w-3 h-3" />}
-                        {user.role || 'N/A'}
+                        {ROLE_LABELS[user.role] || 'Không rõ'}
                       </span>
                     </td>
                     <td className="px-6 py-4">
@@ -173,11 +204,11 @@ export default function UserManagementPage() {
                         user.status === 'ACTIVE' || !user.status ? 'bg-emerald-50 text-emerald-700 border-emerald-200' : 'bg-rose-50 text-rose-700 border-rose-200'
                       }`}>
                         {(user.status === 'ACTIVE' || !user.status) ? <CheckCircle2 className="w-3 h-3" /> : <XCircle className="w-3 h-3" />}
-                        {user.status || 'ACTIVE'}
+                        {STATUS_LABELS[user.status || 'ACTIVE'] || 'Không rõ'}
                       </span>
                     </td>
                     <td className="px-6 py-4 text-stone-500">
-                      {user.createdAt ? new Date(user.createdAt).toLocaleDateString() : 'N/A'}
+                      {formatDateTime(resolveJoinDate(user))}
                     </td>
                     <td className="px-6 py-4 text-right">
                       <button onClick={() => openUserDetail(user)} className="inline-flex items-center gap-2 px-3 py-2 text-stone-700 border border-stone-200 rounded-xl hover:bg-stone-50 transition-colors">
@@ -210,7 +241,7 @@ export default function UserManagementPage() {
       {selectedUser && (
         <div className="fixed inset-0 z-[70] flex items-center justify-center p-4">
           <button className="absolute inset-0 bg-stone-900/60" onClick={() => setSelectedUser(null)} />
-          <div className="relative z-10 w-full max-w-2xl rounded-3xl bg-white p-6 shadow-2xl">
+          <div className="relative z-10 w-full max-w-3xl rounded-3xl bg-white p-6 shadow-2xl">
             <div className="flex items-start justify-between gap-4 border-b border-stone-100 pb-4">
               <div>
                 <h3 className="text-xl font-bold text-stone-900">Chi tiết người dùng</h3>
@@ -219,14 +250,33 @@ export default function UserManagementPage() {
               <button onClick={() => setSelectedUser(null)} className="text-stone-400 hover:text-stone-900">&times;</button>
             </div>
 
-            <div className="grid gap-6 md:grid-cols-[160px_1fr] mt-6">
+            <div className="grid gap-6 md:grid-cols-[220px_1fr] mt-6">
               <div className="flex flex-col items-center gap-3">
                 <div className="w-28 h-28 rounded-full bg-emerald-50 border border-emerald-100 overflow-hidden flex items-center justify-center text-2xl font-bold text-emerald-700">
                   {selectedUser.avatarUrl ? <img src={selectedUser.avatarUrl} alt={selectedUser.fullName} className="w-full h-full object-cover" /> : getAvatarInitial(selectedUser.fullName)}
                 </div>
                 <div className="text-center">
                   <div className="font-bold text-stone-900">{selectedUser.fullName || 'N/A'}</div>
-                  <div className="text-sm text-stone-500">{selectedUser.email}</div>
+                  <div className="text-sm text-stone-500 break-all">{selectedUser.email}</div>
+                </div>
+                <div className="flex flex-wrap justify-center gap-2">
+                  <span className={`inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-[10px] font-bold uppercase tracking-wider border ${
+                    selectedUser.role === 'ADMIN' ? 'bg-purple-50 text-purple-700 border-purple-200' :
+                    selectedUser.role === 'USER' ? 'bg-emerald-50 text-emerald-700 border-emerald-200' :
+                    'bg-stone-100 text-stone-700 border-stone-200'
+                  }`}>
+                    {selectedUser.role === 'ADMIN' && <Shield className="w-3 h-3" />}
+                    {selectedUser.role === 'USER' && <User className="w-3 h-3" />}
+                    {ROLE_LABELS[selectedUser.role] || 'Không rõ'}
+                  </span>
+                  <span className={`inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-[10px] font-bold uppercase tracking-wider border ${
+                    selectedUser.status === 'ACTIVE' || !selectedUser.status
+                      ? 'bg-emerald-50 text-emerald-700 border-emerald-200'
+                      : 'bg-rose-50 text-rose-700 border-rose-200'
+                  }`}>
+                    {(selectedUser.status === 'ACTIVE' || !selectedUser.status) ? <CheckCircle2 className="w-3 h-3" /> : <XCircle className="w-3 h-3" />}
+                    {STATUS_LABELS[selectedUser.status || 'ACTIVE'] || 'Không rõ'}
+                  </span>
                 </div>
               </div>
 
@@ -240,20 +290,20 @@ export default function UserManagementPage() {
                   <>
                     <div className="grid grid-cols-2 gap-4 text-sm">
                       <div className="rounded-2xl bg-stone-50 p-4">
-                        <div className="text-stone-400">Vai trò</div>
-                        <div className="font-semibold text-stone-900">{selectedUser.role || 'N/A'}</div>
-                      </div>
-                      <div className="rounded-2xl bg-stone-50 p-4">
-                        <div className="text-stone-400">Trạng thái</div>
-                        <div className="font-semibold text-stone-900">{selectedUser.status || 'ACTIVE'}</div>
-                      </div>
-                      <div className="rounded-2xl bg-stone-50 p-4">
-                        <div className="text-stone-400">Ngày tạo</div>
-                        <div className="font-semibold text-stone-900">{selectedUser.createdAt ? new Date(selectedUser.createdAt).toLocaleString() : 'N/A'}</div>
+                        <div className="text-stone-400">Ngày tham gia</div>
+                        <div className="font-semibold text-stone-900">{formatDateTime(resolveJoinDate(selectedUser))}</div>
                       </div>
                       <div className="rounded-2xl bg-stone-50 p-4">
                         <div className="text-stone-400">Đăng nhập gần nhất</div>
-                        <div className="font-semibold text-stone-900">{selectedUser.lastLoginAt ? new Date(selectedUser.lastLoginAt).toLocaleString() : 'N/A'}</div>
+                        <div className="font-semibold text-stone-900">{formatDateTime(selectedUser.lastLoginAt)}</div>
+                      </div>
+                      <div className="rounded-2xl bg-stone-50 p-4">
+                        <div className="text-stone-400">Email</div>
+                        <div className="font-semibold text-stone-900 break-all">{selectedUser.email || 'N/A'}</div>
+                      </div>
+                      <div className="rounded-2xl bg-stone-50 p-4">
+                        <div className="text-stone-400">Mã người dùng</div>
+                        <div className="font-semibold text-stone-900">{selectedUser.id || 'N/A'}</div>
                       </div>
                     </div>
 

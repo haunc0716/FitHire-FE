@@ -34,6 +34,8 @@ export default function ReportsPage() {
   const [subscriptions, setSubscriptions] = useState([]);
   const [payments, setPayments] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
+  const [currentPage, setCurrentPage] = useState(1);
+  const pageSize = 5;
 
   useEffect(() => {
     let isMounted = true;
@@ -77,8 +79,18 @@ export default function ReportsPage() {
   const latestPayments = useMemo(() => (
     [...payments]
       .sort((a, b) => new Date(b.createdAt || b.paidAt || 0).getTime() - new Date(a.createdAt || a.paidAt || 0).getTime())
-      .slice(0, 6)
+      .slice(0, 50)
   ), [payments]);
+
+  const totalPages = Math.max(1, Math.ceil(latestPayments.length / pageSize));
+  const paginatedPayments = useMemo(() => {
+    const start = (currentPage - 1) * pageSize;
+    return latestPayments.slice(start, start + pageSize);
+  }, [currentPage, latestPayments]);
+
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [latestPayments.length]);
 
   return (
     <div className="space-y-6">
@@ -143,7 +155,7 @@ export default function ReportsPage() {
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-gray-100">
-                    {latestPayments.map((payment) => (
+                    {paginatedPayments.map((payment) => (
                       <tr key={payment.id} className="hover:bg-gray-50">
                         <td className="px-6 py-4 font-semibold text-gray-900">{payment.id}</td>
                         <td className="px-6 py-4 text-gray-600">{extractPlanLabel(payment)}</td>
@@ -154,6 +166,30 @@ export default function ReportsPage() {
                     ))}
                   </tbody>
                 </table>
+              </div>
+            )}
+
+            {latestPayments.length > pageSize && (
+              <div className="flex items-center justify-between gap-4 border-t border-gray-100 px-6 py-4">
+                <p className="text-xs font-medium text-gray-500">
+                  Trang {currentPage}/{totalPages} · Hiển thị {paginatedPayments.length} / {latestPayments.length} giao dịch
+                </p>
+                <div className="flex gap-2">
+                  <button
+                    onClick={() => setCurrentPage((prev) => Math.max(1, prev - 1))}
+                    disabled={currentPage <= 1}
+                    className="px-4 py-1.5 bg-white border border-gray-200 rounded-lg hover:bg-gray-50 disabled:opacity-50 transition-colors text-xs font-semibold"
+                  >
+                    Trước
+                  </button>
+                  <button
+                    onClick={() => setCurrentPage((prev) => Math.min(totalPages, prev + 1))}
+                    disabled={currentPage >= totalPages}
+                    className="px-4 py-1.5 bg-white border border-gray-200 rounded-lg hover:bg-gray-50 disabled:opacity-50 transition-colors text-xs font-semibold"
+                  >
+                    Sau
+                  </button>
+                </div>
               </div>
             )}
           </div>
