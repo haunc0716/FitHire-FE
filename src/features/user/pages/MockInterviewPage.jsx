@@ -21,7 +21,7 @@ import {
   speakMockInterviewText,
   startMockInterviewSession,
   submitMockInterviewAnswer,
-  submitMockInterviewVoiceAnswer,
+  transcribeMockInterviewVoice,
 } from "../services/userApi";
 
 export default function MockInterviewPage() {
@@ -54,6 +54,7 @@ export default function MockInterviewPage() {
   const [currentQuestion, setCurrentQuestion] = useState(null);
   const [answeredCount, setAnsweredCount] = useState(0);
   const [targetQuestionCount, setTargetQuestionCount] = useState(0);
+  const [pendingVoiceMeta, setPendingVoiceMeta] = useState(null);
 
   const videoRef = useRef(null);
   const transcriptEndRef = useRef(null);
@@ -163,6 +164,7 @@ export default function MockInterviewPage() {
     setCurrentQuestion(null);
     setAnsweredCount(0);
     setTargetQuestionCount(0);
+    setPendingVoiceMeta(null);
     sessionStartedAtRef.current = null;
   };
 
@@ -244,6 +246,34 @@ export default function MockInterviewPage() {
       }
     });
     return messages;
+  };
+
+  const getVoiceApiErrorMessage = (error) => {
+    const code = error?.code;
+
+    if (code === "STT_TIMEOUT") {
+      return "Dich vu STT dang phan hoi cham. Vui long thu lai sau it phut.";
+    }
+    if (code === "STT_UNSUPPORTED_FORMAT") {
+      return "Dinh dang file audio chua duoc ho tro.";
+    }
+    if (code === "STT_AUDIO_TOO_SHORT") {
+      return "Audio qua ngan, vui long ghi am lau hon.";
+    }
+    if (code === "STT_AUDIO_TOO_LARGE") {
+      return "Audio qua dai hoac dung luong qua lon.";
+    }
+    if (code === "STT_EMPTY_TRANSCRIPT") {
+      return "Khong nhan dien duoc noi dung giong noi.";
+    }
+    if (code === "STT_REQUEST_INVALID") {
+      return "File audio chua hop le hoac khong duoc ho tro.";
+    }
+    if (code === "STT_PROVIDER_ERROR") {
+      return "Khong the xu ly giong noi hien tai.";
+    }
+
+    return error?.message || "Gui cau tra loi voice that bai. Vui long thu lai.";
   };
 
   const mapHistoryDetail = (detail, fallbackItem) => {
@@ -430,6 +460,7 @@ export default function MockInterviewPage() {
     }
 
     setVoiceError("");
+    setPendingVoiceMeta(null);
 
     try {
       const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
@@ -454,9 +485,18 @@ export default function MockInterviewPage() {
       setIsRecording(true);
     } catch (error) {
       console.error(error);
-      setVoiceError(
-        "Không mở được microphone. Vui lòng kiểm tra quyền truy cập mic."
-      );
+
+      if (error?.name === "NotFoundError") {
+        setVoiceError("Không tìm thấy thiết bị microphone. Vui lòng kiểm tra lại mic của máy.");
+        return;
+      }
+
+      if (error?.name === "NotAllowedError") {
+        setVoiceError("Bạn đã chặn quyền microphone. Hãy cấp quyền mic cho trình duyệt rồi thử lại.");
+        return;
+      }
+
+      setVoiceError("Không mở được microphone. Vui lòng kiểm tra quyền truy cập mic.");
     }
   };
 
@@ -505,19 +545,28 @@ export default function MockInterviewPage() {
         }
       );
 
-      const response = await submitMockInterviewVoiceAnswer(activeSessionId, {
-        questionId: currentQuestion.questionId,
+      const response = await transcribeMockInterviewVoice({
         file,
+        sessionId: activeSessionId,
+        questionId: currentQuestion.questionId,
         audioDurationMs,
       });
 
-      applyAnswerResponse(response, "");
-      setUserInput("");
+      const transcriptText = response?.transcript?.trim?.() ?? "";
+      if (!transcriptText) {
+        setVoiceError("Khong nhan dien duoc noi dung giong noi.");
+        return;
+      }
+
+      setUserInput(transcriptText);
+      setPendingVoiceMeta({
+        audioDurationMs,
+        transcriptConfidence: response?.confidence ?? null,
+      });
     } catch (error) {
       console.error(error);
-      setVoiceError(
-        error.message || "Gửi câu trả lời voice thất bại. Vui lòng thử lại."
-      );
+      setPendingVoiceMeta(null);
+      setVoiceError(getVoiceApiErrorMessage(error));
     } finally {
       setIsTranscribing(false);
     }
@@ -568,6 +617,7 @@ export default function MockInterviewPage() {
       setTargetQuestionCount(response?.targetQuestionCount ?? 0);
       setTranscript([{ role: "AI", text: firstQuestionText }]);
       setUserInput("");
+      setPendingVoiceMeta(null);
       setIsInterviewing(true);
       lastSpokenAiTextRef.current = "";
       sessionStartedAtRef.current = Date.now();
@@ -585,8 +635,7 @@ export default function MockInterviewPage() {
       }
     } catch (error) {
       console.error(error);
-      setVoiceError(error.message || "Không thể bắt đầu phiên phỏng vấn.");
-      resetSessionState();
+      setVoiceError(getVoiceApiErrorMessage(error));
     } finally {
       setIsStartingInterview(false);
     }
@@ -658,18 +707,23 @@ export default function MockInterviewPage() {
     setUserInput("");
 
     try {
+      const isVoiceTranscript = Boolean(pendingVoiceMeta);
       const response = await submitMockInterviewAnswer(activeSessionId, {
         questionId: currentQuestion.questionId,
         answerText,
-        inputType: "TEXT",
+        inputType: isVoiceTranscript ? "VOICE_TRANSCRIPT" : "TEXT",
+        ...(isVoiceTranscript
+          ? {
+              audioDurationMs: pendingVoiceMeta.audioDurationMs,
+              transcriptConfidence: pendingVoiceMeta.transcriptConfidence,
+            }
+          : {}),
       });
       applyAnswerResponse(response, answerText);
+      setPendingVoiceMeta(null);
     } catch (error) {
       console.error(error);
-      setVoiceError(
-        error.message || "Gửi câu trả lời thất bại. Vui lòng thử lại."
-      );
-      setUserInput(answerText);
+      setVoiceError(getVoiceApiErrorMessage(error));
     } finally {
       setIsSubmittingAnswer(false);
     }
@@ -719,6 +773,7 @@ export default function MockInterviewPage() {
     setVoiceError("");
     setHistoryError("");
     setUserInput("");
+    setPendingVoiceMeta(null);
     setSelectedHistory(null);
     resetSessionState();
     setActiveTab("config");

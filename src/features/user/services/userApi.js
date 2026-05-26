@@ -36,6 +36,14 @@ async function parseJsonSafely(response) {
   }
 }
 
+function buildRequestError(response, payload) {
+  const message = payload?.message?.trim?.() || `Yêu cầu thất bại (HTTP ${response.status}).`;
+  const error = new Error(message);
+  error.status = response.status;
+  error.code = payload?.errorCode?.trim?.() || payload?.code?.trim?.() || '';
+  return error;
+}
+
 async function requestJson(path, options = {}) {
   let response;
 
@@ -50,8 +58,7 @@ async function requestJson(path, options = {}) {
 
   const payload = await parseJsonSafely(response);
   if (!response.ok) {
-    const message = payload?.message?.trim?.() || `Yêu cầu thất bại (HTTP ${response.status}).`;
-    throw new Error(message);
+    throw buildRequestError(response, payload);
   }
 
   return payload;
@@ -71,8 +78,7 @@ async function requestBlob(path, options = {}) {
 
   if (!response.ok) {
     const payload = await parseJsonSafely(response);
-    const message = payload?.message?.trim?.() || `Yêu cầu thất bại (HTTP ${response.status}).`;
-    throw new Error(message);
+    throw buildRequestError(response, payload);
   }
 
   return response.blob();
@@ -154,31 +160,35 @@ export function submitMockInterviewAnswer(sessionId, payload) {
   });
 }
 
-export function submitMockInterviewVoiceAnswer(sessionId, { questionId, file, audioDurationMs }) {
+export async function transcribeMockInterviewVoice({ file, sessionId, questionId, audioDurationMs }) {
   const formData = new FormData();
-  formData.append('questionId', questionId);
   formData.append('file', file);
+
+  if (sessionId) {
+    formData.append('sessionId', sessionId);
+  }
+
+  if (questionId) {
+    formData.append('questionId', questionId);
+  }
 
   if (audioDurationMs != null) {
     formData.append('audioDurationMs', String(audioDurationMs));
   }
 
-  return requestJson(`/api/mock-interview/sessions/${sessionId}/answers/voice`, {
+  const payload = await requestJson('/api/speech/transcribe', {
     method: 'POST',
     headers: buildAuthHeaders({ json: false }),
     body: formData,
   });
-}
 
-export function transcribeMockInterviewVoice(file) {
-  const formData = new FormData();
-  formData.append('file', file);
+  if (payload?.success === false) {
+    const error = new Error(payload?.message || 'Transcription failed.');
+    error.code = payload?.errorCode || '';
+    throw error;
+  }
 
-  return requestJson('/api/mock-interview/voice/transcribe', {
-    method: 'POST',
-    headers: buildAuthHeaders({ json: false }),
-    body: formData,
-  });
+  return payload?.data ?? payload;
 }
 
 export function speakMockInterviewText({ text, voice }) {
