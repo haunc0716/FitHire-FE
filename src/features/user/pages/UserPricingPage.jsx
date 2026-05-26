@@ -5,8 +5,20 @@ import { fetchMySubscriptions } from '../../pricing/services/subscriptionApi';
 
 const PricingCards = React.lazy(() => import('../../pricing/components/PricingCards'));
 
+const TIER_FALLBACK = { FREE: 0, PLUS: 1, PRO: 2 };
+
+function resolveTierLevel(sub) {
+  if (sub?.tierLevel !== null && sub?.tierLevel !== undefined && !Number.isNaN(Number(sub.tierLevel))) {
+    return Number(sub.tierLevel);
+  }
+  const code = sub?.subscriptionCode;
+  if (!code) return null;
+  return Object.prototype.hasOwnProperty.call(TIER_FALLBACK, code) ? TIER_FALLBACK[code] : null;
+}
+
 export default function UserPricingPage() {
   const [subscriptions, setSubscriptions] = useState([]);
+  const [currentSubscription, setCurrentSubscription] = useState(null);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -22,6 +34,10 @@ export default function UserPricingPage() {
             return new Date(item.endDate).getTime() > now;
           });
           setSubscriptions(activeSubs);
+          const fallbackCurrent = [...activeSubs]
+            .filter((item) => resolveTierLevel(item) !== null)
+            .sort((a, b) => (resolveTierLevel(b) ?? -1) - (resolveTierLevel(a) ?? -1))[0] ?? null;
+          setCurrentSubscription(data?.currentSubscription ?? fallbackCurrent);
         }
       })
       .catch((err) => console.error(err))
@@ -109,7 +125,7 @@ export default function UserPricingPage() {
               const bScore = priority[b?.subscriptionCode] ?? 0;
               return bScore - aScore;
             });
-            const primary = sortedSubscriptions[0];
+            const primary = currentSubscription ?? sortedSubscriptions[0];
             const primaryTone = toneMap[primary?.subscriptionCode] ?? toneMap.FREE;
 
             return (

@@ -34,6 +34,17 @@ const navGroups = [
   }
 ];
 
+const TIER_FALLBACK = { FREE: 0, PLUS: 1, PRO: 2 };
+
+function resolveTierLevel(sub) {
+  if (sub?.tierLevel !== null && sub?.tierLevel !== undefined && !Number.isNaN(Number(sub.tierLevel))) {
+    return Number(sub.tierLevel);
+  }
+  const code = sub?.subscriptionCode;
+  if (!code) return null;
+  return Object.prototype.hasOwnProperty.call(TIER_FALLBACK, code) ? TIER_FALLBACK[code] : null;
+}
+
 export default function UserHeader() {
   const navigate = useNavigate();
   const location = useLocation();
@@ -82,14 +93,17 @@ export default function UserHeader() {
         if (subscriptionsResult.status === 'fulfilled') {
           const snapshot = subscriptionsResult.value;
           const now = Date.now();
-          const activeSubscription = (snapshot?.userSubscriptions ?? [])
+
+          const fallbackCurrent = [...(snapshot?.userSubscriptions ?? [])]
             .filter((item) => item?.status === 'ACTIVE')
-            .sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime())
-            .find((item) => {
+            .filter((item) => {
               if (!item?.endDate) return true;
               return new Date(item.endDate).getTime() > now;
-            });
+            })
+            .filter((item) => resolveTierLevel(item) !== null)
+            .sort((a, b) => (resolveTierLevel(b) ?? -1) - (resolveTierLevel(a) ?? -1))[0] ?? null;
 
+          const activeSubscription = snapshot?.currentSubscription ?? fallbackCurrent;
           const currentPlan = activeSubscription?.subscriptionName || activeSubscription?.subscriptionCode;
           setSubscriptionLabel(currentPlan ? String(currentPlan).toUpperCase() : 'FREE');
         }
