@@ -219,7 +219,9 @@ export default function UserHistoryPage() {
                   <ChevronRight className="h-5 w-5" />
                 </div>
               </motion.div>
-            ))}
+            )
+          )
+        )}
 
             {/* Empty State / End of list */}
             {!isLoading && !loadError && filteredItems.length > 0 && (

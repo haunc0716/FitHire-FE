@@ -11,7 +11,8 @@ import {
   FileText,
   FileSearch,
   History,
-  Crown
+  Crown,
+  Target
 } from 'lucide-react';
 import { getAuthSession, clearAuthSession } from '../../auth/services/authSession';
 import { fetchMyProfile, fetchMySubscriptions } from '../services/userApi';
@@ -28,10 +29,18 @@ const navGroups = [
     name: 'Công cụ',
     items: [
       { name: 'Luyện Phỏng vấn', href: '/user/mock-interview', icon: MessageSquareText, desc: 'Mô phỏng phỏng vấn thực tế' },
-      { name: 'Quyền sử dụng', href: '/user/cultural-fit', icon: Crown, desc: 'Theo dõi hạn mức tính năng' }
+      { name: 'Văn hóa doanh nghiệp', href: '/user/cultural-fit', icon: Target, desc: 'Đánh giá văn hóa phù hợp' },
+      { name: 'Quyền sử dụng', href: '/user/entitlements', icon: Crown, desc: 'Theo dõi hạn mức tính năng' }
     ]
   }
 ];
+
+const CULTURE_BADGES = {
+  CLAN: { label: 'Gia đình', color: 'bg-emerald-100 text-emerald-700 border-emerald-200' },
+  ADHOCRACY: { label: 'Sáng tạo', color: 'bg-amber-100 text-amber-700 border-amber-200' },
+  MARKET: { label: 'Thị trường', color: 'bg-blue-100 text-blue-700 border-blue-200' },
+  HIERARCHY: { label: 'Thứ bậc', color: 'bg-rose-100 text-rose-700 border-rose-200' }
+};
 
 export default function UserHeader() {
   const navigate = useNavigate();
@@ -45,9 +54,19 @@ export default function UserHeader() {
   const [userProfile, setUserProfile] = useState(null);
   const [subscriptionLabel, setSubscriptionLabel] = useState('FREE');
   const [avatarLoadError, setAvatarLoadError] = useState(false);
+  const [culturalFit, setCulturalFit] = useState(localStorage.getItem('fitHire_culturalFit'));
   
   const headerRef = useRef(null);
 
+  useEffect(() => {
+    const handleUpdate = () => {
+      setCulturalFit(localStorage.getItem('fitHire_culturalFit'));
+    };
+    window.addEventListener('culturalFitUpdated', handleUpdate);
+    return () => window.removeEventListener('culturalFitUpdated', handleUpdate);
+  }, []);
+
+  const displayCulture = useMemo(() => userProfile?.primaryCulture || culturalFit, [userProfile, culturalFit]);
   const userLabel = useMemo(() => userProfile?.fullName || session?.user?.fullName || 'Người dùng', [userProfile, session]);
   const rawAvatarUrl = useMemo(() => userProfile?.avatarUrl || session?.user?.avatarUrl, [userProfile, session]);
   const avatarUrl = useMemo(() => {
@@ -241,10 +260,21 @@ export default function UserHeader() {
                   <div className="border-b border-stone-100 px-5 py-3 mb-2">
                     <p className="text-sm font-bold text-stone-900">{userLabel}</p>
                     <p className="text-xs font-medium text-stone-500 mt-0.5">Tài khoản ứng viên</p>
+                    {displayCulture && (
+                      <div className="mt-2.5 flex items-center gap-2">
+                        <span className="text-[10px] font-bold text-stone-400 uppercase tracking-wider">Văn hóa:</span>
+                        <div className={`px-2 py-0.5 rounded text-[10px] font-bold border transition-all ${CULTURE_BADGES[displayCulture]?.color || 'bg-stone-100 text-stone-600 border-stone-200'}`}>
+                          {CULTURE_BADGES[displayCulture]?.label || displayCulture}
+                        </div>
+                      </div>
+                    )}
                   </div>
                   
                   <Link to="/user/profile" className="flex items-center gap-3 px-5 py-2.5 text-sm font-medium text-stone-700 hover:bg-stone-50 hover:text-emerald-600 transition-colors">
                     <UserCircle2 className="h-4 w-4" /> Cài đặt thông tin cá nhân
+                  </Link>
+                  <Link to="/user/cultural-fit" className="flex items-center gap-3 px-5 py-2.5 text-sm font-medium text-stone-700 hover:bg-stone-50 hover:text-emerald-600 transition-colors">
+                    <Target className="h-4 w-4" /> Văn hóa doanh nghiệp
                   </Link>
                   <Link to="/user/history" className="flex items-center gap-3 px-5 py-2.5 text-sm font-medium text-stone-700 hover:bg-stone-50 hover:text-emerald-600 transition-colors">
                     <History className="h-4 w-4" /> Lịch sử phân tích
@@ -308,7 +338,12 @@ export default function UserHeader() {
                 </div>
                 <div>
                   <p className="font-bold text-stone-900">{userLabel}</p>
-                  <p className="text-xs text-stone-500">Tài khoản ứng viên</p>
+                  <p className="text-xs text-stone-500 mb-1">Tài khoản ứng viên</p>
+                  {displayCulture && (
+                      <div className={`inline-flex px-1.5 py-0.5 rounded text-[9px] font-bold border ${CULTURE_BADGES[displayCulture]?.color || 'bg-stone-100 text-stone-600 border-stone-200'}`}>
+                        {CULTURE_BADGES[displayCulture]?.label || displayCulture}
+                      </div>
+                  )}
                 </div>
               </div>
             </div>

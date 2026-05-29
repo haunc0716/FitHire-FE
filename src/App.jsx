@@ -21,6 +21,7 @@ const UserLayout = React.lazy(() => import('./features/user/layouts/UserLayout')
 const CvJdPage = React.lazy(() => import('./features/user/pages/CvJdPage'));
 const CvManagerPage = React.lazy(() => import('./features/user/pages/CvManagerPage'));
 const UserHistoryPage = React.lazy(() => import('./features/user/pages/UserHistoryPage'));
+const EntitlementsPage = React.lazy(() => import('./features/user/pages/EntitlementsPage'));
 const CulturalFitPage = React.lazy(() => import('./features/user/pages/CulturalFitPage'));
 const MockInterviewPage = React.lazy(() => import('./features/user/pages/MockInterviewPage'));
 const UserPricingPage = React.lazy(() => import('./features/user/pages/UserPricingPage'));
@@ -133,6 +134,7 @@ export default function App() {
                 <Route path="cv-jd" element={<CvJdPage />} />
                 <Route path="cv-manager" element={<CvManagerPage />} />
                 <Route path="history" element={<UserHistoryPage />} />
+                <Route path="entitlements" element={<EntitlementsPage />} />
                 <Route path="cultural-fit" element={<CulturalFitPage />} />
                 <Route path="mock-interview" element={<MockInterviewPage />} />
                 <Route path="pricing" element={<UserPricingPage />} />
