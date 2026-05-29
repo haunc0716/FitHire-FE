@@ -73,6 +73,71 @@ function getStatusLabel(status) {
   return status || 'Không rõ';
 }
 
+function getDomainLabel(domain) {
+  const normalized = typeof domain === 'string' ? domain.toLowerCase() : '';
+
+  if (normalized === 'tech') {
+    return 'Kỹ thuật';
+  }
+
+  if (normalized === 'analytics') {
+    return 'Phân tích dữ liệu';
+  }
+
+  if (normalized === 'sales') {
+    return 'Kinh doanh';
+  }
+
+  if (normalized === 'marketing') {
+    return 'Marketing';
+  }
+
+  if (normalized === 'hr') {
+    return 'Nhân sự';
+  }
+
+  if (normalized === 'general') {
+    return 'Tổng quát';
+  }
+
+  return 'Chưa xác định';
+}
+
+function getDomainBadgeClass(domain) {
+  const normalized = typeof domain === 'string' ? domain.toLowerCase() : '';
+
+  if (normalized === 'tech') {
+    return 'bg-blue-100 text-blue-700';
+  }
+
+  if (normalized === 'analytics') {
+    return 'bg-indigo-100 text-indigo-700';
+  }
+
+  if (normalized === 'sales') {
+    return 'bg-emerald-100 text-emerald-700';
+  }
+
+  if (normalized === 'marketing') {
+    return 'bg-fuchsia-100 text-fuchsia-700';
+  }
+
+  if (normalized === 'hr') {
+    return 'bg-amber-100 text-amber-700';
+  }
+
+  return 'bg-slate-100 text-slate-700';
+}
+
+function formatConfidence(value) {
+  if (typeof value !== 'number') {
+    return '--';
+  }
+
+  const safe = Math.max(0, Math.min(1, value));
+  return `${Math.round(safe * 100)}%`;
+}
+
 function StepItem({ step, title, description, active, completed }) {
   return (
     <div className="flex items-start gap-3">
@@ -228,6 +293,9 @@ export default function CvJdPage() {
   const missingSections = toArray(result?.missingSections);
   const detectedSkills = toArray(result?.detectedSkills);
   const totalScore = typeof result?.totalScore === 'number' ? result.totalScore : result?.overallScore;
+  const detectedDomain = result?.detectedDomain;
+  const domainConfidence = result?.domainConfidence;
+  const appliedRubric = result?.appliedRubric;
 
   return (
     <div className="mx-auto max-w-7xl space-y-8 px-4 py-8 sm:px-6 lg:px-8">
@@ -366,6 +434,17 @@ export default function CvJdPage() {
                       <p className="mt-1 flex items-center gap-1 text-xs text-slate-500">
                         <Clock3 className="h-3.5 w-3.5" /> {formatDateTime(item.createdAt)}
                       </p>
+                      <div className="mt-1 flex items-center gap-2">
+                        <span className={`rounded-full px-2 py-0.5 text-[11px] font-semibold ${getDomainBadgeClass(item.detectedDomain)}`}>
+                          {getDomainLabel(item.detectedDomain)}
+                        </span>
+                        <span className="text-[11px] font-medium text-slate-500">
+                          Confidence: {formatConfidence(item.domainConfidence)}
+                        </span>
+                        <span className="text-[11px] font-medium text-slate-500">
+                          {item.appliedRubric || '--'}
+                        </span>
+                      </div>
                     </div>
                     <span className={`rounded-full px-2 py-0.5 text-xs font-bold ${getScoreBadgeClass(item.overallScore)}`}>
                       {typeof item.overallScore === 'number' ? `${item.overallScore} điểm` : '--'}
@@ -438,7 +517,18 @@ export default function CvJdPage() {
             {!isScoring && !detailLoading && result ? (
               <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} className="space-y-6">
                 <div className="rounded-2xl border border-emerald-100 bg-emerald-50/70 p-5">
-                  <p className="text-xs font-semibold uppercase tracking-wide text-emerald-700">Tổng điểm CV</p>
+                  <div className="flex flex-wrap items-center gap-2">
+                    <p className="text-xs font-semibold uppercase tracking-wide text-emerald-700">Tổng điểm CV</p>
+                    <span className={`rounded-full px-2 py-0.5 text-[11px] font-semibold ${getDomainBadgeClass(detectedDomain)}`}>
+                      Domain: {getDomainLabel(detectedDomain)}
+                    </span>
+                    <span className="rounded-full bg-white px-2 py-0.5 text-[11px] font-semibold text-slate-600">
+                      Confidence: {formatConfidence(domainConfidence)}
+                    </span>
+                    <span className="rounded-full bg-white px-2 py-0.5 text-[11px] font-semibold text-slate-600">
+                      Rubric: {appliedRubric || '--'}
+                    </span>
+                  </div>
                   <div className="mt-2 flex items-end gap-2">
                     <span className="text-4xl font-bold text-slate-900">{typeof totalScore === 'number' ? totalScore : '--'}</span>
                     <span className="pb-1 text-sm font-medium text-slate-500">/ 100</span>

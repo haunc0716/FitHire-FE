@@ -115,6 +115,24 @@ const DEFAULT_THEME = {
   ctaLabel: 'Chọn gói',
 };
 
+const TIER_FALLBACK = {
+  FREE: 0,
+  PLUS: 1,
+  PRO: 2,
+};
+
+function resolveTierLevelByCode(code) {
+  if (!code) return null;
+  return Object.prototype.hasOwnProperty.call(TIER_FALLBACK, code) ? TIER_FALLBACK[code] : null;
+}
+
+function resolveTierLevel(item) {
+  if (item?.tierLevel !== null && item?.tierLevel !== undefined && !Number.isNaN(Number(item.tierLevel))) {
+    return Number(item.tierLevel);
+  }
+  return resolveTierLevelByCode(item?.code || item?.subscriptionCode);
+}
+
 function formatCurrency(value) {
   const amount = Number(value ?? 0);
   return new Intl.NumberFormat('vi-VN').format(amount);
@@ -160,17 +178,19 @@ const PricingCards = () => {
   const [loading, setLoading] = useState(true);
   const [busyPlanCode, setBusyPlanCode] = useState('');
   const [activePlanCodes, setActivePlanCodes] = useState([]);
+  const [currentSubscription, setCurrentSubscription] = useState(null);
 
   const refreshMySnapshot = useCallback(async () => {
     const session = getAuthSession();
     if (!session?.accessToken || Number(session.expiresAt) <= Date.now()) {
       setActivePlanCodes([]);
+      setCurrentSubscription(null);
       return null;
     }
 
     const snapshot = await fetchMySubscriptions();
     const now = Date.now();
-    const activeCodes = (snapshot?.userSubscriptions ?? [])
+    const activeSubscriptions = (snapshot?.userSubscriptions ?? [])
       .filter((item) => {
         if (item?.status !== 'ACTIVE') {
           return false;
@@ -179,9 +199,20 @@ const PricingCards = () => {
           return true;
         }
         return new Date(item.endDate).getTime() > now;
-      })
-      .map((item) => item.subscriptionCode);
+      });
+
+    const activeCodes = activeSubscriptions.map((item) => item.subscriptionCode);
     setActivePlanCodes([...new Set(activeCodes)]);
+
+    const fallbackCurrent = [...activeSubscriptions]
+      .filter((item) => resolveTierLevel(item) !== null)
+      .sort((a, b) => {
+        const levelA = resolveTierLevel(a) ?? -1;
+        const levelB = resolveTierLevel(b) ?? -1;
+        return levelB - levelA;
+      })[0] ?? null;
+
+    setCurrentSubscription(snapshot?.currentSubscription ?? fallbackCurrent);
     return snapshot;
   }, []);
 
@@ -226,6 +257,8 @@ const PricingCards = () => {
       }),
     [plans]
   );
+
+  const currentTierLevel = useMemo(() => resolveTierLevel(currentSubscription), [currentSubscription]);
 
   const handleCheckout = useCallback(
     async (plan) => {
@@ -305,8 +338,31 @@ const PricingCards = () => {
         {enrichedPlans.map((plan) => {
           const Icon = plan.theme.icon;
           const isBusy = busyPlanCode === plan.code;
-          const isCurrentPlan = activePlanCodes.includes(plan.code);
-          const isDisabled = isBusy || isCurrentPlan;
+          const planTierLevel = resolveTierLevel(plan);
+          const isTierManagedPlan = planTierLevel !== null;
+          const isCurrentPlan = isTierManagedPlan
+            ? currentTierLevel !== null && planTierLevel === currentTierLevel
+            : plan.code !== 'LUOT_LE' && activePlanCodes.includes(plan.code);
+
+          let ctaText = plan.ctaLabel;
+          let isPlanUnavailable = isCurrentPlan;
+          if (isTierManagedPlan && currentTierLevel !== null) {
+            if (planTierLevel === currentTierLevel) {
+              ctaText = 'Gói hiện tại';
+              isPlanUnavailable = true;
+            } else if (planTierLevel < currentTierLevel) {
+              ctaText = 'Đã bao gồm';
+              isPlanUnavailable = true;
+            } else {
+              ctaText = `Nâng cấp lên ${plan.name}`;
+              isPlanUnavailable = false;
+            }
+          } else if (isCurrentPlan) {
+            ctaText = 'Gói hiện tại';
+            isPlanUnavailable = true;
+          }
+
+          const isDisabled = isBusy || isPlanUnavailable;
           const isPro = plan.code === 'PRO';
           const isDefaultPlan = !PLAN_THEMES[plan.code];
 
@@ -396,8 +452,8 @@ const PricingCards = () => {
                 ) : isPro ? (
                   <Sparkles className="h-4 w-4" />
                 ) : null}
-                <span>{isBusy ? 'Đang xử lý...' : isCurrentPlan ? 'Gói hiện tại' : plan.ctaLabel}</span>
-                {!isBusy && !isCurrentPlan && <ChevronRight className="h-3.5 w-3.5" />}
+                <span>{isBusy ? 'Đang xử lý...' : ctaText}</span>
+                {!isBusy && !isPlanUnavailable && <ChevronRight className="h-3.5 w-3.5" />}
               </button>
             </article>
           );
