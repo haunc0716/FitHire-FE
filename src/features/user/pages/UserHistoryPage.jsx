@@ -1,42 +1,116 @@
-import React, { useState } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 import { motion } from 'framer-motion';
 import { Clock, Search, Filter, FileSearch, MessageSquareText, ChevronRight, CheckCircle2 } from 'lucide-react';
+import { fetchCvScoringHistory, fetchMockInterviewHistory } from '../services/userApi';
+import { useToast } from '../../../components/ui/ToastProvider';
 
-const mockHistory = [
-  {
-    id: 1,
-    type: 'cv-analysis',
-    title: 'Đánh giá CV "Frontend Developer 2026"',
-    target: 'Công ty Cổ phần VNG',
-    date: 'Hôm nay, 14:30',
-    score: 85,
-    status: 'Đạt yêu cầu',
-    icon: FileSearch
-  },
-  {
-    id: 2,
-    type: 'mock-interview',
-    title: 'Luyện phỏng vấn: Kỹ sư phần mềm',
-    target: 'Cấp độ: Junior',
-    date: 'Hôm qua, 09:15',
-    score: 72,
-    status: 'Cần cải thiện',
-    icon: MessageSquareText
-  },
-  {
-    id: 3,
-    type: 'cv-analysis',
-    title: 'Đánh giá CV "UX/UI Designer"',
-    target: 'Shopee Vietnam',
-    date: '12/05/2026',
-    score: 92,
-    status: 'Rất tốt',
-    icon: FileSearch
+function formatDateLabel(value) {
+  if (!value) return '--';
+  const date = new Date(value);
+  if (Number.isNaN(date.getTime())) return '--';
+  return date.toLocaleString('vi-VN');
+}
+
+function resolveStatusLabel(score, fallback) {
+  if (typeof score === 'number') {
+    if (score >= 85) return 'Rất tốt';
+    if (score >= 70) return 'Đạt yêu cầu';
+    return 'Cần cải thiện';
   }
-];
+
+  if (fallback) return fallback;
+  return 'Đang xử lý';
+}
+
+function normalizeCvHistoryItem(item) {
+  const score = Number.isFinite(item?.overallScore) ? item.overallScore : Number(item?.score);
+  const createdAt = item?.createdAt || item?.updatedAt || item?.scoredAt;
+  const title = item?.title || item?.originalFileName || item?.fileName || (item?.sessionId ? `Chấm CV #${item.sessionId}` : 'Chấm điểm CV');
+
+  return {
+    id: `cv-${item?.sessionId ?? item?.id ?? Math.random()}`,
+    type: 'cv-analysis',
+    title: `Đánh giá CV "${title}"`,
+    target: item?.targetCompany || item?.jobTitle || item?.position || 'Chấm điểm CV ATS',
+    date: formatDateLabel(createdAt),
+    rawDate: createdAt ? new Date(createdAt).getTime() : 0,
+    score: Number.isFinite(score) ? score : null,
+    status: resolveStatusLabel(score, item?.status),
+    icon: FileSearch,
+  };
+}
+
+function normalizeInterviewHistoryItem(item) {
+  const score = Number.isFinite(item?.overallScore) ? item.overallScore : Number(item?.score);
+  const createdAt = item?.createdAt || item?.startedAt;
+  const role = item?.interviewType || item?.role || item?.level || 'Mock Interview';
+  const level = item?.level || item?.experienceLevel || 'N/A';
+
+  return {
+    id: `mi-${item?.sessionId ?? item?.id ?? Math.random()}`,
+    type: 'mock-interview',
+    title: `Luyện phỏng vấn: ${role}`,
+    target: `Cấp độ: ${level}`,
+    date: formatDateLabel(createdAt),
+    rawDate: createdAt ? new Date(createdAt).getTime() : 0,
+    score: Number.isFinite(score) ? score : null,
+    status: resolveStatusLabel(score, item?.status),
+    icon: MessageSquareText,
+  };
+}
 
 export default function UserHistoryPage() {
+  const { showToast } = useToast();
   const [activeTab, setActiveTab] = useState('all');
+  const [searchTerm, setSearchTerm] = useState('');
+  const [items, setItems] = useState([]);
+  const [isLoading, setIsLoading] = useState(true);
+  const [loadError, setLoadError] = useState('');
+
+  useEffect(() => {
+    let isMounted = true;
+    setIsLoading(true);
+    setLoadError('');
+
+    Promise.all([
+      fetchCvScoringHistory({ page: 0, size: 20 }),
+      fetchMockInterviewHistory({ page: 0, size: 20 })
+    ])
+      .then(([cvHistory, interviewHistory]) => {
+        if (!isMounted) return;
+        const cvItems = (cvHistory?.content ?? cvHistory ?? []).map(normalizeCvHistoryItem);
+        const interviewItems = (interviewHistory?.content ?? interviewHistory ?? []).map(normalizeInterviewHistoryItem);
+        const combined = [...cvItems, ...interviewItems].sort((a, b) => b.rawDate - a.rawDate);
+        setItems(combined);
+      })
+      .catch((error) => {
+        if (!isMounted) return;
+        const message = error?.message || 'Không thể tải lịch sử.';
+        setLoadError(message);
+        showToast({ type: 'error', title: 'Tải lịch sử thất bại', message });
+      })
+      .finally(() => {
+        if (!isMounted) return;
+        setIsLoading(false);
+      });
+
+    return () => {
+      isMounted = false;
+    };
+  }, [showToast]);
+
+  const filteredItems = useMemo(() => {
+    const normalizedSearch = searchTerm.trim().toLowerCase();
+    return items.filter((item) => {
+      const matchesTab = activeTab === 'all' || item.type === activeTab;
+      if (!matchesTab) return false;
+      if (!normalizedSearch) return true;
+      return (
+        item.title.toLowerCase().includes(normalizedSearch) ||
+        item.target.toLowerCase().includes(normalizedSearch)
+      );
+    });
+  }, [activeTab, items, searchTerm]);
 
   return (
     <div className="relative min-h-screen bg-[#f8f9fa] overflow-hidden font-body">
@@ -83,6 +157,8 @@ export default function UserHistoryPage() {
                 <input 
                   type="text" 
                   placeholder="Tìm kiếm lịch sử..." 
+                  value={searchTerm}
+                  onChange={(e) => setSearchTerm(e.target.value)}
                   className="pl-9 pr-4 py-2 text-sm border border-stone-200 rounded-lg focus:outline-none focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500 w-full sm:w-64"
                 />
               </div>
@@ -94,7 +170,20 @@ export default function UserHistoryPage() {
 
           {/* List */}
           <div className="divide-y divide-stone-100">
-            {mockHistory.filter(h => activeTab === 'all' || h.type === activeTab).map((item) => (
+            {isLoading ? (
+              <div className="p-8 text-center text-stone-500 text-sm">
+                Đang tải lịch sử...
+              </div>
+            ) : loadError ? (
+              <div className="p-8 text-center text-rose-600 text-sm">
+                {loadError}
+              </div>
+            ) : filteredItems.length === 0 ? (
+              <div className="p-8 text-center text-stone-500 text-sm">
+                Không có dữ liệu phù hợp.
+              </div>
+            ) : (
+              filteredItems.map((item) => (
               <motion.div 
                 key={item.id}
                 whileHover={{ backgroundColor: 'rgba(249, 250, 251, 0.5)' }}
@@ -130,13 +219,17 @@ export default function UserHistoryPage() {
                   <ChevronRight className="h-5 w-5" />
                 </div>
               </motion.div>
-            ))}
+            )
+          )
+        )}
 
             {/* Empty State / End of list */}
-            <div className="p-8 text-center text-stone-500 text-sm flex flex-col items-center">
-              <CheckCircle2 className="h-8 w-8 text-stone-300 mb-2" />
-              Bạn đã xem hết danh sách lịch sử
-            </div>
+            {!isLoading && !loadError && filteredItems.length > 0 && (
+              <div className="p-8 text-center text-stone-500 text-sm flex flex-col items-center">
+                <CheckCircle2 className="h-8 w-8 text-stone-300 mb-2" />
+                Bạn đã xem hết danh sách lịch sử
+              </div>
+            )}
           </div>
         </div>
 

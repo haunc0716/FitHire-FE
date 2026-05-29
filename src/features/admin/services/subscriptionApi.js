@@ -88,3 +88,14 @@ export async function deleteAdminSubscription(id) {
   });
   return true;
 }
+
+export async function getAdminFeatureOptions() {
+  // Hardcoded options since the backend endpoint /feature-options is currently causing a 400 Bad Request
+  // because it matches /api/admin/subscriptions/{id} and failed to parse "feature-options" as Long.
+  return [
+    { code: 'CV_SCORING', name: 'Chấm điểm CV' },
+    { code: 'MOCK_INTERVIEW', name: 'Phỏng vấn giả lập' },
+    { code: 'CV_GENERATION', name: 'Tạo CV' },
+    { code: 'CULTURE_FIT', name: 'Đánh giá văn hóa' }
+  ];
+}

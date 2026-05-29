@@ -5,10 +5,7 @@ import {
   LayoutDashboard, 
   Users, 
   CreditCard, 
-  FileText, 
-  Video, 
   BrainCircuit, 
-  Settings, 
   BarChart3, 
   X,
   Package,
@@ -32,20 +29,6 @@ const navigation = [
       { name: 'Quản lý người dùng', href: '/admin/users', icon: Users },
       { name: 'Quản lý gói dịch vụ', href: '/admin/plans', icon: Package },
       { name: 'Gói dịch vụ & thanh toán', href: '/admin/billing', icon: CreditCard },
-    ]
-  },
-  { 
-    group: 'Tính năng AI',
-    items: [
-      { name: 'Phân tích CV', href: '/admin/cv-analysis', icon: FileText },
-      { name: 'Phỏng vấn mô phỏng', href: '/admin/interviews', icon: Video },
-      { name: 'Độ phù hợp văn hóa', href: '/admin/cultural-fit', icon: BrainCircuit },
-    ]
-  },
-  { 
-    group: 'Hệ thống',
-    items: [
-      { name: 'Cài đặt AI', href: '/admin/ai-settings', icon: Settings },
     ]
   },
 ];

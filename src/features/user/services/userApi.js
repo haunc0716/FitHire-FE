@@ -113,6 +113,13 @@ export function fetchMySubscriptions() {
   });
 }
 
+export function fetchMyCvs() {
+  return requestJson('/api/cv', {
+    method: 'GET',
+    headers: buildAuthHeaders(),
+  });
+}
+
 export function scoreCv(file) {
   const formData = new FormData();
   formData.append('file', file);

@@ -99,7 +99,7 @@ export default function AdminHeader({ setMobileMenuOpen }) {
             </div>
             <div className="hidden lg:flex flex-col items-start min-w-0 pr-1">
               <span className="text-sm font-semibold text-gray-900 truncate max-w-[120px]">{displayName}</span>
-              <span className="text-[10px] font-bold text-emerald-600 uppercase tracking-wider">Super Admin</span>
+              <span className="text-[10px] font-bold text-emerald-600 uppercase tracking-wider">Quản trị viên</span>
             </div>
             <ChevronDown className={`w-4 h-4 text-gray-400 transition-transform duration-300 ${isProfileOpen ? 'rotate-180' : ''}`} />
           </button>

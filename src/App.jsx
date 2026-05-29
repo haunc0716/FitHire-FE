@@ -14,17 +14,13 @@ const AdminLayout = React.lazy(() => import('./features/admin/layouts/AdminLayou
 const DashboardPage = React.lazy(() => import('./features/admin/pages/DashboardPage'));
 const UserManagementPage = React.lazy(() => import('./features/admin/pages/UserManagementPage'));
 const BillingPage = React.lazy(() => import('./features/admin/pages/BillingPage'));
-const CvAnalysisPage = React.lazy(() => import('./features/admin/pages/CvAnalysisPage'));
-const InterviewsPage = React.lazy(() => import('./features/admin/pages/InterviewsPage'));
-const AdminCulturalFitPage = React.lazy(() => import('./features/admin/pages/CulturalFitPage'));
-const AiSettingsPage = React.lazy(() => import('./features/admin/pages/AiSettingsPage'));
 const ReportsPage = React.lazy(() => import('./features/admin/pages/ReportsPage'));
 const AdminProfilePage = React.lazy(() => import('./features/admin/pages/AdminProfilePage'));
 const PlanManagementPage = React.lazy(() => import('./features/admin/pages/PlanManagementPage'));
 const UserLayout = React.lazy(() => import('./features/user/layouts/UserLayout'));
 const CvJdPage = React.lazy(() => import('./features/user/pages/CvJdPage'));
-const CvManagerPage = React.lazy(() => import('./features/user/pages/CvManagerPage'));
 const UserHistoryPage = React.lazy(() => import('./features/user/pages/UserHistoryPage'));
+const EntitlementsPage = React.lazy(() => import('./features/user/pages/EntitlementsPage'));
 const CulturalFitPage = React.lazy(() => import('./features/user/pages/CulturalFitPage'));
 const MockInterviewPage = React.lazy(() => import('./features/user/pages/MockInterviewPage'));
 const UserPricingPage = React.lazy(() => import('./features/user/pages/UserPricingPage'));
@@ -126,10 +122,6 @@ export default function App() {
                 <Route path="users" element={<UserManagementPage />} />
                 <Route path="billing" element={<BillingPage />} />
                 <Route path="plans" element={<PlanManagementPage />} />
-                <Route path="cv-analysis" element={<CvAnalysisPage />} />
-                <Route path="interviews" element={<InterviewsPage />} />
-                <Route path="cultural-fit" element={<AdminCulturalFitPage />} />
-                <Route path="ai-settings" element={<AiSettingsPage />} />
                 <Route path="reports" element={<ReportsPage />} />
                 <Route path="profile" element={<AdminProfilePage />} />
               </Route>
@@ -139,8 +131,8 @@ export default function App() {
               <Route path="/user" element={<UserLayout />}>
                 <Route index element={<CvJdPage />} />
                 <Route path="cv-jd" element={<CvJdPage />} />
-                <Route path="cv-manager" element={<CvManagerPage />} />
                 <Route path="history" element={<UserHistoryPage />} />
+                <Route path="entitlements" element={<EntitlementsPage />} />
                 <Route path="cultural-fit" element={<CulturalFitPage />} />
                 <Route path="mock-interview" element={<MockInterviewPage />} />
                 <Route path="pricing" element={<UserPricingPage />} />
