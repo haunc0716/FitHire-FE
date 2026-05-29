@@ -272,9 +272,6 @@ export default function UserHeader() {
                   <Link to="/user/profile" className="flex items-center gap-3 px-5 py-2.5 text-sm font-medium text-stone-700 hover:bg-stone-50 hover:text-emerald-600 transition-colors">
                     <UserCircle2 className="h-4 w-4" /> Cài đặt thông tin cá nhân
                   </Link>
-                  <Link to="/user/cultural-fit" className="flex items-center gap-3 px-5 py-2.5 text-sm font-medium text-stone-700 hover:bg-stone-50 hover:text-emerald-600 transition-colors">
-                    <Target className="h-4 w-4" /> Văn hóa doanh nghiệp
-                  </Link>
                   <Link to="/user/history" className="flex items-center gap-3 px-5 py-2.5 text-sm font-medium text-stone-700 hover:bg-stone-50 hover:text-emerald-600 transition-colors">
                     <History className="h-4 w-4" /> Lịch sử phân tích
                   </Link>
