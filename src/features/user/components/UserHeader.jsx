@@ -19,9 +19,8 @@ import { fetchMyProfile, fetchMySubscriptions } from '../services/userApi';
 
 const navGroups = [
   {
-    name: 'Hồ sơ & CV',
+    name: 'Hồ sơ',
     items: [
-      { name: 'Quản lý CV', href: '/user/cv-manager', icon: FileText, desc: 'Quản lý các bản CV của bạn' },
       { name: 'Chấm điểm CV ATS', href: '/user/cv-jd', icon: FileSearch, desc: 'Chấm điểm CV tự động với AI' }
     ]
   },

@@ -19,7 +19,6 @@ const AdminProfilePage = React.lazy(() => import('./features/admin/pages/AdminPr
 const PlanManagementPage = React.lazy(() => import('./features/admin/pages/PlanManagementPage'));
 const UserLayout = React.lazy(() => import('./features/user/layouts/UserLayout'));
 const CvJdPage = React.lazy(() => import('./features/user/pages/CvJdPage'));
-const CvManagerPage = React.lazy(() => import('./features/user/pages/CvManagerPage'));
 const UserHistoryPage = React.lazy(() => import('./features/user/pages/UserHistoryPage'));
 const EntitlementsPage = React.lazy(() => import('./features/user/pages/EntitlementsPage'));
 const CulturalFitPage = React.lazy(() => import('./features/user/pages/CulturalFitPage'));
@@ -132,7 +131,6 @@ export default function App() {
               <Route path="/user" element={<UserLayout />}>
                 <Route index element={<CvJdPage />} />
                 <Route path="cv-jd" element={<CvJdPage />} />
-                <Route path="cv-manager" element={<CvManagerPage />} />
                 <Route path="history" element={<UserHistoryPage />} />
                 <Route path="entitlements" element={<EntitlementsPage />} />
                 <Route path="cultural-fit" element={<CulturalFitPage />} />

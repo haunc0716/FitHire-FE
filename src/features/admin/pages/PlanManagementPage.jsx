@@ -196,7 +196,17 @@ export default function PlanManagementPage() {
 
   const handleDelete = async (plan) => {
     if (!plan?.id) return;
-    if (!window.confirm(`Bạn chắc chắn muốn xóa gói "${plan.name}"?`)) return;
+    
+    // Check if plan contains CV_SCORING or CV_GENERATION
+    const isCVRelated = plan.raw?.features?.some(f => 
+      ['CV_SCORING', 'CV_GENERATION'].includes(f.featureCode)
+    );
+
+    const confirmMessage = isCVRelated 
+      ? `Gói "${plan.name}" có liên quan đến tính năng CV đã bị gỡ bỏ. Bạn có chắc chắn muốn xóa gói này?`
+      : `Bạn chắc chắn muốn xóa gói "${plan.name}"?`;
+
+    if (!window.confirm(confirmMessage)) return;
     
     try {
       await deleteAdminSubscription(plan.id);
