@@ -9,6 +9,7 @@ import {
   BarChart3, 
   X,
   Package,
+  ClipboardList,
   LogOut,
   ChevronLeft,
   ChevronRight
@@ -28,6 +29,7 @@ const navigation = [
     items: [
       { name: 'Quản lý người dùng', href: '/admin/users', icon: Users },
       { name: 'Quản lý gói dịch vụ', href: '/admin/plans', icon: Package },
+      { name: 'Câu hỏi văn hóa', href: '/admin/assessment-questions', icon: ClipboardList },
       { name: 'Gói dịch vụ & thanh toán', href: '/admin/billing', icon: CreditCard },
     ]
   },

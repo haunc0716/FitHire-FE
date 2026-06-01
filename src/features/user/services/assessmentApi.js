@@ -22,6 +22,14 @@ export const fetchAssessmentQuestions = async () => {
     return response.json();
 };
 
+export const fetchAdminAssessmentQuestions = async () => {
+    const response = await fetch(buildApiUrl('/api/admin/assessment-questions'), {
+        headers: buildAuthHeaders(),
+    });
+    if (!response.ok) throw new Error('Failed to fetch admin questions');
+    return response.json();
+};
+
 export const submitAssessment = async (answers) => {
     const response = await fetch(buildApiUrl('/api/assessments/submit'), {
         method: 'POST',
