@@ -1,5 +1,5 @@
 import React, { useEffect, useMemo, useState } from 'react';
-import { Search, Filter, MoreVertical, Download, Shield, User, CheckCircle2, XCircle, Loader2, Eye, RotateCcw } from 'lucide-react';
+import { Search, Filter, Download, Shield, User, CheckCircle2, XCircle, Loader2, Eye, RotateCcw, BadgeInfo } from 'lucide-react';
 import { getAdminUserById, getAdminUsers, updateAdminUserStatus } from '../services/userApi';
 import { useToast } from '../../../components/ui/ToastProvider';
 
@@ -13,6 +13,13 @@ const STATUS_OPTIONS = [
 const ROLE_LABELS = {
   ADMIN: 'Quản trị viên',
   USER: 'Người dùng',
+};
+
+const CULTURE_BADGES = {
+  CLAN: { label: 'Gia đình', color: 'bg-emerald-50 text-emerald-700 border-emerald-200' },
+  ADHOCRACY: { label: 'Sáng tạo', color: 'bg-amber-50 text-amber-700 border-amber-200' },
+  MARKET: { label: 'Thị trường', color: 'bg-blue-50 text-blue-700 border-blue-200' },
+  HIERARCHY: { label: 'Thứ bậc', color: 'bg-rose-50 text-rose-700 border-rose-200' },
 };
 
 const STATUS_LABELS = {
@@ -165,6 +172,7 @@ export default function UserManagementPage() {
                 <tr>
                   <th className="px-6 py-4 font-bold">Người dùng</th>
                   <th className="px-6 py-4 font-bold">Vai trò</th>
+                  <th className="px-6 py-4 font-bold">Văn hóa</th>
                   <th className="px-6 py-4 font-bold">Trạng thái</th>
                   <th className="px-6 py-4 font-bold">Ngày tham gia</th>
                   <th className="px-6 py-4 font-bold text-right">Thao tác</th>
@@ -199,8 +207,15 @@ export default function UserManagementPage() {
                         {ROLE_LABELS[user.role] || 'Không rõ'}
                       </span>
                     </td>
-                    <td className="px-6 py-4">
-                      <span className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium border ${
+                    <td className="px-6 py-4">                      {user.primaryCulture ? (
+                        <span className={`inline-flex px-2 py-0.5 rounded text-[10px] font-bold border ${CULTURE_BADGES[user.primaryCulture]?.color || 'bg-stone-100 text-stone-700 border-stone-200'}`}>
+                          {CULTURE_BADGES[user.primaryCulture]?.label || user.primaryCulture}
+                        </span>
+                      ) : (
+                        <span className="text-stone-400 text-xs italic">Chưa đánh giá</span>
+                      )}
+                    </td>
+                    <td className="px-6 py-4">                      <span className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium border ${
                         user.status === 'ACTIVE' || !user.status ? 'bg-emerald-50 text-emerald-700 border-emerald-200' : 'bg-rose-50 text-rose-700 border-rose-200'
                       }`}>
                         {(user.status === 'ACTIVE' || !user.status) ? <CheckCircle2 className="w-3 h-3" /> : <XCircle className="w-3 h-3" />}
@@ -289,6 +304,12 @@ export default function UserManagementPage() {
                 ) : (
                   <>
                     <div className="grid grid-cols-2 gap-4 text-sm">
+                      <div className="rounded-2xl bg-stone-50 p-4 col-span-2">
+                        <div className="text-stone-400">Văn hóa doanh nghiệp</div>
+                        <div className="font-semibold text-stone-900">
+                          {selectedUser.cultureType || selectedUser.culturalType || selectedUser.primaryCulture || selectedUser.culturalFitPrimary || 'Chưa có dữ liệu'}
+                        </div>
+                      </div>
                       <div className="rounded-2xl bg-stone-50 p-4">
                         <div className="text-stone-400">Ngày tham gia</div>
                         <div className="font-semibold text-stone-900">{formatDateTime(resolveJoinDate(selectedUser))}</div>
