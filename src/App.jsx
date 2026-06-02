@@ -19,6 +19,7 @@ const AdminProfilePage = React.lazy(() => import('./features/admin/pages/AdminPr
 const PlanManagementPage = React.lazy(() => import('./features/admin/pages/PlanManagementPage'));
 const AssessmentQuestionManagementPage = React.lazy(() => import('./features/admin/pages/AssessmentQuestionManagementPage'));
 const QuestionManagementPage = React.lazy(() => import('./features/admin/pages/QuestionManagementPage'));
+const StatisticsPage = React.lazy(() => import('./features/admin/pages/StatisticsPage'));
 const MyQuestionsPage = React.lazy(() => import('./features/user/pages/MyQuestionsPage'));
 const UserLayout = React.lazy(() => import('./features/user/layouts/UserLayout'));
 const CvJdPage = React.lazy(() => import('./features/user/pages/CvJdPage'));
@@ -128,6 +129,7 @@ export default function App() {
                 <Route path="assessment-questions" element={<AssessmentQuestionManagementPage />} />
                 <Route path="questions" element={<QuestionManagementPage />} />
                 <Route path="reports" element={<ReportsPage />} />
+                <Route path="statistics" element={<StatisticsPage />} />
                 <Route path="profile" element={<AdminProfilePage />} />
               </Route>
             </Route>

@@ -13,18 +13,20 @@ import {
   MessageSquareText,
   LogOut,
   ChevronLeft,
-  ChevronRight
+  ChevronRight,
+  LineChart
 } from 'lucide-react';
 import { motion } from 'framer-motion';
 
 const navigation = [
-  { 
-    group: 'Phân tích',
-    items: [
-      { name: 'Tổng quan', href: '/admin', icon: LayoutDashboard },
-      { name: 'Báo cáo & phân tích', href: '/admin/reports', icon: BarChart3 },
-    ]
-  },
+   { 
+     group: 'Phân tích',
+     items: [
+       { name: 'Tổng quan', href: '/admin', icon: LayoutDashboard },
+       { name: 'Báo cáo & phân tích', href: '/admin/reports', icon: BarChart3 },
+       { name: 'Thống kê chi tiết', href: '/admin/statistics', icon: LineChart },
+     ]
+   },
   { 
     group: 'Quản lý',
     items: [
