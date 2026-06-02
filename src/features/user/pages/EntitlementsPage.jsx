@@ -1,9 +1,6 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import {
-  AlertTriangle,
-  BadgeCheck,
-  Crown,
   Loader2,
   Check,
   ArrowRight,
@@ -101,7 +98,6 @@ export default function EntitlementsPage() {
   const [payments, setPayments] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
   const [loadError, setLoadError] = useState('');
-
   useEffect(() => {
     let isMounted = true;
     setIsLoading(true);
