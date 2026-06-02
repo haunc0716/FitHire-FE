@@ -35,6 +35,7 @@ const PayOSReturnPage = React.lazy(() => import('./features/payments/pages/PayOS
 
 import { clearAuthSession, getAuthSession, isSessionValid } from './features/auth/services/authSession';
 import { ToastProvider } from './components/ui/ToastProvider';
+import ScrollToTop from './components/layout/ScrollToTop';
 
 const IDLE_TIMEOUT_MS = 20 * 60 * 1000;
 
@@ -105,6 +106,7 @@ function IdleLogoutWatcher() {
 export default function App() {
   return (
     <Router>
+      <ScrollToTop />
       <ToastProvider>
         <IdleLogoutWatcher />
         <Suspense fallback={<RouteFallback />}>

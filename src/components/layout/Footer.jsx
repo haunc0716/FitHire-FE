@@ -1,16 +1,21 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
 
+const FB_URL = 'https://www.facebook.com/profile.php?id=61580699131571';
+const LOGIN_PATH = '/login';
+
 const Footer = () => {
   const currentYear = new Date().getFullYear();
 
   const footerLinks = [
     {
       title: 'Công ty',
+      external: true,
+      href: FB_URL,
       links: [
-        { name: 'Về chúng tôi', path: '/about' },
-        { name: 'Nghề nghiệp', path: '/careers' },
-        { name: 'Blog', path: '/blog' },
+        { name: 'Về chúng tôi', href: FB_URL },
+        { name: 'Nghề nghiệp', href: FB_URL },
+        { name: 'Blog', href: FB_URL },
       ],
     },
     {
@@ -22,22 +27,37 @@ const Footer = () => {
       ],
     },
     {
-      title: 'Pháp lý',
-      links: [
-        { name: 'Bảo mật', path: '/privacy' },
-        { name: 'Điều khoản', path: '/terms' },
-        { name: 'Cookie', path: '/cookie' },
-      ],
-    },
-    {
       title: 'Hỗ trợ',
       links: [
-        { name: 'Trung tâm trợ giúp', path: '/support' },
-        { name: 'Liên hệ', path: '/contact' },
-        { name: 'FAQ', path: '/faq' },
+        { name: 'Trung tâm trợ giúp', path: LOGIN_PATH },
+        { name: 'Liên hệ', path: LOGIN_PATH },
+        { name: 'FAQ', path: LOGIN_PATH },
       ],
     },
   ];
+
+  const renderLink = (link) => {
+    if (link.href) {
+      return (
+        <a
+          href={link.href}
+          target="_blank"
+          rel="noopener noreferrer"
+          className="text-zinc-500 hover:text-primary text-sm transition-colors"
+        >
+          {link.name}
+        </a>
+      );
+    }
+    return (
+      <Link
+        to={link.path}
+        className="text-zinc-500 hover:text-primary text-sm transition-colors"
+      >
+        {link.name}
+      </Link>
+    );
+  };
 
   return (
     <footer className="bg-white border-t border-zinc-100 pt-24 pb-12">
@@ -53,8 +73,8 @@ const Footer = () => {
             </p>
           </div>
 
-          {/* Links Grid - Fixed Overflow */}
-          <div className="md:col-span-8 grid grid-cols-2 sm:grid-cols-4 gap-8">
+          {/* Links Grid */}
+          <div className="md:col-span-8 grid grid-cols-2 sm:grid-cols-3 gap-8">
             {footerLinks.map((section) => (
               <div key={section.title}>
                 <h4 className="text-[10px] font-bold uppercase tracking-[0.2em] text-zinc-950 mb-6">
@@ -62,14 +82,7 @@ const Footer = () => {
                 </h4>
                 <ul className="space-y-4">
                   {section.links.map((link) => (
-                    <li key={link.name}>
-                      <Link
-                        to={link.path}
-                        className="text-zinc-500 hover:text-primary text-sm transition-colors"
-                      >
-                        {link.name}
-                      </Link>
-                    </li>
+                    <li key={link.name}>{renderLink(link)}</li>
                   ))}
                 </ul>
               </div>
@@ -83,15 +96,14 @@ const Footer = () => {
             © {currentYear} FITHIRE. BUILT FOR THE NEXT GENERATION OF TALENT.
           </p>
           <div className="flex gap-8">
-            {['Linkedin', 'Facebook', 'Instagram'].map((social) => (
-              <a
-                key={social}
-                href={`#${social.toLowerCase()}`}
-                className="text-[10px] font-bold uppercase tracking-widest text-zinc-400 hover:text-primary transition-colors"
-              >
-                {social}
-              </a>
-            ))}
+            <a
+              href={FB_URL}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="text-[10px] font-bold uppercase tracking-widest text-zinc-400 hover:text-primary transition-colors"
+            >
+              Facebook
+            </a>
           </div>
         </div>
       </div>
