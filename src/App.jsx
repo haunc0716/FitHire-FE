@@ -18,6 +18,9 @@ const ReportsPage = React.lazy(() => import('./features/admin/pages/ReportsPage'
 const AdminProfilePage = React.lazy(() => import('./features/admin/pages/AdminProfilePage'));
 const PlanManagementPage = React.lazy(() => import('./features/admin/pages/PlanManagementPage'));
 const AssessmentQuestionManagementPage = React.lazy(() => import('./features/admin/pages/AssessmentQuestionManagementPage'));
+const QuestionManagementPage = React.lazy(() => import('./features/admin/pages/QuestionManagementPage'));
+const StatisticsPage = React.lazy(() => import('./features/admin/pages/StatisticsPage'));
+const MyQuestionsPage = React.lazy(() => import('./features/user/pages/MyQuestionsPage'));
 const UserLayout = React.lazy(() => import('./features/user/layouts/UserLayout'));
 const CvJdPage = React.lazy(() => import('./features/user/pages/CvJdPage'));
 const UserHistoryPage = React.lazy(() => import('./features/user/pages/UserHistoryPage'));
@@ -124,7 +127,9 @@ export default function App() {
                 <Route path="billing" element={<BillingPage />} />
                 <Route path="plans" element={<PlanManagementPage />} />
                 <Route path="assessment-questions" element={<AssessmentQuestionManagementPage />} />
+                <Route path="questions" element={<QuestionManagementPage />} />
                 <Route path="reports" element={<ReportsPage />} />
+                <Route path="statistics" element={<StatisticsPage />} />
                 <Route path="profile" element={<AdminProfilePage />} />
               </Route>
             </Route>
@@ -140,6 +145,7 @@ export default function App() {
                 <Route path="pricing" element={<UserPricingPage />} />
                 <Route path="profile" element={<UserProfilePage />} />
                 <Route path="payments" element={<PaymentHistoryPage />} />
+                <Route path="questions" element={<MyQuestionsPage />} />
               </Route>
               <Route path="/change-password" element={<ChangePasswordPage />} />
               <Route path="/payments/return" element={<PayOSReturnPage />} />
