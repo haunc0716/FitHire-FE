@@ -1,6 +1,15 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Loader2, Check, ArrowRight, Info } from 'lucide-react';
+import {
+  AlertTriangle,
+  BadgeCheck,
+  Crown,
+  Loader2,
+  Check,
+  ArrowRight,
+  Info,
+  ChevronRight,
+} from 'lucide-react';
 import { fetchMyEntitlements, fetchMySubscriptions } from '../services/userApi';
 import { fetchPaymentHistory } from '../../pricing/services/subscriptionApi';
 import { useToast } from '../../../components/ui/ToastProvider';
