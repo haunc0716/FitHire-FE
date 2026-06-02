@@ -135,8 +135,30 @@ export default function EntitlementsPage() {
     };
   }, [showToast]);
 
-  const planLabel = useMemo(() => activePlan?.subscriptionName || activePlan?.subscriptionCode || 'Lượt lẻ', [activePlan]);
-  const isFree = useMemo(() => planLabel.toLowerCase().includes('free') || planLabel === 'Lượt lẻ', [planLabel]);
+  const planLabel = useMemo(() => {
+    const code = activePlan?.subscriptionCode || '';
+    const name = activePlan?.subscriptionName || '';
+    const rawLabel = name || code || 'Lượt lẻ';
+
+    if (rawLabel === 'Lượt lẻ' || code === 'LUOT_LE') {
+      if (entitlements.length > 0) {
+        const allExhausted = entitlements.every(item => {
+          const { used, limit, isUnlimited } = resolveEntitlementDetails(item);
+          if (isUnlimited) return false;
+          return used >= limit;
+        });
+        if (allExhausted) {
+          return 'Miễn phí';
+        }
+      }
+    }
+    return rawLabel;
+  }, [activePlan, entitlements]);
+
+  const isFree = useMemo(() => {
+    const labelLower = planLabel.toLowerCase();
+    return labelLower.includes('free') || planLabel === 'Lượt lẻ' || planLabel === 'Miễn phí';
+  }, [planLabel]);
   const planExpiry = useMemo(() => {
     if (!activePlan?.endDate) return 'Vô thời hạn';
     const date = new Date(activePlan.endDate);
