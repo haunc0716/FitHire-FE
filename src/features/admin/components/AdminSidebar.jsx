@@ -1,15 +1,16 @@
 import React, { useState } from 'react';
 import { NavLink, useNavigate } from 'react-router-dom';
 import { clearAuthSession } from '../../auth/services/authSession';
-import { 
-  LayoutDashboard, 
-  Users, 
-  CreditCard, 
-  BrainCircuit, 
-  BarChart3, 
+import {
+  LayoutDashboard,
+  Users,
+  CreditCard,
+  BrainCircuit,
+  BarChart3,
   X,
   Package,
   ClipboardList,
+  MessageSquareText,
   LogOut,
   ChevronLeft,
   ChevronRight
@@ -30,6 +31,7 @@ const navigation = [
       { name: 'Quản lý người dùng', href: '/admin/users', icon: Users },
       { name: 'Quản lý gói dịch vụ', href: '/admin/plans', icon: Package },
       { name: 'Câu hỏi văn hóa', href: '/admin/assessment-questions', icon: ClipboardList },
+      { name: 'Hỏi đáp người dùng', href: '/admin/questions', icon: MessageSquareText },
       { name: 'Gói dịch vụ & thanh toán', href: '/admin/billing', icon: CreditCard },
     ]
   },

@@ -1,12 +1,13 @@
 import React, { useMemo, useRef, useState, useEffect, useCallback } from 'react';
 import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { 
-  Menu, 
-  X, 
+  Menu,
+  X,
   LogOut,
   ChevronDown,
   Bell,
   MessageSquareText,
+  MessageCircleQuestion,
   UserCircle2,
   FileText,
   FileSearch,
@@ -30,6 +31,12 @@ const navGroups = [
       { name: 'Luyện Phỏng vấn', href: '/user/mock-interview', icon: MessageSquareText, desc: 'Mô phỏng phỏng vấn thực tế' },
       { name: 'Văn hóa doanh nghiệp', href: '/user/cultural-fit', icon: Target, desc: 'Đánh giá văn hóa phù hợp' },
       { name: 'Quyền sử dụng', href: '/user/entitlements', icon: Crown, desc: 'Theo dõi hạn mức tính năng' }
+    ]
+  },
+  {
+    name: 'Hỗ trợ',
+    items: [
+      { name: 'Hỏi đáp với Admin', href: '/user/questions', icon: MessageCircleQuestion, desc: 'Gửi câu hỏi tới đội ngũ admin' }
     ]
   }
 ];
