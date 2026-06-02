@@ -14,12 +14,12 @@ const Navbar = () => {
       setIsScrolled(window.scrollY > 20);
     };
     window.addEventListener('scroll', handleScroll);
-    
+
     const session = getAuthSession();
     const valid = !!(session?.accessToken && session.expiresAt > Date.now());
     setIsLoggedIn(valid);
     setRole(session?.user?.role);
-    
+
     return () => window.removeEventListener('scroll', handleScroll);
   }, [location.pathname]);
 
@@ -36,14 +36,23 @@ const Navbar = () => {
   ];
 
   return (
-    <nav 
+    <nav
       className={`fixed top-0 left-0 w-full z-50 transition-all duration-500 ${
-        isScrolled ? 'bg-white/90 backdrop-blur-xl border-b border-stone-100 py-3 shadow-sm' : 'bg-transparent py-5'
+        isScrolled
+          ? 'bg-white shadow-[0_6px_24px_rgba(0,0,0,0.07)] border-b border-stone-200 py-2.5'
+          : 'bg-white/80 backdrop-blur-lg border-b border-stone-100/60 py-3.5 shadow-[0_2px_12px_rgba(0,0,0,0.03)]'
       }`}
     >
       <div className="max-w-7xl mx-auto px-6 flex justify-between items-center">
-        <Link to="/" className="font-display text-2xl font-black tracking-tight text-emerald-600">
-          Fit<span className="text-emerald-400">Hire</span>
+        <Link to="/" className="flex items-center gap-2.5 group">
+          <img
+            src="/favicon.png"
+            alt="FitHire logo"
+            className="h-10 w-10 object-contain transition-transform duration-300 group-hover:scale-110 drop-shadow-sm"
+          />
+          <span className="font-display text-xl font-black tracking-tight text-emerald-600">
+            Fit<span className="text-emerald-400">Hire</span>
+          </span>
         </Link>
 
         <div className="hidden md:flex items-center gap-8">

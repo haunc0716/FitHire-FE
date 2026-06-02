@@ -1,17 +1,32 @@
 import React from 'react';
-import { Users, Globe, BookOpen, ArrowUpRight } from 'lucide-react';
+import { Globe, BookOpen, ArrowUpRight } from 'lucide-react';
 
 const SupportChannels = () => {
   const channels = [
-    { icon: Users, title: 'Cộng đồng Zalo', desc: 'Kết nối trực tiếp với 5,000+ chuyên gia.' },
-    { icon: Globe, title: 'Nhóm Facebook', desc: 'Chia sẻ kinh nghiệm thực tế hàng ngày.' },
-    { icon: BookOpen, title: 'Hướng dẫn sử dụng', desc: 'Tài liệu chi tiết cho mọi tính năng.' },
+    {
+      icon: Globe,
+      title: 'Nhóm Facebook',
+      desc: 'Chia sẻ kinh nghiệm thực tế hàng ngày.',
+      href: 'https://www.facebook.com/profile.php?id=61580699131571',
+    },
+    {
+      icon: BookOpen,
+      title: 'Hướng dẫn sử dụng',
+      desc: 'Tài liệu chi tiết cho mọi tính năng.',
+      href: '#',
+    },
   ];
 
   return (
-    <div className="grid grid-cols-1 md:grid-cols-3 gap-px bg-emerald-100 border border-emerald-100 mb-32">
+    <div className="grid grid-cols-1 md:grid-cols-2 gap-px bg-emerald-100 border border-emerald-100 mb-32">
       {channels.map((ch, i) => (
-        <a key={i} href="#" className="bg-white p-12 group hover:bg-emerald-50 transition-colors">
+        <a
+          key={i}
+          href={ch.href}
+          target={ch.href !== '#' ? '_blank' : undefined}
+          rel={ch.href !== '#' ? 'noopener noreferrer' : undefined}
+          className="bg-white p-12 group hover:bg-emerald-50 transition-colors"
+        >
           <div className="flex justify-between items-start mb-12">
             <ch.icon className="w-8 h-8 text-primary" />
             <ArrowUpRight className="w-4 h-4 text-emerald-200 group-hover:text-primary transition-colors" />
