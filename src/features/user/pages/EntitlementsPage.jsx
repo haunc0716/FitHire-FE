@@ -300,8 +300,8 @@ export default function EntitlementsPage() {
                     Chúng tôi luôn sẵn sàng giải đáp thắc mắc về gói dịch vụ của bạn.
                   </p>
                   <div className="pt-1">
-                    <button 
-                      onClick={() => navigate('/support')}
+                    <button
+                      onClick={() => navigate('/user/questions')}
                       className="inline-flex items-center gap-1 text-xs font-bold text-emerald-600 hover:text-emerald-700 transition-colors cursor-pointer"
                     >
                       Liên hệ tư vấn <ArrowRight className="h-3.5 w-3.5" />
