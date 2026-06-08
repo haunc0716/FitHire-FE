@@ -174,7 +174,8 @@ export default function UserHeader() {
           
           {/* 1. Logo & Main Nav (Left Side) */}
           <div className="flex items-center gap-10">
-            <Link to="/" className="flex shrink-0 items-center">
+            <Link to="/" className="flex shrink-0 items-center gap-2">
+              <img src="/logo 1.png" alt="FitHire logo" className="h-8 w-auto object-contain" />
               <span className="font-display text-2xl font-bold tracking-tight text-[#00b14f]">
                 FitHire
               </span>

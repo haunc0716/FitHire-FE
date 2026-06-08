@@ -46,9 +46,9 @@ const Navbar = () => {
       <div className="max-w-7xl mx-auto px-6 flex justify-between items-center">
         <Link to="/" className="flex items-center gap-2.5 group">
           <img
-            src="/favicon.png"
+            src="/logo 1.png"
             alt="FitHire logo"
-            className="h-10 w-10 object-contain transition-transform duration-300 group-hover:scale-110 drop-shadow-sm"
+            className="h-10 w-auto object-contain transition-transform duration-300 group-hover:scale-110 drop-shadow-sm"
           />
           <span className="font-display text-xl font-black tracking-tight text-emerald-600">
             Fit<span className="text-emerald-400">Hire</span>

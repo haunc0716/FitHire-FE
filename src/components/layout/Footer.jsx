@@ -65,8 +65,11 @@ const Footer = () => {
         <div className="grid grid-cols-1 md:grid-cols-12 gap-16 mb-24">
           {/* Logo & Info */}
           <div className="md:col-span-4">
-            <Link to="/" className="font-display text-2xl font-bold tracking-tighter mb-8 block text-primary">
-              FITHIRE
+            <Link to="/" className="flex items-center gap-2.5 mb-4 group">
+              <img src="/logo 1.png" alt="FitHire logo" className="h-8 w-auto object-contain transition-transform duration-300 group-hover:scale-110" />
+              <span className="font-display text-xl font-black tracking-tight text-emerald-600">
+                Fit<span className="text-emerald-400">Hire</span>
+              </span>
             </Link>
             <p className="text-zinc-500 text-sm leading-relaxed max-w-xs">
               Nền tảng ứng dụng AI hàng đầu giúp kết nối nhân tài Gen-Z với các doanh nghiệp tiên phong.
