@@ -2,6 +2,13 @@ import React from 'react';
 import { motion, useScroll, useTransform } from 'framer-motion';
 import { Link } from 'react-router-dom';
 
+const heroMarqueeItems = [
+  'Uy tín',
+  'Chất lượng',
+  'Đồng hành',
+  'Định hướng nghề nghiệp',
+];
+
 const HeroSection = () => {
   const { scrollY } = useScroll();
   const y1 = useTransform(scrollY, [0, 500], [0, -40]);
@@ -58,15 +65,22 @@ const HeroSection = () => {
               </Link>
             </motion.div>
 
-            <motion.div variants={itemVariants} className="mt-16 pt-12 border-t border-stone-200 flex gap-12">
-              <div>
-                <p className="text-3xl font-bold text-stone-900">15,000+</p>
-                <p className="text-sm font-medium text-stone-400">Ứng viên thành công</p>
-              </div>
-              <div className="w-px h-12 bg-stone-200" />
-              <div>
-                <p className="text-3xl font-bold text-stone-900">98%</p>
-                <p className="text-sm font-medium text-stone-400">Tỷ lệ hài lòng</p>
+            <motion.div variants={itemVariants} className="mt-16 pt-10 border-t border-stone-200">
+              <div className="relative overflow-hidden [mask-image:linear-gradient(to_right,transparent,black_12%,black_88%,transparent)]">
+                <motion.div
+                  className="flex w-max items-center gap-3"
+                  animate={{ x: ['0%', '-50%'] }}
+                  transition={{ duration: 18, repeat: Infinity, ease: 'linear' }}
+                >
+                  {[...heroMarqueeItems, ...heroMarqueeItems].map((item, index) => (
+                    <React.Fragment key={`${item}-${index}`}>
+                      <span className={`rounded-full px-5 py-2.5 text-[11px] font-semibold uppercase tracking-[0.24em] ${index % heroMarqueeItems.length === 0 ? 'border border-emerald-100 bg-emerald-50 text-primary' : 'border border-stone-200 bg-white text-stone-500'}`}>
+                        {item}
+                      </span>
+                      <span className="text-emerald-300">•</span>
+                    </React.Fragment>
+                  ))}
+                </motion.div>
               </div>
             </motion.div>
           </div>
