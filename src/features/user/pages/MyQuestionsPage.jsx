@@ -1,12 +1,11 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
-  Plus, Edit2, Trash2, X, Save, Loader2, MessageSquareText,
+  Plus, Edit2, X, Save, Loader2, MessageSquareText,
   HelpCircle, Clock, CheckCircle2, Tag, Search, ChevronRight, MessageCircle, Send
 } from 'lucide-react';
 import {
   createMyQuestion,
-  deleteMyQuestion,
   getMyQuestionById,
   getMyQuestions,
   updateMyQuestion,
@@ -114,17 +113,6 @@ export default function MyQuestionsPage() {
     } finally { setSaving(false); }
   };
 
-  const handleDelete = async (q) => {
-    if (!window.confirm(`Bạn chắc chắn muốn xóa câu hỏi "${q.title}"?`)) return;
-    try {
-      await deleteMyQuestion(q.questionId);
-      await fetchItems();
-      showToast({ type: 'success', title: 'Đã xóa', message: 'Câu hỏi đã được xóa.' });
-    } catch (error) {
-      showToast({ type: 'error', title: 'Xóa thất bại', message: error?.message || 'Vui lòng thử lại sau.' });
-    }
-  };
-
   const openView = async (q) => {
     setViewing(q);
     setViewingLoading(true);
@@ -196,9 +184,9 @@ export default function MyQuestionsPage() {
                     <div className="flex flex-col md:flex-row md:items-start gap-4">
                       <div className="flex-1 min-w-0">
                         <div className="flex flex-wrap items-center gap-2 mb-2">
-                          <span className={`inline-flex items-center rounded-full border px-2.5 py-0.5 text-[11px] font-bold ${status.bg} ${status.text} ${status.ring}`}>{status.label}</span>
-                          {q.category && <span className="inline-flex items-center gap-1 rounded-full bg-stone-100 px-2.5 py-0.5 text-[11px] font-semibold text-stone-600"><Tag className="h-3 w-3" /> {q.category}</span>}
-                          {hasAnswers && <span className="inline-flex items-center gap-1 text-[11px] font-semibold text-emerald-600"><MessageCircle className="h-3 w-3" /> {q.answers.length} câu trả lời</span>}
+                          <span className={`inline-flex items-center rounded-full border px-2 py-0.5 text-[10px] font-semibold ${status.bg} ${status.text} ${status.ring}`}>{status.label}</span>
+                          {q.category && <span className="inline-flex items-center gap-1 rounded-full bg-stone-100 px-2 py-0.5 text-[10px] font-medium text-stone-600"><Tag className="h-2.5 w-2.5" /> {q.category}</span>}
+                          {hasAnswers && <span className="inline-flex items-center gap-1 text-[10px] font-medium text-emerald-600"><MessageCircle className="h-2.5 w-2.5" /> {q.answers.length} câu trả lời</span>}
                           <span className="text-[11px] text-stone-400">{formatDate(q.createdAt)}</span>
                         </div>
                         <h3 className="text-base font-bold text-stone-900 mb-1 line-clamp-2">{q.title}</h3>
@@ -206,10 +194,7 @@ export default function MyQuestionsPage() {
                       </div>
                       <div className="flex md:flex-col items-center gap-2 shrink-0">
                         <button onClick={() => openView(q)} className="inline-flex items-center gap-1 rounded-xl bg-emerald-50 px-3 py-2 text-sm font-bold text-emerald-700 hover:bg-emerald-100">Xem <ChevronRight className="h-4 w-4" /></button>
-                        <div className="flex gap-1">
-                          <button onClick={() => openEdit(q)} disabled={q.status !== 'PENDING'} className="rounded-xl border border-stone-200 p-2 text-stone-600 hover:bg-stone-50 disabled:opacity-40 disabled:cursor-not-allowed" title="Sửa"><Edit2 className="h-4 w-4" /></button>
-                          <button onClick={() => handleDelete(q)} className="rounded-xl border border-red-100 p-2 text-red-600 hover:bg-red-50" title="Xóa"><Trash2 className="h-4 w-4" /></button>
-                        </div>
+                        <button onClick={() => openEdit(q)} disabled={q.status !== 'PENDING'} className="rounded-xl border border-stone-200 p-2 text-stone-600 hover:bg-stone-50 disabled:opacity-40 disabled:cursor-not-allowed" title="Sửa"><Edit2 className="h-4 w-4" /></button>
                       </div>
                     </div>
                   </li>
@@ -273,10 +258,10 @@ export default function MyQuestionsPage() {
               </div>
               <div className="p-7 overflow-y-auto space-y-5">
                 <div className="flex flex-wrap items-center gap-2">
-                  <span className={`inline-flex items-center rounded-full border px-2.5 py-0.5 text-[11px] font-bold ${(STATUS_STYLES[viewing.status] ?? STATUS_STYLES.PENDING).bg} ${(STATUS_STYLES[viewing.status] ?? STATUS_STYLES.PENDING).text} ${(STATUS_STYLES[viewing.status] ?? STATUS_STYLES.PENDING).ring}`}>
+                  <span className={`inline-flex items-center rounded-full border px-2 py-0.5 text-[10px] font-semibold ${(STATUS_STYLES[viewing.status] ?? STATUS_STYLES.PENDING).bg} ${(STATUS_STYLES[viewing.status] ?? STATUS_STYLES.PENDING).text} ${(STATUS_STYLES[viewing.status] ?? STATUS_STYLES.PENDING).ring}`}>
                     {(STATUS_STYLES[viewing.status] ?? STATUS_STYLES.PENDING).label}
                   </span>
-                  {viewing.category && <span className="inline-flex items-center gap-1 rounded-full bg-stone-100 px-2.5 py-0.5 text-[11px] font-semibold text-stone-600"><Tag className="h-3 w-3" /> {viewing.category}</span>}
+                  {viewing.category && <span className="inline-flex items-center gap-1 rounded-full bg-stone-100 px-2 py-0.5 text-[10px] font-medium text-stone-600"><Tag className="h-2.5 w-2.5" /> {viewing.category}</span>}
                 </div>
                 <h3 className="text-2xl font-bold text-stone-900">{viewing.title}</h3>
                 <div className="rounded-2xl border border-stone-100 bg-stone-50/40 p-5">

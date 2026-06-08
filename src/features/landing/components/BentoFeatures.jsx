@@ -4,10 +4,10 @@ import { motion } from 'framer-motion';
 
 const BentoFeatures = () => {
   const secondaryFeatures = [
-    { icon: Gauge, title: 'Báo cáo siêu tốc', desc: 'Kết quả chỉ sau 60 giây' },
-    { icon: Users, title: 'Mạng lưới chuyên gia', desc: 'Kết nối 10K+ cố vấn' },
-    { icon: TrendingUp, title: 'Dữ liệu thực tế', desc: 'Cập nhật thị trường 24/7' },
-    { icon: ShieldCheck, title: 'Bảo mật tuyệt đối', desc: 'An toàn thông tin cá nhân' }
+    { icon: Gauge, title: 'Phản hồi rõ ràng', desc: 'Tóm tắt trực quan để người dùng dễ theo dõi cải thiện' },
+    { icon: Users, title: 'Định hướng chuyên môn', desc: 'Nội dung xây dựng theo hành trình phát triển nghề nghiệp' },
+    { icon: TrendingUp, title: 'Cập nhật liên tục', desc: 'Giao diện và trải nghiệm được tinh chỉnh thường xuyên' },
+    { icon: ShieldCheck, title: 'Bảo vệ dữ liệu', desc: 'Ưu tiên sự riêng tư và an toàn thông tin cá nhân' }
   ];
 
   return (
