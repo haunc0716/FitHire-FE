@@ -1,4 +1,4 @@
-import React, { Suspense, useEffect, useRef } from 'react';
+﻿import React, { Suspense, useEffect, useRef } from 'react';
 import { BrowserRouter as Router, Routes, Route, useLocation, useNavigate } from 'react-router-dom';
 const HomePage = React.lazy(() => import('./features/landing/pages/HomePage'));
 const FeaturesPage = React.lazy(() => import('./features/landing/pages/FeaturesPage'));
@@ -150,10 +150,15 @@ export default function App() {
                 <Route path="questions" element={<MyQuestionsPage />} />
               </Route>
               <Route path="/change-password" element={<ChangePasswordPage />} />
-              <Route path="/payments/return" element={<PayOSReturnPage />} />
-              <Route path="/payments/cancel" element={<PayOSReturnPage />} />
-              <Route path="/payments/success" element={<PayOSReturnPage />} />
             </Route>
+
+            {/* PayOS return/cancel/success: tach rieng de luon render duoc
+                ngay ca khi session vua het han. Trang PayOSReturnPage se tu
+                chuyen huong ve /login neu can. */}
+            <Route path="/payments/return" element={<PayOSReturnPage />} />
+            <Route path="/payments/cancel" element={<PayOSReturnPage />} />
+            <Route path="/payments/success" element={<PayOSReturnPage />} />
+
 
           </Routes>
         </Suspense>

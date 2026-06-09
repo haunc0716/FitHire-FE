@@ -132,6 +132,16 @@ export function fetchPaymentDetails(paymentId) {
   });
 }
 
+export function fetchPaymentByOrderCode(orderCode) {
+  const query = new URLSearchParams({ orderCode: String(orderCode) }).toString();
+  return requestJson(`/api/payments/by-order-code?${query}`, {
+    method: 'GET',
+    headers: {
+      ...buildAuthHeaders(),
+    },
+  });
+}
+
 export function reportPayment(paymentId) {
   return requestJson(`/api/payments/${paymentId}/report`, {
     method: 'POST',
