@@ -18,6 +18,25 @@
   body {
     @apply bg-warm-bg text-stone-900 font-body antialiased selection:bg-primary selection:text-white;
   }
+
+  /* Override deprecated/non-standard CSS values to silence browser warnings */
+  html {
+    -webkit-text-size-adjust: 100%;
+    text-size-adjust: 100%;
+  }
+
+  .line-clamp-1,
+  .line-clamp-2 {
+    -webkit-line-clamp: 1;
+    -webkit-box-orient: vertical;
+    display: -webkit-box;
+    overflow: hidden;
+    text-align: start;
+  }
+
+  .line-clamp-2 {
+    -webkit-line-clamp: 2;
+  }
 }
 
 @layer components {
