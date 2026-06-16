@@ -23,8 +23,32 @@ import {
   submitMockInterviewAnswer,
   transcribeMockInterviewVoice,
 } from "../services/userApi";
+import { useToast } from "../../../components/ui/ToastProvider";
+
+function isUsageExhaustedError(error) {
+  const message = error?.message?.toLowerCase?.() ?? "";
+  const code = error?.code?.toLowerCase?.() ?? "";
+
+  return (
+    error?.status === 403 ||
+    error?.status === 429 ||
+    code.includes("usage") ||
+    code.includes("quota") ||
+    code.includes("limit") ||
+    code.includes("entitlement") ||
+    message.includes("hết lượt") ||
+    message.includes("het luot") ||
+    message.includes("vượt giới hạn") ||
+    message.includes("vuot gioi han") ||
+    message.includes("giới hạn sử dụng") ||
+    message.includes("gioi han su dung") ||
+    message.includes("quota") ||
+    message.includes("usage limit")
+  );
+}
 
 export default function MockInterviewPage() {
+  const { showToast } = useToast();
   const [role, setRole] = useState("Frontend Developer");
   const [level, setLevel] = useState("Middle");
   const [jd, setJd] = useState("");
@@ -637,6 +661,14 @@ export default function MockInterviewPage() {
       }
     } catch (error) {
       console.error(error);
+      if (isUsageExhaustedError(error)) {
+        showToast({
+          type: "warning",
+          title: "Đã hết lượt sử dụng",
+          message:
+            "Bạn đã dùng hết lượt luyện phỏng vấn trong gói hiện tại. Vui lòng nâng cấp gói hoặc chờ lượt được làm mới để tiếp tục.",
+        });
+      }
       setVoiceError(getVoiceApiErrorMessage(error));
     } finally {
       setIsStartingInterview(false);
@@ -801,17 +833,11 @@ export default function MockInterviewPage() {
           </div>
 
           <div
-            role="tablist"
             aria-label="Điều hướng luyện tập phỏng vấn"
             className="inline-flex items-center rounded-2xl border border-emerald-100 bg-white p-1 shadow-sm"
           >
             <button
-              id="mock-interview-tab-config"
               type="button"
-              role="tab"
-              aria-selected={primaryView === "config"}
-              aria-controls="mock-interview-panel-config"
-              tabIndex={primaryView === "config" ? 0 : -1}
               onClick={() => setActiveTab("config")}
               className={`inline-flex items-center gap-2 rounded-xl px-4 py-2 text-sm font-bold transition-all ${
                 primaryView === "config"
@@ -822,12 +848,7 @@ export default function MockInterviewPage() {
               Phiên mới
             </button>
             <button
-              id="mock-interview-tab-history"
               type="button"
-              role="tab"
-              aria-selected={primaryView === "history"}
-              aria-controls="mock-interview-panel-history"
-              tabIndex={primaryView === "history" ? 0 : -1}
               onClick={() => setActiveTab("history")}
               className={`inline-flex items-center gap-2 rounded-xl px-4 py-2 text-sm font-bold transition-all ${
                 primaryView === "history"
@@ -844,9 +865,6 @@ export default function MockInterviewPage() {
         <AnimatePresence mode="wait">
           {isInterviewing ? (
             <motion.div
-              id="mock-interview-panel-config"
-              role="tabpanel"
-              aria-labelledby="mock-interview-tab-config"
               key="int"
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
@@ -977,9 +995,6 @@ export default function MockInterviewPage() {
             </motion.div>
           ) : activeTab === "result" && lastResult ? (
             <motion.div
-              id="mock-interview-panel-config"
-              role="tabpanel"
-              aria-labelledby="mock-interview-tab-config"
               key="result"
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
@@ -1136,9 +1151,6 @@ export default function MockInterviewPage() {
             </motion.div>
           ) : activeTab === "history" ? (
             <motion.div
-              id="mock-interview-panel-history"
-              role="tabpanel"
-              aria-labelledby="mock-interview-tab-history"
               key="hist"
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
@@ -1186,9 +1198,6 @@ export default function MockInterviewPage() {
             </motion.div>
           ) : activeTab === "historyDetail" && selectedHistory ? (
             <motion.div
-              id="mock-interview-panel-history"
-              role="tabpanel"
-              aria-labelledby="mock-interview-tab-history"
               key="histDetail"
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
@@ -1320,9 +1329,6 @@ export default function MockInterviewPage() {
             </motion.div>
           ) : (
             <motion.div
-              id="mock-interview-panel-config"
-              role="tabpanel"
-              aria-labelledby="mock-interview-tab-config"
               key="cfg"
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}

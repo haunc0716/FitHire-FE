@@ -14,6 +14,8 @@ import { fetchMyEntitlements, fetchMySubscriptions } from '../services/userApi';
 import { fetchPaymentHistory } from '../../pricing/services/subscriptionApi';
 import { useToast } from '../../../components/ui/ToastProvider';
 
+const SUBSCRIPTION_REFRESH_FLAG_KEY = 'fitHire_subscription_refresh_needed';
+
 const FEATURE_MAPPING = {
   CV_SCORING: {
     name: 'CV Scoring',
@@ -64,6 +66,8 @@ function resolveEntitlementDetails(item) {
   const mapped = FEATURE_MAPPING[code];
   const name = mapped?.name || String(code).replace(/_/g, ' ');
   const subtitle = mapped?.subtitle || 'Tính năng hệ thống';
+  const sourceSubscriptionCode = item?.sourceSubscriptionCode || item?.subscriptionCode || '';
+  const sourceSubscriptionName = item?.sourceSubscriptionName || item?.subscriptionName || '';
 
   const value = item?.value ?? item;
   const used = Number(value?.used ?? value?.consumed ?? value?.usage ?? value?.usedCount);
@@ -73,10 +77,60 @@ function resolveEntitlementDetails(item) {
   return {
     name,
     subtitle,
+    sourceSubscriptionCode,
+    sourceSubscriptionName,
     used: Number.isFinite(used) ? used : 0,
     limit: Number.isFinite(limit) ? limit : 0,
     isUnlimited,
   };
+}
+
+function getUsagePresentation(used, limit, isUnlimited) {
+  if (isUnlimited) {
+    return {
+      summary: 'Không giới hạn',
+      detail: 'Bạn có thể sử dụng tính năng này không giới hạn trong chu kỳ hiện tại.',
+      remaining: null,
+      progressPercent: 100,
+    };
+  }
+
+  const safeLimit = Number.isFinite(limit) ? Math.max(0, limit) : 0;
+  const safeUsed = Number.isFinite(used) ? Math.max(0, used) : 0;
+  const remaining = Math.max(0, safeLimit - safeUsed);
+
+  return {
+    summary: safeLimit > 0 ? `Còn ${remaining} lượt` : 'Chưa có lượt khả dụng',
+    detail: safeLimit > 0 ? `Tổng ${safeLimit} lượt • Đã dùng ${safeUsed} lượt` : 'Chưa có hạn mức khả dụng',
+    remaining,
+    progressPercent: safeLimit > 0 ? ((safeLimit - remaining) / safeLimit) * 100 : 0,
+  };
+}
+
+function getUsageBarLabel(sourceSubscriptionCode, sourceSubscriptionName, usagePresentation) {
+  const sourceLabel = getEntitlementSourceLabel(sourceSubscriptionCode, sourceSubscriptionName);
+
+  if (sourceSubscriptionCode === 'LUOT_LE' || /lượt lẻ/i.test(sourceSubscriptionName || '')) {
+    return {
+      sourceLabel,
+      helperText: 'Lượt đã mua thêm được tính riêng, không làm reset gói miễn phí.',
+    };
+  }
+
+  return {
+    sourceLabel,
+    helperText: usagePresentation.detail,
+  };
+}
+
+function getEntitlementSourceLabel(sourceSubscriptionCode, sourceSubscriptionName) {
+  const raw = sourceSubscriptionName || sourceSubscriptionCode || '';
+  if (!raw) return 'Gói hiện tại';
+  if (sourceSubscriptionCode === 'LUOT_LE' || /lượt lẻ/i.test(raw)) return 'Gói Lượt lẻ';
+  if (sourceSubscriptionCode === 'FREE' || /miễn phí|free/i.test(raw)) return 'Gói Miễn phí';
+  if (sourceSubscriptionCode === 'PLUS' || /plus/i.test(raw)) return 'Gói Plus';
+  if (sourceSubscriptionCode === 'PRO' || /pro/i.test(raw)) return 'Gói Pro';
+  return `Gói ${raw}`;
 }
 
 const formatAmount = (amount) => {
@@ -102,6 +156,75 @@ export default function EntitlementsPage() {
   const [payments, setPayments] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
   const [loadError, setLoadError] = useState('');
+
+  useEffect(() => {
+    let isMounted = true;
+    let timer = null;
+    let attempts = 0;
+
+    const hasRefreshFlag = () => {
+      try {
+        return sessionStorage.getItem(SUBSCRIPTION_REFRESH_FLAG_KEY) === '1';
+      } catch {
+        return false;
+      }
+    };
+
+    const clearRefreshFlag = () => {
+      try {
+        sessionStorage.removeItem(SUBSCRIPTION_REFRESH_FLAG_KEY);
+      } catch {
+        // ignore storage errors
+      }
+    };
+
+    const refreshSubscriptionState = async () => {
+      if (!isMounted) return;
+      try {
+        const [entitlementsPayload, subscriptionPayload] = await Promise.all([
+          fetchMyEntitlements(),
+          fetchMySubscriptions(),
+        ]);
+        if (!isMounted) return;
+
+        setEntitlements(normalizeEntitlements(entitlementsPayload));
+        const activeSubscription = resolveActiveSubscription(subscriptionPayload);
+        setActivePlan(activeSubscription);
+
+        if (activeSubscription) {
+          clearRefreshFlag();
+          return;
+        }
+      } catch {
+        // ignore and retry shortly
+      }
+
+      attempts += 1;
+      if (isMounted && attempts < 5 && hasRefreshFlag()) {
+        timer = window.setTimeout(refreshSubscriptionState, 1500);
+      } else {
+        clearRefreshFlag();
+      }
+    };
+
+    const handleSubscriptionUpdated = () => {
+      if (timer) window.clearTimeout(timer);
+      attempts = 0;
+      timer = window.setTimeout(refreshSubscriptionState, 500);
+    };
+
+    window.addEventListener('fitHireSubscriptionUpdated', handleSubscriptionUpdated);
+
+    if (hasRefreshFlag()) {
+      timer = window.setTimeout(refreshSubscriptionState, 500);
+    }
+
+    return () => {
+      isMounted = false;
+      if (timer) window.clearTimeout(timer);
+      window.removeEventListener('fitHireSubscriptionUpdated', handleSubscriptionUpdated);
+    };
+  }, []);
 
   useEffect(() => {
     let isMounted = true;
@@ -168,6 +291,12 @@ export default function EntitlementsPage() {
     return date.toLocaleDateString('vi-VN');
   }, [activePlan]);
 
+  const recentPayments = useMemo(() => {
+    return [...payments]
+      .sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime())
+      .slice(0, 5);
+  }, [payments]);
+
   return (
     <div className="mx-auto max-w-6xl space-y-8 p-6 font-sans lg:p-8">
       <div className="flex flex-col gap-1 pb-2">
@@ -215,25 +344,32 @@ export default function EntitlementsPage() {
                 ) : (
                   <div className="space-y-5">
                     {entitlements.map((item, index) => {
-                      const { name, subtitle, used, limit, isUnlimited } = resolveEntitlementDetails(item);
-                      const percent = isUnlimited ? 100 : limit > 0 ? (used / limit) * 100 : 0;
+                      const { name, subtitle, sourceSubscriptionCode, sourceSubscriptionName, used, limit, isUnlimited } = resolveEntitlementDetails(item);
+                      const usagePresentation = getUsagePresentation(used, limit, isUnlimited);
+                      const { sourceLabel, helperText } = getUsageBarLabel(
+                        sourceSubscriptionCode,
+                        sourceSubscriptionName,
+                        usagePresentation,
+                      );
 
                       return (
-                        <div key={`${name}-${index}`} className="space-y-2">
+                        <div key={`${name}-${sourceSubscriptionCode || index}-${index}`} className="space-y-2 rounded-xl border border-slate-100 p-4">
                           <div className="flex items-start justify-between">
                             <div>
                               <h4 className="text-sm font-bold text-slate-900">{name}</h4>
                               <p className="mt-0.5 text-xs text-slate-400">{subtitle}</p>
+                              <p className="mt-1 text-[11px] font-semibold uppercase tracking-wide text-slate-500">{sourceLabel}</p>
+                              <p className="mt-1 text-xs font-medium text-emerald-700">{helperText}</p>
                             </div>
-                            <span className="mt-0.5 text-xs font-semibold text-slate-700">
-                              {used} / {isUnlimited ? '∞' : limit}
+                            <span className="mt-0.5 text-right text-xs font-semibold text-slate-700">
+                              {usagePresentation.summary}
                             </span>
                           </div>
 
                           <div className="h-2.5 w-full overflow-hidden rounded-full bg-slate-100">
                             <div
                               className="h-full rounded-full bg-emerald-600 transition-all duration-500"
-                              style={{ width: `${Math.min(100, percent)}%` }}
+                              style={{ width: `${Math.min(100, usagePresentation.progressPercent)}%` }}
                             />
                           </div>
                         </div>
@@ -328,7 +464,7 @@ export default function EntitlementsPage() {
             <h3 className="text-lg font-bold text-slate-900">Lịch sử giao dịch</h3>
 
             <div className="overflow-hidden rounded-2xl border border-slate-100 bg-white shadow-sm">
-              {payments.length === 0 ? (
+              {recentPayments.length === 0 ? (
                 <div className="py-10 text-center text-sm text-slate-500">Chưa có lịch sử giao dịch thanh toán.</div>
               ) : (
                 <div className="overflow-x-auto">
@@ -344,7 +480,7 @@ export default function EntitlementsPage() {
                       </tr>
                     </thead>
                     <tbody className="divide-y divide-slate-50">
-                      {payments.map((p) => {
+                      {recentPayments.map((p) => {
                         const isSuccess = p.status === 'SUCCESS';
                         const isFreeItem = p.amount === 0;
 

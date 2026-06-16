@@ -1,6 +1,5 @@
 import React, { Suspense, useEffect, useState } from 'react';
-import { motion } from 'framer-motion';
-import { Sparkles, CreditCard, Clock, CheckCircle2, AlertCircle } from 'lucide-react';
+import { Sparkles } from 'lucide-react';
 import { fetchMySubscriptions } from '../../pricing/services/subscriptionApi';
 
 const PricingCards = React.lazy(() => import('../../pricing/components/PricingCards'));
@@ -17,26 +16,29 @@ function resolveTierLevel(sub) {
 }
 
 export default function UserPricingPage() {
-  const [subscriptions, setSubscriptions] = useState([]);
-  const [currentSubscription, setCurrentSubscription] = useState(null);
-  const [loading, setLoading] = useState(true);
+  const [, setSubscriptions] = useState([]);
+  const [, setCurrentSubscription] = useState(null);
+  const [, setLoading] = useState(true);
 
   useEffect(() => {
     let mounted = true;
+
     fetchMySubscriptions()
       .then((data) => {
         if (mounted && data?.userSubscriptions) {
-          // Lọc ra những gói đang ACTIVE và chưa hết hạn
           const now = Date.now();
           const activeSubs = data.userSubscriptions.filter((item) => {
             if (item?.status !== 'ACTIVE') return false;
             if (!item?.endDate) return true;
             return new Date(item.endDate).getTime() > now;
           });
+
           setSubscriptions(activeSubs);
+
           const fallbackCurrent = [...activeSubs]
             .filter((item) => resolveTierLevel(item) !== null)
             .sort((a, b) => (resolveTierLevel(b) ?? -1) - (resolveTierLevel(a) ?? -1))[0] ?? null;
+
           setCurrentSubscription(data?.currentSubscription ?? fallbackCurrent);
         }
       })
@@ -51,36 +53,32 @@ export default function UserPricingPage() {
   }, []);
 
   return (
-    <div className="relative mx-auto max-w-6xl space-y-8 p-6 lg:p-8">
-      
-      {/* Background Bubbles */}
-      <div className="absolute top-0 left-0 h-[420px] w-[420px] -translate-x-1/2 -translate-y-1/4 rounded-full bg-emerald-200/40 blur-[110px] -z-10 pointer-events-none" />
-      <div className="absolute top-40 right-0 h-[340px] w-[340px] translate-x-1/3 rounded-full bg-sky-200/40 blur-[90px] -z-10 pointer-events-none" />
-      <div className="absolute bottom-0 left-1/3 h-[260px] w-[260px] translate-y-1/3 rounded-full bg-rose-200/30 blur-[90px] -z-10 pointer-events-none" />
+    <div className="relative left-1/2 right-1/2 w-screen -translate-x-1/2 overflow-x-clip overflow-y-hidden bg-gradient-to-br from-emerald-50 via-white to-sky-50">
+      <div className="pointer-events-none absolute top-0 left-0 h-[420px] w-[420px] -translate-x-1/2 -translate-y-1/4 rounded-full bg-emerald-200/40 blur-[110px]" />
+      <div className="pointer-events-none absolute top-40 right-0 h-[340px] w-[340px] translate-x-1/3 rounded-full bg-sky-200/40 blur-[90px]" />
+      <div className="pointer-events-none absolute bottom-0 left-1/3 h-[260px] w-[260px] translate-y-1/3 rounded-full bg-rose-200/30 blur-[90px]" />
 
-      {/* 1. Header */}
-      <div className="relative z-10 flex flex-col gap-3 pb-2">
-        <h1 className="text-3xl font-semibold tracking-tight text-slate-900">
-          Gói Dịch vụ & Thanh toán
-        </h1>
-        <p className="text-base text-slate-500 max-w-2xl leading-relaxed">
-          Nâng cấp tài khoản để mở khóa giới hạn phân tích CV, mock interview và các tính năng AI chuyên sâu.
-        </p>
+      <div className="relative z-10 mx-auto max-w-6xl space-y-8 px-6 py-8 lg:px-8 lg:py-10">
+        <div className="flex flex-col gap-3 pb-2">
+          <h1 className="text-3xl font-semibold tracking-tight text-slate-900">
+            Gói Dịch vụ & Thanh toán
+          </h1>
+          <p className="max-w-2xl text-base leading-relaxed text-slate-500">
+            Nâng cấp tài khoản để mở khóa giới hạn phân tích CV, mock interview và các tính năng AI chuyên sâu.
+          </p>
+        </div>
+
+        <div className="pt-4">
+          <h2 className="mb-6 flex items-center gap-2 text-xl font-bold text-slate-900">
+            <Sparkles className="h-5 w-5 text-amber-500" />
+            Bảng giá
+          </h2>
+
+          <Suspense fallback={<div className="h-[420px] rounded-2xl border border-stone-100 bg-stone-50 animate-pulse" />}>
+            <PricingCards />
+          </Suspense>
+        </div>
       </div>
-
-
-      {/* 3. Pricing Cards from Landing */}
-      <div className="relative z-10 pt-4">
-        <h2 className="text-xl font-bold text-slate-900 mb-6 flex items-center gap-2">
-          <Sparkles className="h-5 w-5 text-amber-500" />
-          Bảng giá
-        </h2>
-        {/* Reusing the beautiful component from the landing page */}
-        <Suspense fallback={<div className="h-[420px] rounded-2xl border border-stone-100 bg-stone-50 animate-pulse" />}>
-          <PricingCards />
-        </Suspense>
-      </div>
-
     </div>
   );
 }

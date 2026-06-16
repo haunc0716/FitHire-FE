@@ -1,5 +1,5 @@
 import React, { useEffect, useRef, useState } from 'react';
-import { useNavigate, useSearchParams } from 'react-router-dom';
+import { useSearchParams } from 'react-router-dom';
 import { CheckCircle2, XCircle, Loader2 } from 'lucide-react';
 import { useToast } from '../../../components/ui/ToastProvider';
 import { fetchPaymentByOrderCode, fetchPaymentDetails } from '../../pricing/services/subscriptionApi';
@@ -50,10 +50,25 @@ const defaultMessages = {
 const MAX_POLL_ATTEMPTS = 12; // 12 * 2s = 24s
 const POLL_INTERVAL_MS = 2000;
 const HARD_REDIRECT_DELAY_MS = 15000; // fallback navigate sau 15s neu poll khong resolve
+const FINAL_STATUS_REDIRECT_DELAY_MS = 150;
+
+function hardRedirect(path) {
+  if (!path) return;
+  window.location.replace(path);
+}
+
+function notifySubscriptionRefresh(status) {
+  if (!['SUCCESS', 'PAID'].includes(status)) return;
+  try {
+    sessionStorage.setItem('fitHire_subscription_refresh_needed', '1');
+  } catch {
+    // ignore storage errors
+  }
+  window.dispatchEvent(new Event('fitHireSubscriptionUpdated'));
+}
 
 export default function PayOSReturnPage() {
   const [searchParams] = useSearchParams();
-  const navigate = useNavigate();
   const { showToast } = useToast();
 
   const statusParam = (searchParams.get('status') || searchParams.get('code') || '').toUpperCase();
@@ -71,9 +86,9 @@ export default function PayOSReturnPage() {
     const session = getAuthSession();
     if (!isSessionValid(session)) {
       const returnUrl = `${window.location.pathname}${window.location.search}`;
-      navigate(`/login?returnUrl=${encodeURIComponent(returnUrl)}`, { replace: true });
+      hardRedirect(`/login?returnUrl=${encodeURIComponent(returnUrl)}`);
     }
-  }, [navigate]);
+  }, []);
 
   // 2) Show toast mot lan khi vao trang
   useEffect(() => {
@@ -140,13 +155,14 @@ export default function PayOSReturnPage() {
     if (!['SUCCESS', 'PAID', 'CANCELLED', 'EXPIRED', 'FAILED'].includes(resolvedStatus)) return;
 
     const destination = destinationByStatus[resolvedStatus] ?? '/user/payments';
-    const delay = resolvedStatus === statusParam ? 800 : 0; // neu trang thai tu URL khop, cho toast render; neu tu BE, redirect luon
-    hasNavigatedRef.current = true;
+    const delay = resolvedStatus === statusParam ? FINAL_STATUS_REDIRECT_DELAY_MS : 0;
     const timer = window.setTimeout(() => {
-      navigate(destination, { replace: true });
+      hasNavigatedRef.current = true;
+      notifySubscriptionRefresh(resolvedStatus);
+      hardRedirect(destination);
     }, delay);
     return () => window.clearTimeout(timer);
-  }, [resolvedStatus, navigate, statusParam]);
+  }, [resolvedStatus, statusParam]);
 
   // 5) Fallback: neu qua lau ma van pending (BE cham / webhook khong den / user F5)
   //    thi van redirect de tranh user bi "kep" o trang nay.
@@ -155,11 +171,12 @@ export default function PayOSReturnPage() {
       if (!hasNavigatedRef.current) {
         hasNavigatedRef.current = true;
         const destination = destinationByStatus[resolvedStatus] ?? '/user/payments';
-        navigate(destination, { replace: true });
+        notifySubscriptionRefresh(resolvedStatus);
+        hardRedirect(destination);
       }
     }, HARD_REDIRECT_DELAY_MS);
     return () => window.clearTimeout(fallback);
-  }, [navigate, resolvedStatus]);
+  }, [resolvedStatus]);
 
   const isSuccess = resolvedStatus === 'PAID' || resolvedStatus === 'SUCCESS';
   const isCancelled = resolvedStatus === 'CANCELLED' || resolvedStatus === 'EXPIRED';
