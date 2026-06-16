@@ -23,8 +23,32 @@ import {
   submitMockInterviewAnswer,
   transcribeMockInterviewVoice,
 } from "../services/userApi";
+import { useToast } from "../../../components/ui/ToastProvider";
+
+function isUsageExhaustedError(error) {
+  const message = error?.message?.toLowerCase?.() ?? "";
+  const code = error?.code?.toLowerCase?.() ?? "";
+
+  return (
+    error?.status === 403 ||
+    error?.status === 429 ||
+    code.includes("usage") ||
+    code.includes("quota") ||
+    code.includes("limit") ||
+    code.includes("entitlement") ||
+    message.includes("hết lượt") ||
+    message.includes("het luot") ||
+    message.includes("vượt giới hạn") ||
+    message.includes("vuot gioi han") ||
+    message.includes("giới hạn sử dụng") ||
+    message.includes("gioi han su dung") ||
+    message.includes("quota") ||
+    message.includes("usage limit")
+  );
+}
 
 export default function MockInterviewPage() {
+  const { showToast } = useToast();
   const [role, setRole] = useState("Frontend Developer");
   const [level, setLevel] = useState("Middle");
   const [jd, setJd] = useState("");
@@ -637,6 +661,14 @@ export default function MockInterviewPage() {
       }
     } catch (error) {
       console.error(error);
+      if (isUsageExhaustedError(error)) {
+        showToast({
+          type: "warning",
+          title: "Đã hết lượt sử dụng",
+          message:
+            "Bạn đã dùng hết lượt luyện phỏng vấn trong gói hiện tại. Vui lòng nâng cấp gói hoặc chờ lượt được làm mới để tiếp tục.",
+        });
+      }
       setVoiceError(getVoiceApiErrorMessage(error));
     } finally {
       setIsStartingInterview(false);

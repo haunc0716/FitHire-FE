@@ -5,7 +5,6 @@ import {
   X,
   LogOut,
   ChevronDown,
-  Bell,
   MessageSquareText,
   MessageCircleQuestion,
   UserCircle2,
@@ -48,15 +47,27 @@ const CULTURE_BADGES = {
   HIERARCHY: { label: 'Thứ bậc', color: 'bg-rose-100 text-rose-700 border-rose-200' }
 };
 
-const TIER_FALLBACK = { FREE: 0, PLUS: 1, PRO: 2 };
+function resolveHeaderPlanLabel(snapshot) {
+  const now = Date.now();
 
-function resolveTierLevel(sub) {
-  if (sub?.tierLevel !== null && sub?.tierLevel !== undefined && !Number.isNaN(Number(sub.tierLevel))) {
-    return Number(sub.tierLevel);
+  const resolvedActiveSubscription = [...(snapshot?.userSubscriptions ?? snapshot?.items ?? [])]
+    .filter((item) => item?.status === 'ACTIVE')
+    .sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime())
+    .find((item) => {
+      if (!item?.endDate) return true;
+      return new Date(item.endDate).getTime() > now;
+    }) ?? null;
+
+  const activeSubscription = resolvedActiveSubscription;
+  const code = activeSubscription?.subscriptionCode || '';
+  const name = activeSubscription?.subscriptionName || '';
+  const rawLabel = name || code || 'Lượt lẻ';
+
+  if (rawLabel === 'Lượt lẻ' || code === 'LUOT_LE') {
+    return 'LƯỢT LẺ';
   }
-  const code = sub?.subscriptionCode;
-  if (!code) return null;
-  return Object.prototype.hasOwnProperty.call(TIER_FALLBACK, code) ? TIER_FALLBACK[code] : null;
+
+  return rawLabel ? String(rawLabel).toUpperCase() : 'FREE';
 }
 
 export default function UserHeader() {
@@ -74,6 +85,10 @@ export default function UserHeader() {
   const [culturalFit, setCulturalFit] = useState(localStorage.getItem('fitHire_culturalFit'));
   
   const headerRef = useRef(null);
+
+  const syncSubscriptionLabel = useCallback((snapshot) => {
+    setSubscriptionLabel(resolveHeaderPlanLabel(snapshot));
+  }, []);
 
   useEffect(() => {
     const handleUpdate = () => {
@@ -115,29 +130,86 @@ export default function UserHeader() {
         }
 
         if (subscriptionsResult.status === 'fulfilled') {
-          const snapshot = subscriptionsResult.value;
-          const now = Date.now();
-
-          const fallbackCurrent = [...(snapshot?.userSubscriptions ?? [])]
-            .filter((item) => item?.status === 'ACTIVE')
-            .filter((item) => {
-              if (!item?.endDate) return true;
-              return new Date(item.endDate).getTime() > now;
-            })
-            .filter((item) => resolveTierLevel(item) !== null)
-            .sort((a, b) => (resolveTierLevel(b) ?? -1) - (resolveTierLevel(a) ?? -1))[0] ?? null;
-
-          const activeSubscription = snapshot?.currentSubscription ?? fallbackCurrent;
-          const currentPlan = activeSubscription?.subscriptionName || activeSubscription?.subscriptionCode;
-          setSubscriptionLabel(currentPlan ? String(currentPlan).toUpperCase() : 'FREE');
+          syncSubscriptionLabel(subscriptionsResult.value);
         }
       })
       .catch(() => {});
-  }, [session?.accessToken]);
+  }, [session?.accessToken, syncSubscriptionLabel]);
 
   useEffect(() => {
     refreshHeaderData();
   }, [refreshHeaderData]);
+
+  useEffect(() => {
+    if (!session?.accessToken) return undefined;
+
+    let cancelled = false;
+    let timer = null;
+    let attempts = 0;
+
+    const clearRefreshFlag = () => {
+      try {
+        sessionStorage.removeItem('fitHire_subscription_refresh_needed');
+      } catch {
+        // ignore storage errors
+      }
+    };
+
+    const hasRefreshFlag = () => {
+      try {
+        return sessionStorage.getItem('fitHire_subscription_refresh_needed') === '1';
+      } catch {
+        return false;
+      }
+    };
+
+    const pollSubscription = async () => {
+      if (cancelled) return;
+      try {
+        const snapshot = await fetchMySubscriptions();
+        if (cancelled) return;
+        syncSubscriptionLabel(snapshot);
+
+        const hasActivePlan = Boolean(snapshot?.currentSubscription)
+          || (snapshot?.userSubscriptions ?? []).some((item) => item?.status === 'ACTIVE');
+
+        if (hasActivePlan) {
+          clearRefreshFlag();
+          return;
+        }
+      } catch {
+        // ignore fetch errors and retry shortly
+      }
+
+      attempts += 1;
+      if (!cancelled && attempts < 5 && hasRefreshFlag()) {
+        timer = window.setTimeout(pollSubscription, 1500);
+      } else {
+        clearRefreshFlag();
+      }
+    };
+
+    const handleSubscriptionUpdated = () => {
+      refreshHeaderData();
+      if (hasRefreshFlag()) {
+        attempts = 0;
+        if (timer) window.clearTimeout(timer);
+        timer = window.setTimeout(pollSubscription, 600);
+      }
+    };
+
+    window.addEventListener('fitHireSubscriptionUpdated', handleSubscriptionUpdated);
+
+    if (hasRefreshFlag()) {
+      timer = window.setTimeout(pollSubscription, 600);
+    }
+
+    return () => {
+      cancelled = true;
+      if (timer) window.clearTimeout(timer);
+      window.removeEventListener('fitHireSubscriptionUpdated', handleSubscriptionUpdated);
+    };
+  }, [refreshHeaderData, session?.accessToken, syncSubscriptionLabel]);
 
   useEffect(() => {
     setAvatarLoadError(false);
@@ -243,13 +315,6 @@ export default function UserHeader() {
           {/* 2. Right Actions */}
           <div className="flex items-center gap-4 ml-auto">
             
-            {/* Action Icons (Desktop) */}
-            <div className="hidden md:flex items-center border-r border-stone-200 pr-5 mr-2">
-              <button className="flex h-10 w-10 items-center justify-center rounded-full text-stone-600 hover:bg-stone-100 transition-colors">
-                <Bell className="h-5 w-5" />
-              </button>
-            </div>
-
             {/* User Avatar Dropdown */}
             <div 
               className="relative hidden md:block"

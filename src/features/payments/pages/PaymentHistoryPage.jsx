@@ -141,7 +141,6 @@ const PaymentHistoryPage = () => {
               <table className="w-full text-left border-collapse">
                 <thead>
                   <tr className="border-b border-stone-50">
-                    <th className="px-6 py-5 text-[11px] font-black uppercase tracking-[0.1em] text-stone-400">ID</th>
                     <th className="px-6 py-5 text-[11px] font-black uppercase tracking-[0.1em] text-stone-400">Gói dịch vụ</th>
                     <th className="px-6 py-5 text-[11px] font-black uppercase tracking-[0.1em] text-stone-400">Số tiền</th>
                     <th className="px-6 py-5 text-[11px] font-black uppercase tracking-[0.1em] text-stone-400">Trạng thái</th>
@@ -158,7 +157,6 @@ const PaymentHistoryPage = () => {
 
                     return (
                       <tr key={payment.id} className="group hover:bg-stone-50/30 transition-colors">
-                        <td className="px-6 py-6"><span className="text-sm font-bold text-stone-900 leading-tight">{payment.id}</span></td>
                         <td className="px-6 py-6"><span className="text-sm font-bold text-stone-700">{payment.planName || 'Gói Premium'}</span></td>
                         <td className="px-6 py-6"><span className="text-sm font-bold text-stone-900">{formatAmount(payment.amount)}</span></td>
                         <td className="px-6 py-6"><StatusBadge status={payment.status} /></td>
