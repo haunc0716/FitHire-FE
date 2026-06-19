@@ -91,6 +91,13 @@ export function fetchMyProfile() {
   });
 }
 
+export function fetchMyCulturalFitResult() {
+  return requestJson('/api/assessments/me/result', {
+    method: 'GET',
+    headers: buildAuthHeaders(),
+  });
+}
+
 export function updateMyProfile({ fullName, avatarUrl }) {
   return requestJson('/api/users/me', {
     method: 'PUT',

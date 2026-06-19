@@ -19,6 +19,7 @@ import {
 import { fetchAssessmentQuestions, submitAssessment } from '../services/assessmentApi';
 import { fetchMyProfile } from '../services/userApi';
 import { useToast } from '../../../components/ui/ToastProvider';
+import { fetchMyCulturalFitResult } from '../services/userApi';
 
 const CULTURE_DESCRIPTIONS = {
   CLAN: {
@@ -57,22 +58,54 @@ export default function CulturalFitPage() {
   const [answers, setAnswers] = useState([]); // Array of { questionId, selectedOptionId }
   const [isLoading, setIsLoading] = useState(false);
   const [result, setResult] = useState(null);
+  const RESULT_CACHE_KEY = 'fitHire_culturalFit_result';
   const hasFreeCvReward = Boolean(profile?.freeCvScansGranted);
   const freeCvBalance = Number(profile?.freeCvScansBalance ?? 0);
 
   useEffect(() => {
-    fetchMyProfile()
-      .then(setProfile)
+    let mounted = true;
+
+    Promise.allSettled([fetchMyProfile(), fetchMyCulturalFitResult()])
+      .then(([profileResult, resultResult]) => {
+        if (!mounted) return;
+
+        if (profileResult.status === 'fulfilled') {
+          setProfile(profileResult.value);
+        }
+
+        if (resultResult.status === 'fulfilled' && resultResult.value) {
+          setResult(resultResult.value);
+          setStep('result');
+          return;
+        }
+
+        try {
+          const cached = localStorage.getItem(RESULT_CACHE_KEY);
+          if (cached) {
+            setResult(JSON.parse(cached));
+            setStep('result');
+            return;
+          }
+        } catch (_) {
+          // ignore
+        }
+
+        if (profileResult.status === 'fulfilled' && profileResult.value?.culturalFitCompleted) {
+          setStep('welcome');
+        }
+      })
       .catch(() => null);
+
+    return () => {
+      mounted = false;
+    };
   }, []);
 
   const handleStart = async () => {
     setIsLoading(true);
     try {
-      if (profile?.culturalFitCompleted) {
-        setStep('result');
-        return;
-      }
+      setCurrentQuestionIndex(0);
+      setAnswers([]);
       const data = await fetchAssessmentQuestions();
       setQuestions(data);
       setStep('assessment');
@@ -116,12 +149,35 @@ export default function CulturalFitPage() {
       const submitData = answers.filter(a => a !== undefined);
       const res = await submitAssessment(submitData);
       setResult(res);
-      if (res.primaryCulture) {
-        localStorage.setItem('fitHire_culturalFit', res.primaryCulture);
+
+      // cache để khi user thoát ra/vào lại vẫn giữ kết quả
+      try {
+        localStorage.setItem(RESULT_CACHE_KEY, JSON.stringify(res));
+      } catch (_) {
+        // ignore
+      }
+
+      const primaryCulture = res?.primaryCulture ?? res?.resultPrimary;
+      if (primaryCulture) {
+        localStorage.setItem('fitHire_culturalFit', primaryCulture);
         window.dispatchEvent(new Event('culturalFitUpdated'));
       }
       if (profile) {
-        setProfile((prev) => prev ? { ...prev, culturalFitCompleted: true, freeCvScansGranted: true, freeCvScansBalance: 2 } : prev);
+        setProfile((prev) => {
+          if (!prev) return prev;
+
+          // Nếu backend đã award 1 lần bằng cờ culturalFitRewarded,
+          // thì FE chỉ nên cập nhật completed; tránh set cứng quà tặng lần 2.
+          return {
+            ...prev,
+            culturalFitCompleted: true,
+            primaryCulture: primaryCulture ?? prev.primaryCulture,
+            ...(prev?.freeCvScansGranted ? null : {
+              freeCvScansGranted: true,
+              freeCvScansBalance: 2
+            })
+          };
+        });
       }
       setStep('result');
       showToast({
@@ -153,6 +209,25 @@ export default function CulturalFitPage() {
           <div className="mx-auto mt-4 max-w-2xl rounded-2xl border border-emerald-100 bg-emerald-50 px-5 py-4 text-sm text-emerald-800">
             Bạn đã hoàn thành bài đánh giá này.
             {hasFreeCvReward ? ` Đã nhận 2 lượt quét CV miễn phí, còn ${freeCvBalance} lượt.` : ' Bạn sẽ nhận 2 lượt quét CV miễn phí sau khi hoàn thành.'}
+          </div>
+        )}
+        {result && (
+          <div className="mx-auto mt-4 max-w-2xl rounded-3xl border border-slate-200 bg-white p-5 text-left shadow-sm">
+            <p className="text-xs font-bold uppercase tracking-[0.2em] text-emerald-600">Kết quả gần nhất</p>
+            <div className="mt-3 grid gap-3 md:grid-cols-2">
+              <div className="rounded-2xl bg-slate-50 p-4">
+                <div className="text-xs font-bold uppercase tracking-wide text-slate-500">Primary</div>
+                <div className="mt-1 text-lg font-black text-slate-900">
+                  {CULTURE_DESCRIPTIONS[result?.primaryCulture ?? result?.resultPrimary]?.title ?? result?.primaryCulture ?? result?.resultPrimary ?? '-'}
+                </div>
+              </div>
+              <div className="rounded-2xl bg-slate-50 p-4">
+                <div className="text-xs font-bold uppercase tracking-wide text-slate-500">Secondary</div>
+                <div className="mt-1 text-lg font-black text-slate-900">
+                  {CULTURE_DESCRIPTIONS[result?.secondaryCulture ?? result?.resultSecondary]?.title ?? result?.secondaryCulture ?? result?.resultSecondary ?? (result?.hybridProfile ? '-' : '—')}
+                </div>
+              </div>
+            </div>
           </div>
         )}
         <p className="text-xl text-slate-600 max-w-2xl mx-auto leading-relaxed">
@@ -295,47 +370,215 @@ export default function CulturalFitPage() {
   };
 
   const renderResult = () => {
+    // BE/FE có thể đang có chênh lệch field name theo version (primaryCulture vs resultPrimary, hybrid vs hybridProfile)
+    const primaryCulture = result?.primaryCulture ?? result?.resultPrimary;
+    const secondaryCulture = result?.secondaryCulture ?? result?.resultSecondary;
+    const hybrid = result?.hybrid ?? result?.hybridProfile;
+
+    // Nếu chưa có result trong state (do cache chưa kịp load), tránh hiển thị '-' quá sớm.
+    if (!result) {
+      // fallback: thử đọc cache ngay lập tức (trường hợp state chưa kịp cập nhật)
+      try {
+        const cached = localStorage.getItem(RESULT_CACHE_KEY);
+        if (cached) {
+          const parsed = JSON.parse(cached);
+          const primaryCulture = parsed?.primaryCulture ?? parsed?.resultPrimary;
+          const secondaryCulture = parsed?.secondaryCulture ?? parsed?.resultSecondary;
+          const hybrid = parsed?.hybrid ?? parsed?.hybridProfile;
+
+          const primaryMeta = primaryCulture ? CULTURE_DESCRIPTIONS[primaryCulture] : null;
+          const secondaryMeta = secondaryCulture ? CULTURE_DESCRIPTIONS[secondaryCulture] : null;
+
+          return (
+            <div className="max-w-2xl mx-auto py-8 px-3">
+              <div className="bg-white rounded-[28px] border border-slate-100 shadow-xl overflow-hidden">
+                <div className="bg-slate-900 p-8 text-center text-white relative">
+                  <div className="absolute top-0 right-0 p-8 opacity-10">
+                    <Award className="h-40 w-40" />
+                  </div>
+                  <div className="h-16 w-16 bg-emerald-500 rounded-2xl flex items-center justify-center mx-auto mb-5 shadow-lg shadow-emerald-500/20 rotate-3">
+                    <BadgeCheck className="h-10 w-10 text-white" />
+                  </div>
+                  <p className="text-emerald-400 font-bold uppercase tracking-[0.2em] text-sm mb-4">Hoàn thành đánh giá</p>
+                  <h2 className="text-3xl font-black mb-5">Xin chúc mừng!</h2>
+                  <p className="text-slate-400 text-lg max-w-xl mx-auto leading-relaxed">
+                    Bạn đã hoàn thành bài đánh giá văn hóa doanh nghiệp. Kết quả đã được ghi lại hệ thống để giúp chúng tôi gợi ý những công việc phù hợp nhất với bạn.
+                  </p>
+                </div>
+
+                <div className="p-5 bg-white space-y-5">
+                  <div className="bg-slate-50 border border-slate-100 rounded-2xl p-5">
+                    <h3 className="text-slate-900 font-bold text-base">Kết quả của bạn</h3>
+                    <p className="text-slate-600 mt-1">
+                      {hybrid && secondaryCulture
+                        ? 'Hồ sơ lai (Hybrid) - nổi bật ở cả hai nhóm văn hóa'
+                        : 'Nhóm văn hóa nổi bật của bạn'}
+                    </p>
+
+                    <div className="mt-3 grid grid-cols-1 md:grid-cols-2 gap-3">
+                      <div
+                        className={`rounded-2xl p-4 border ${primaryMeta?.color === 'emerald' ? 'border-emerald-200 bg-emerald-50' : primaryMeta?.color === 'amber' ? 'border-amber-200 bg-amber-50' : primaryMeta?.color === 'blue' ? 'border-blue-200 bg-blue-50' : primaryMeta?.color === 'rose' ? 'border-rose-200 bg-rose-50' : 'border-slate-200 bg-white'}`}
+                      >
+                        <div className="text-sm font-bold text-slate-600 uppercase tracking-wide">Primary</div>
+                        <div className="font-black text-slate-900 text-lg mt-1">{primaryMeta?.title ?? primaryCulture ?? '-'}</div>
+                        <div className="text-slate-600 text-sm mt-2">{primaryMeta?.desc ?? ''}</div>
+                      </div>
+
+                      <div
+                        className={`rounded-2xl p-4 border ${secondaryMeta?.color === 'emerald' ? 'border-emerald-200 bg-emerald-50' : secondaryMeta?.color === 'amber' ? 'border-amber-200 bg-amber-50' : secondaryMeta?.color === 'blue' ? 'border-blue-200 bg-blue-50' : secondaryMeta?.color === 'rose' ? 'border-rose-200 bg-rose-50' : 'border-slate-200 bg-white'}`}
+                      >
+                        <div className="text-sm font-bold text-slate-600 uppercase tracking-wide">Secondary</div>
+                        <div className="font-black text-slate-900 text-lg mt-1">{secondaryMeta?.title ?? (secondaryCulture ?? (hybrid ? '-' : '—'))}</div>
+                        <div className="text-slate-600 text-sm mt-2">{secondaryMeta?.desc ?? ''}</div>
+                      </div>
+                    </div>
+                  </div>
+
+                  <div className="bg-emerald-50 border border-emerald-100 rounded-2xl p-5 flex items-start gap-3">
+                    <div className="h-9 w-9 bg-emerald-100 text-emerald-600 rounded-xl flex items-center justify-center shrink-0">
+                      <Zap className="h-5 w-5" />
+                    </div>
+                    <div>
+                      <h3 className="font-bold text-emerald-900 text-base">Quà tặng hoàn thành</h3>
+                      {hasFreeCvReward ? (
+                        <p className="text-emerald-800 mt-1">
+                          Chúng tôi đã tặng bạn <strong>2 lượt quét CV miễn phí</strong> vào tài khoản. Hãy sử dụng chúng ngay để tối ưu hóa hồ sơ của mình!
+                        </p>
+                      ) : (
+                        <p className="text-emerald-800 mt-1">
+                          Bạn đã hoàn thành bài đánh giá. Lần này hệ thống không tặng thêm lượt quét CV (vì bạn đã nhận trước đó).
+                        </p>
+                      )}
+                    </div>
+                  </div>
+
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                    <button
+                      onClick={() => navigate('/user/cv-jd')}
+                      className="flex items-center justify-center gap-2 p-3.5 rounded-xl bg-slate-900 text-white font-bold hover:bg-slate-800 transition-all shadow-sm font-display text-base"
+                    >
+                      Sử dụng lượt quét ngay
+                      <ArrowRight className="h-5 w-5" />
+                    </button>
+                    <button
+                      onClick={handleStart}
+                      className="flex items-center justify-center gap-2 p-3.5 rounded-xl border border-emerald-200 bg-emerald-50 text-emerald-700 font-bold hover:bg-emerald-100 transition-all font-display text-base"
+                    >
+                      <RefreshCw className="h-5 w-5" />
+                      Làm lại bài đánh giá
+                    </button>
+                    <button
+                      onClick={() => setStep('welcome')}
+                      className="flex items-center justify-center gap-2 p-3.5 rounded-xl border border-slate-200 text-slate-600 font-bold hover:bg-slate-50 transition-all font-display"
+                    >
+                      <RefreshCw className="h-5 w-5" />
+                      Xem lại giới thiệu
+                    </button>
+                  </div>
+                </div>
+              </div>
+            </div>
+          );
+        }
+      } catch (_) {
+        // ignore
+      }
+
+      return (
+        <div className="max-w-2xl mx-auto py-8 px-3">
+          <div className="bg-white rounded-[28px] border border-slate-100 shadow-xl overflow-hidden">
+            <div className="bg-slate-900 p-8 text-center text-white relative">
+              <div className="h-16 w-16 bg-emerald-500 rounded-2xl flex items-center justify-center mx-auto mb-5 shadow-lg shadow-emerald-500/20 rotate-3" />
+              <p className="text-emerald-400 font-bold uppercase tracking-[0.2em] text-sm mb-4">
+                Đang tải kết quả
+              </p>
+              <h2 className="text-3xl font-black mb-5">Xin chúc mừng!</h2>
+            </div>
+            <div className="p-6 text-center text-slate-600">Vui lòng đợi giây lát...</div>
+          </div>
+        </div>
+      );
+    }
+
+    const primaryMeta = primaryCulture ? CULTURE_DESCRIPTIONS[primaryCulture] : null;
+    const secondaryMeta = secondaryCulture ? CULTURE_DESCRIPTIONS[secondaryCulture] : null;
+
     return (
-      <div className="max-w-4xl mx-auto py-12 px-6">
-        <div className="bg-white rounded-[32px] border border-slate-100 shadow-xl overflow-hidden">
-          <div className="bg-slate-900 p-12 text-center text-white relative">
+      <div className="max-w-2xl mx-auto py-8 px-3">
+        <div className="bg-white rounded-[28px] border border-slate-100 shadow-xl overflow-hidden">
+          <div className="bg-slate-900 p-8 text-center text-white relative">
              <div className="absolute top-0 right-0 p-8 opacity-10">
                <Award className="h-40 w-40" />
              </div>
-             <div className="h-20 w-20 bg-emerald-500 rounded-2xl flex items-center justify-center mx-auto mb-6 shadow-lg shadow-emerald-500/20 rotate-3">
-               <BadgeCheck className="h-12 w-12 text-white" />
+             <div className="h-16 w-16 bg-emerald-500 rounded-2xl flex items-center justify-center mx-auto mb-5 shadow-lg shadow-emerald-500/20 rotate-3">
+               <BadgeCheck className="h-10 w-10 text-white" />
              </div>
              <p className="text-emerald-400 font-bold uppercase tracking-[0.2em] text-sm mb-4">Hoàn thành đánh giá</p>
-             <h2 className="text-4xl font-black mb-6">Xin chúc mừng!</h2>
+             <h2 className="text-3xl font-black mb-5">Xin chúc mừng!</h2>
              <p className="text-slate-400 text-lg max-w-xl mx-auto leading-relaxed">
                Bạn đã hoàn thành bài đánh giá văn hóa doanh nghiệp. Kết quả đã được ghi lại hệ thống để giúp chúng tôi gợi ý những công việc phù hợp nhất với bạn.
              </p>
           </div>
           
-          <div className="p-10 bg-white space-y-8">
-            <div className="bg-emerald-50 border border-emerald-100 rounded-2xl p-6 flex items-start gap-4">
-              <div className="h-10 w-10 bg-emerald-100 text-emerald-600 rounded-xl flex items-center justify-center shrink-0">
-                <Zap className="h-6 w-6" />
+           <div className="p-5 bg-white space-y-5">
+            <div className="bg-slate-50 border border-slate-100 rounded-2xl p-5">
+              <h3 className="text-slate-900 font-bold text-base">Kết quả của bạn</h3>
+              <p className="text-slate-600 mt-1">
+                {hybrid && secondaryCulture
+                  ? 'Hồ sơ lai (Hybrid) - nổi bật ở cả hai nhóm văn hóa'
+                  : 'Nhóm văn hóa nổi bật của bạn'}
+              </p>
+
+              <div className="mt-3 grid grid-cols-1 md:grid-cols-2 gap-3">
+                <div className={`rounded-2xl p-4 border ${primaryMeta?.color === 'emerald' ? 'border-emerald-200 bg-emerald-50' : primaryMeta?.color === 'amber' ? 'border-amber-200 bg-amber-50' : primaryMeta?.color === 'blue' ? 'border-blue-200 bg-blue-50' : primaryMeta?.color === 'rose' ? 'border-rose-200 bg-rose-50' : 'border-slate-200 bg-white'}`}>
+                  <div className="text-sm font-bold text-slate-600 uppercase tracking-wide">Primary</div>
+                  <div className="font-black text-slate-900 text-lg mt-1">{primaryMeta?.title ?? primaryCulture ?? '-'}</div>
+                  <div className="text-slate-600 text-sm mt-2">{primaryMeta?.desc ?? ''}</div>
+                </div>
+
+                <div className={`rounded-2xl p-4 border ${secondaryMeta?.color === 'emerald' ? 'border-emerald-200 bg-emerald-50' : secondaryMeta?.color === 'amber' ? 'border-amber-200 bg-amber-50' : secondaryMeta?.color === 'blue' ? 'border-blue-200 bg-blue-50' : secondaryMeta?.color === 'rose' ? 'border-rose-200 bg-rose-50' : 'border-slate-200 bg-white'}`}>
+                  <div className="text-sm font-bold text-slate-600 uppercase tracking-wide">Secondary</div>
+                  <div className="font-black text-slate-900 text-lg mt-1">{secondaryMeta?.title ?? (secondaryCulture ?? (hybrid ? '-' : '—'))}</div>
+                  <div className="text-slate-600 text-sm mt-2">{secondaryMeta?.desc ?? ''}</div>
+                </div>
+              </div>
+            </div>
+            <div className="bg-emerald-50 border border-emerald-100 rounded-2xl p-5 flex items-start gap-3">
+              <div className="h-9 w-9 bg-emerald-100 text-emerald-600 rounded-xl flex items-center justify-center shrink-0">
+                <Zap className="h-5 w-5" />
               </div>
               <div>
-                <h3 className="font-bold text-emerald-900 text-lg">Quà tặng hoàn thành</h3>
-                <p className="text-emerald-800 mt-1">
-                  Chúng tôi đã tặng bạn <strong>2 lượt quét CV miễn phí</strong> vào tài khoản. Hãy sử dụng chúng ngay để tối ưu hóa hồ sơ của mình!
-                </p>
+                <h3 className="font-bold text-emerald-900 text-base">Quà tặng hoàn thành</h3>
+                {hasFreeCvReward ? (
+                  <p className="text-emerald-800 mt-1">
+                    Chúng tôi đã tặng bạn <strong>2 lượt quét CV miễn phí</strong> vào tài khoản. Hãy sử dụng chúng ngay để tối ưu hóa hồ sơ của mình!
+                  </p>
+                ) : (
+                  <p className="text-emerald-800 mt-1">
+                    Bạn đã hoàn thành bài đánh giá. Lần này hệ thống không tặng thêm lượt quét CV (vì bạn đã nhận trước đó).
+                  </p>
+                )}
               </div>
             </div>
 
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                <button 
                  onClick={() => navigate('/user/cv-jd')}
-                 className="flex items-center justify-center gap-2 p-4 rounded-xl bg-slate-900 text-white font-bold hover:bg-slate-800 transition-all shadow-sm font-display text-base"
+                 className="flex items-center justify-center gap-2 p-3.5 rounded-xl bg-slate-900 text-white font-bold hover:bg-slate-800 transition-all shadow-sm font-display text-base"
                >
                  Sử dụng lượt quét ngay
                  <ArrowRight className="h-5 w-5" />
                </button>
                <button 
+                 onClick={handleStart}
+                 className="flex items-center justify-center gap-2 p-3.5 rounded-xl border border-emerald-200 bg-emerald-50 text-emerald-700 font-bold hover:bg-emerald-100 transition-all font-display text-base"
+               >
+                 <RefreshCw className="h-5 w-5" />
+                 Làm lại bài đánh giá
+               </button>
+               <button 
                  onClick={() => setStep('welcome')}
-                 className="flex items-center justify-center gap-2 p-4 rounded-xl border border-slate-200 text-slate-600 font-bold hover:bg-slate-50 transition-all font-display"
+                 className="flex items-center justify-center gap-2 p-3.5 rounded-xl border border-slate-200 text-slate-600 font-bold hover:bg-slate-50 transition-all font-display"
                >
                  <RefreshCw className="h-5 w-5" />
                  Xem lại giới thiệu
