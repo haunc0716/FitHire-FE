@@ -62,6 +62,28 @@ export default function CulturalFitPage() {
   const hasFreeCvReward = Boolean(profile?.freeCvScansGranted);
   const freeCvBalance = Number(profile?.freeCvScansBalance ?? 0);
 
+  const getCultureMeta = (cultureKey) => (cultureKey ? CULTURE_DESCRIPTIONS[cultureKey] : null);
+
+  const renderCultureCard = (label, cultureKey, meta, extraClassName = '') => (
+    <div
+      className={`rounded-2xl p-4 border ${extraClassName} ${
+        meta?.color === 'emerald'
+          ? 'border-emerald-200 bg-emerald-50'
+          : meta?.color === 'amber'
+            ? 'border-amber-200 bg-amber-50'
+            : meta?.color === 'blue'
+              ? 'border-blue-200 bg-blue-50'
+              : meta?.color === 'rose'
+                ? 'border-rose-200 bg-rose-50'
+                : 'border-slate-200 bg-white'
+      }`}
+    >
+      <div className="text-sm font-bold text-slate-600 uppercase tracking-wide">{label}</div>
+      <div className="font-black text-slate-900 text-lg mt-1">{meta?.title ?? cultureKey ?? '-'}</div>
+      {meta?.desc ? <div className="text-slate-600 text-sm mt-2">{meta.desc}</div> : null}
+    </div>
+  );
+
   useEffect(() => {
     let mounted = true;
 
@@ -214,19 +236,23 @@ export default function CulturalFitPage() {
         {result && (
           <div className="mx-auto mt-4 max-w-2xl rounded-3xl border border-slate-200 bg-white p-5 text-left shadow-sm">
             <p className="text-xs font-bold uppercase tracking-[0.2em] text-emerald-600">Kết quả gần nhất</p>
-            <div className="mt-3 grid gap-3 md:grid-cols-2">
-              <div className="rounded-2xl bg-slate-50 p-4">
-                <div className="text-xs font-bold uppercase tracking-wide text-slate-500">Primary</div>
-                <div className="mt-1 text-lg font-black text-slate-900">
-                  {CULTURE_DESCRIPTIONS[result?.primaryCulture ?? result?.resultPrimary]?.title ?? result?.primaryCulture ?? result?.resultPrimary ?? '-'}
-                </div>
-              </div>
-              <div className="rounded-2xl bg-slate-50 p-4">
-                <div className="text-xs font-bold uppercase tracking-wide text-slate-500">Secondary</div>
-                <div className="mt-1 text-lg font-black text-slate-900">
-                  {CULTURE_DESCRIPTIONS[result?.secondaryCulture ?? result?.resultSecondary]?.title ?? result?.secondaryCulture ?? result?.resultSecondary ?? (result?.hybridProfile ? '-' : '—')}
-                </div>
-              </div>
+            <div
+              className={`mt-3 grid gap-3 ${
+                (result?.secondaryCulture ?? result?.resultSecondary) ? 'md:grid-cols-2' : 'grid-cols-1'
+              }`}
+            >
+              {renderCultureCard(
+                'Primary',
+                result?.primaryCulture ?? result?.resultPrimary,
+                getCultureMeta(result?.primaryCulture ?? result?.resultPrimary)
+              )}
+              {(result?.secondaryCulture ?? result?.resultSecondary)
+                ? renderCultureCard(
+                  'Secondary',
+                  result?.secondaryCulture ?? result?.resultSecondary,
+                  getCultureMeta(result?.secondaryCulture ?? result?.resultSecondary)
+                )
+                : null}
             </div>
           </div>
         )}
@@ -373,7 +399,7 @@ export default function CulturalFitPage() {
     // BE/FE có thể đang có chênh lệch field name theo version (primaryCulture vs resultPrimary, hybrid vs hybridProfile)
     const primaryCulture = result?.primaryCulture ?? result?.resultPrimary;
     const secondaryCulture = result?.secondaryCulture ?? result?.resultSecondary;
-    const hybrid = result?.hybrid ?? result?.hybridProfile;
+    const hasSecondaryCulture = Boolean(secondaryCulture && secondaryCulture !== primaryCulture);
 
     // Nếu chưa có result trong state (do cache chưa kịp load), tránh hiển thị '-' quá sớm.
     if (!result) {
@@ -384,10 +410,8 @@ export default function CulturalFitPage() {
           const parsed = JSON.parse(cached);
           const primaryCulture = parsed?.primaryCulture ?? parsed?.resultPrimary;
           const secondaryCulture = parsed?.secondaryCulture ?? parsed?.resultSecondary;
-          const hybrid = parsed?.hybrid ?? parsed?.hybridProfile;
-
-          const primaryMeta = primaryCulture ? CULTURE_DESCRIPTIONS[primaryCulture] : null;
-          const secondaryMeta = secondaryCulture ? CULTURE_DESCRIPTIONS[secondaryCulture] : null;
+          const primaryMeta = getCultureMeta(primaryCulture);
+          const secondaryMeta = getCultureMeta(secondaryCulture);
 
           return (
             <div className="max-w-2xl mx-auto py-8 px-3">
@@ -410,27 +434,19 @@ export default function CulturalFitPage() {
                   <div className="bg-slate-50 border border-slate-100 rounded-2xl p-5">
                     <h3 className="text-slate-900 font-bold text-base">Kết quả của bạn</h3>
                     <p className="text-slate-600 mt-1">
-                      {hybrid && secondaryCulture
+                      {hasSecondaryCulture
                         ? 'Hồ sơ lai (Hybrid) - nổi bật ở cả hai nhóm văn hóa'
                         : 'Nhóm văn hóa nổi bật của bạn'}
                     </p>
 
-                    <div className="mt-3 grid grid-cols-1 md:grid-cols-2 gap-3">
-                      <div
-                        className={`rounded-2xl p-4 border ${primaryMeta?.color === 'emerald' ? 'border-emerald-200 bg-emerald-50' : primaryMeta?.color === 'amber' ? 'border-amber-200 bg-amber-50' : primaryMeta?.color === 'blue' ? 'border-blue-200 bg-blue-50' : primaryMeta?.color === 'rose' ? 'border-rose-200 bg-rose-50' : 'border-slate-200 bg-white'}`}
-                      >
-                        <div className="text-sm font-bold text-slate-600 uppercase tracking-wide">Primary</div>
-                        <div className="font-black text-slate-900 text-lg mt-1">{primaryMeta?.title ?? primaryCulture ?? '-'}</div>
-                        <div className="text-slate-600 text-sm mt-2">{primaryMeta?.desc ?? ''}</div>
-                      </div>
-
-                      <div
-                        className={`rounded-2xl p-4 border ${secondaryMeta?.color === 'emerald' ? 'border-emerald-200 bg-emerald-50' : secondaryMeta?.color === 'amber' ? 'border-amber-200 bg-amber-50' : secondaryMeta?.color === 'blue' ? 'border-blue-200 bg-blue-50' : secondaryMeta?.color === 'rose' ? 'border-rose-200 bg-rose-50' : 'border-slate-200 bg-white'}`}
-                      >
-                        <div className="text-sm font-bold text-slate-600 uppercase tracking-wide">Secondary</div>
-                        <div className="font-black text-slate-900 text-lg mt-1">{secondaryMeta?.title ?? (secondaryCulture ?? (hybrid ? '-' : '—'))}</div>
-                        <div className="text-slate-600 text-sm mt-2">{secondaryMeta?.desc ?? ''}</div>
-                      </div>
+                    <div className={`mt-3 grid gap-3 ${hasSecondaryCulture ? 'md:grid-cols-2' : 'grid-cols-1'}`}>
+                      {renderCultureCard(
+                        hasSecondaryCulture ? 'Primary' : 'Văn hóa của bạn',
+                        primaryCulture,
+                        primaryMeta,
+                        hasSecondaryCulture ? '' : 'max-w-md mx-auto w-full'
+                      )}
+                      {hasSecondaryCulture ? renderCultureCard('Secondary', secondaryCulture, secondaryMeta) : null}
                     </div>
                   </div>
 
@@ -524,23 +540,19 @@ export default function CulturalFitPage() {
             <div className="bg-slate-50 border border-slate-100 rounded-2xl p-5">
               <h3 className="text-slate-900 font-bold text-base">Kết quả của bạn</h3>
               <p className="text-slate-600 mt-1">
-                {hybrid && secondaryCulture
+                {hasSecondaryCulture
                   ? 'Hồ sơ lai (Hybrid) - nổi bật ở cả hai nhóm văn hóa'
                   : 'Nhóm văn hóa nổi bật của bạn'}
               </p>
 
-              <div className="mt-3 grid grid-cols-1 md:grid-cols-2 gap-3">
-                <div className={`rounded-2xl p-4 border ${primaryMeta?.color === 'emerald' ? 'border-emerald-200 bg-emerald-50' : primaryMeta?.color === 'amber' ? 'border-amber-200 bg-amber-50' : primaryMeta?.color === 'blue' ? 'border-blue-200 bg-blue-50' : primaryMeta?.color === 'rose' ? 'border-rose-200 bg-rose-50' : 'border-slate-200 bg-white'}`}>
-                  <div className="text-sm font-bold text-slate-600 uppercase tracking-wide">Primary</div>
-                  <div className="font-black text-slate-900 text-lg mt-1">{primaryMeta?.title ?? primaryCulture ?? '-'}</div>
-                  <div className="text-slate-600 text-sm mt-2">{primaryMeta?.desc ?? ''}</div>
-                </div>
-
-                <div className={`rounded-2xl p-4 border ${secondaryMeta?.color === 'emerald' ? 'border-emerald-200 bg-emerald-50' : secondaryMeta?.color === 'amber' ? 'border-amber-200 bg-amber-50' : secondaryMeta?.color === 'blue' ? 'border-blue-200 bg-blue-50' : secondaryMeta?.color === 'rose' ? 'border-rose-200 bg-rose-50' : 'border-slate-200 bg-white'}`}>
-                  <div className="text-sm font-bold text-slate-600 uppercase tracking-wide">Secondary</div>
-                  <div className="font-black text-slate-900 text-lg mt-1">{secondaryMeta?.title ?? (secondaryCulture ?? (hybrid ? '-' : '—'))}</div>
-                  <div className="text-slate-600 text-sm mt-2">{secondaryMeta?.desc ?? ''}</div>
-                </div>
+              <div className={`mt-3 grid gap-3 ${hasSecondaryCulture ? 'md:grid-cols-2' : 'grid-cols-1'}`}>
+                {renderCultureCard(
+                  hasSecondaryCulture ? 'Primary' : 'Văn hóa của bạn',
+                  primaryCulture,
+                  primaryMeta,
+                  hasSecondaryCulture ? '' : 'max-w-md mx-auto w-full'
+                )}
+                {hasSecondaryCulture ? renderCultureCard('Secondary', secondaryCulture, secondaryMeta) : null}
               </div>
             </div>
             <div className="bg-emerald-50 border border-emerald-100 rounded-2xl p-5 flex items-start gap-3">
