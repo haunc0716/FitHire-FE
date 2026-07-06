@@ -15,6 +15,7 @@ import { fetchPaymentHistory } from '../../pricing/services/subscriptionApi';
 import { useToast } from '../../../components/ui/ToastProvider';
 
 const SUBSCRIPTION_REFRESH_FLAG_KEY = 'fitHire_subscription_refresh_needed';
+const HIDDEN_ENTITLEMENT_CODES = new Set(['CV_GENERATION']);
 
 const FEATURE_MAPPING = {
   CV_SCORING: {
@@ -48,14 +49,22 @@ function resolveActiveSubscription(snapshot) {
 }
 
 function normalizeEntitlements(payload) {
-  if (Array.isArray(payload)) return payload;
+  const filterHiddenEntitlements = (items) =>
+    items.filter((item) => {
+      const code = item?.featureCode || item?.code || item?.name || item?.feature || item?.key || '';
+      return !HIDDEN_ENTITLEMENT_CODES.has(code);
+    });
+
+  if (Array.isArray(payload)) return filterHiddenEntitlements(payload);
   const list = payload?.items || payload?.entitlements || payload?.content;
-  if (Array.isArray(list)) return list;
+  if (Array.isArray(list)) return filterHiddenEntitlements(list);
 
   if (payload && typeof payload === 'object') {
-    return Object.entries(payload)
+    return filterHiddenEntitlements(
+      Object.entries(payload)
       .filter(([key]) => !['status', 'message', 'timestamp'].includes(key))
-      .map(([key, value]) => ({ key, value }));
+      .map(([key, value]) => ({ key, value })),
+    );
   }
 
   return [];
