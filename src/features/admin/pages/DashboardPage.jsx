@@ -12,7 +12,17 @@ import {
   Users,
   Wallet,
 } from 'lucide-react';
-import { getAdminStatistics } from '../services/adminStatisticsApi';
+import {
+  Bar,
+  BarChart,
+  CartesianGrid,
+  Legend,
+  ResponsiveContainer,
+  Tooltip,
+  XAxis,
+  YAxis,
+} from 'recharts';
+import { getAdminStatistics, getUserAiUsageSummaries } from '../services/adminStatisticsApi';
 
 const DashboardCharts = React.lazy(() => import('../components/DashboardCharts'));
 
@@ -38,6 +48,10 @@ function getPercent(part, total) {
   return (safePart / safeTotal) * 100;
 }
 
+function getAiUsageCount(item) {
+  return Number(item?.cvScoringRequestCount ?? 0) + Number(item?.mockInterviewRequestCount ?? 0);
+}
+
 export default function DashboardPage() {
   const [dashboard, setDashboard] = useState({
     totalUsers: 0,
@@ -50,12 +64,16 @@ export default function DashboardPage() {
     dailyUserStats: [],
     dailyPaymentStats: [],
   });
+  const [userAiUsageSummaries, setUserAiUsageSummaries] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
     async function loadDashboard() {
       try {
-        const response = await getAdminStatistics();
+        const [response, userSummaries] = await Promise.all([
+          getAdminStatistics(),
+          getUserAiUsageSummaries(),
+        ]);
         setDashboard({
           totalUsers: response?.totalUsers ?? 0,
           totalPayments: response?.totalPayments ?? 0,
@@ -67,6 +85,7 @@ export default function DashboardPage() {
           dailyUserStats: response?.dailyUserStats ?? [],
           dailyPaymentStats: response?.dailyPaymentStats ?? [],
         });
+        setUserAiUsageSummaries(userSummaries ?? []);
       } catch (error) {
         console.error('Failed to load admin dashboard:', error);
       } finally {
@@ -102,6 +121,32 @@ export default function DashboardPage() {
   const avgRevenuePerPayment = dashboard.successfulPayments
     ? Number(dashboard.totalRevenue ?? 0) / Number(dashboard.successfulPayments ?? 1)
     : 0;
+  const userAiSegmentation = useMemo(() => {
+    const threshold = 5;
+    const users = (userAiUsageSummaries ?? [])
+      .map((item) => {
+        const aiUsageCount = getAiUsageCount(item);
+        return {
+          ...item,
+          aiUsageCount,
+          group: aiUsageCount >= threshold ? 'Thường Xuyên' : 'Thỉnh thoảng',
+        };
+      })
+      .filter((item) => item.aiUsageCount > 0)
+      .sort((a, b) => b.aiUsageCount - a.aiUsageCount);
+
+    const frequentUsers = users.filter((item) => item.group === 'Thường Xuyên');
+    const occasionalUsers = users.filter((item) => item.group === 'Thỉnh thoảng');
+
+    return {
+      threshold,
+      users,
+      frequentUsers,
+      occasionalUsers,
+      totalCvScoring: users.reduce((sum, item) => sum + Number(item.cvScoringRequestCount ?? 0), 0),
+      totalMockInterview: users.reduce((sum, item) => sum + Number(item.mockInterviewRequestCount ?? 0), 0),
+    };
+  }, [userAiUsageSummaries]);
 
   const kpiCards = [
     {
@@ -296,6 +341,8 @@ export default function DashboardPage() {
         })}
       </section>
 
+      <UserAiUsageDashboard data={userAiSegmentation} isLoading={isLoading} />
+
       <section className="grid grid-cols-1 gap-5 xl:grid-cols-[0.95fr_1.05fr]">
         <div className="rounded-[28px] border border-stone-200 bg-white p-6 shadow-sm">
           <div className="mb-5 flex items-center gap-3">
@@ -363,6 +410,194 @@ export default function DashboardPage() {
           </div>
         </div>
       </section>
+    </div>
+  );
+}
+
+function UserAiUsageDashboard({ data, isLoading }) {
+  const totalUsers = data.users.length;
+  const frequentPercent = getPercent(data.frequentUsers.length, totalUsers);
+  const maxUsage = Math.max(...data.users.map((item) => item.aiUsageCount), 1);
+  const topUsers = data.users.slice(0, 6);
+  const stackedChartData = topUsers.map((item) => ({
+    name: item.fullName || `User #${item.userId}`,
+    cvScoring: Number(item.cvScoringRequestCount ?? 0),
+    mockInterview: Number(item.mockInterviewRequestCount ?? 0),
+  }));
+
+  return (
+    <section className="rounded-[28px] border border-stone-200 bg-white p-6 shadow-sm">
+      <div className="mb-5 flex flex-col gap-3 lg:flex-row lg:items-start lg:justify-between">
+        <div className="flex items-start gap-3">
+          <div className="flex h-10 w-10 items-center justify-center rounded-2xl bg-emerald-50 text-emerald-600">
+            <Users className="h-5 w-5" />
+          </div>
+          <div>
+            <h2 className="text-lg font-bold text-stone-900">Phân nhóm User sử dụng AI</h2>
+            <p className="text-sm text-stone-500">
+              Thống kê lượt dùng CV Scoring và Mock Interview để phân loại mức độ sử dụng.
+            </p>
+          </div>
+        </div>
+        <div className="rounded-2xl border border-stone-100 bg-stone-50 px-4 py-2 text-xs font-semibold text-stone-500">
+          Thường Xuyên: từ {formatNumber(data.threshold)} lượt trở lên
+        </div>
+      </div>
+
+      {isLoading ? (
+        <div className="grid gap-4 lg:grid-cols-4">
+          {[1, 2, 3, 4].map((item) => (
+            <div key={item} className="h-24 animate-pulse rounded-2xl bg-stone-100" />
+          ))}
+        </div>
+      ) : totalUsers === 0 ? (
+        <div className="rounded-2xl border border-dashed border-stone-200 px-4 py-10 text-center text-sm text-stone-400">
+          Chưa có dữ liệu sử dụng CV Scoring hoặc Mock Interview.
+        </div>
+      ) : (
+        <div className="space-y-5">
+          <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
+            <AiUsageSummaryCard label="User có sử dụng AI" value={totalUsers} tone="stone" />
+            <AiUsageSummaryCard label="Thường Xuyên" value={data.frequentUsers.length} tone="emerald" subtext={`${frequentPercent.toFixed(1)}% user có sử dụng`} />
+            <AiUsageSummaryCard label="Thỉnh thoảng" value={data.occasionalUsers.length} tone="amber" />
+            <AiUsageSummaryCard label="Tổng lượt AI chính" value={data.totalCvScoring + data.totalMockInterview} tone="blue" subtext={`CV ${formatNumber(data.totalCvScoring)} · Mock ${formatNumber(data.totalMockInterview)}`} />
+          </div>
+
+          <div className="rounded-2xl border border-stone-100 bg-white p-4">
+            <div className="mb-4 flex flex-col gap-1 sm:flex-row sm:items-center sm:justify-between">
+              <div>
+                <h3 className="text-sm font-bold text-stone-900">Stacked Bar Chart theo User</h3>
+                <p className="text-xs text-stone-400">So sánh CV Scoring và Mock Interview trên từng user.</p>
+              </div>
+              <div className="text-xs font-semibold text-stone-400">Top {formatNumber(topUsers.length)} user theo tổng lượt</div>
+            </div>
+            <div className="h-[280px] w-full">
+              <ResponsiveContainer width="100%" height="100%">
+                <BarChart
+                  data={stackedChartData}
+                  layout="vertical"
+                  margin={{ top: 8, right: 18, left: 18, bottom: 8 }}
+                >
+                  <CartesianGrid strokeDasharray="3 3" horizontal={false} stroke="#e7e5e4" />
+                  <XAxis type="number" allowDecimals={false} axisLine={false} tickLine={false} tick={{ fontSize: 11, fill: '#78716c', fontWeight: 600 }} />
+                  <YAxis
+                    type="category"
+                    dataKey="name"
+                    width={150}
+                    axisLine={false}
+                    tickLine={false}
+                    tick={{ fontSize: 11, fill: '#57534e', fontWeight: 700 }}
+                    tickFormatter={(value) => String(value).length > 18 ? `${String(value).slice(0, 18)}...` : value}
+                  />
+                  <Tooltip
+                    cursor={{ fill: '#f5f5f4' }}
+                    contentStyle={{ borderRadius: '16px', border: '1px solid #e7e5e4', boxShadow: '0 12px 30px rgba(15,23,42,0.08)' }}
+                    formatter={(value, name) => [formatNumber(value), name === 'cvScoring' ? 'CV Scoring' : 'Mock Interview']}
+                  />
+                  <Legend formatter={(value) => value === 'cvScoring' ? 'CV Scoring' : 'Mock Interview'} />
+                  <Bar dataKey="cvScoring" stackId="usage" fill="#10b981" radius={[8, 0, 0, 8]} barSize={24} />
+                  <Bar dataKey="mockInterview" stackId="usage" fill="#3b82f6" radius={[0, 8, 8, 0]} barSize={24} />
+                </BarChart>
+              </ResponsiveContainer>
+            </div>
+          </div>
+
+          <div className="grid gap-5 xl:grid-cols-[0.9fr_1.1fr]">
+            <div className="rounded-2xl border border-stone-100 bg-stone-50/60 p-4">
+              <h3 className="text-sm font-bold text-stone-900">Tỷ lệ nhóm User</h3>
+              <div className="mt-4 space-y-4">
+                <GroupProgress
+                  label="Thường Xuyên"
+                  value={data.frequentUsers.length}
+                  total={totalUsers}
+                  barClass="bg-emerald-500"
+                />
+                <GroupProgress
+                  label="Thỉnh thoảng"
+                  value={data.occasionalUsers.length}
+                  total={totalUsers}
+                  barClass="bg-amber-500"
+                />
+              </div>
+            </div>
+
+            <div className="overflow-hidden rounded-2xl border border-stone-100 bg-white">
+              <div className="grid grid-cols-[1.45fr_0.7fr_0.7fr_0.8fr_0.85fr] gap-3 border-b border-stone-100 bg-stone-50 px-4 py-3 text-xs font-bold uppercase tracking-wide text-stone-400">
+                <div>User</div>
+                <div>CV</div>
+                <div>Mock</div>
+                <div>Tổng</div>
+                <div>Nhóm</div>
+              </div>
+              <div className="divide-y divide-stone-100">
+                {topUsers.map((item) => {
+                  const width = `${Math.max(8, (item.aiUsageCount / maxUsage) * 100)}%`;
+                  const isFrequent = item.group === 'Thường Xuyên';
+
+                  return (
+                    <div key={item.userId} className="grid grid-cols-[1.45fr_0.7fr_0.7fr_0.8fr_0.85fr] gap-3 px-4 py-3 text-sm">
+                      <div className="min-w-0">
+                        <div className="truncate font-semibold text-stone-900">{item.fullName || `User #${item.userId}`}</div>
+                        <div className="mt-1 truncate text-xs text-stone-400">{item.email || '-'}</div>
+                      </div>
+                      <div className="font-semibold text-stone-700">{formatNumber(item.cvScoringRequestCount)}</div>
+                      <div className="font-semibold text-stone-700">{formatNumber(item.mockInterviewRequestCount)}</div>
+                      <div>
+                        <div className="font-bold text-stone-900">{formatNumber(item.aiUsageCount)}</div>
+                        <div className="mt-1 h-1.5 rounded-full bg-stone-100">
+                          <div className="h-1.5 rounded-full bg-emerald-500" style={{ width }} />
+                        </div>
+                      </div>
+                      <div>
+                        <span className={`inline-flex rounded-full px-2.5 py-1 text-xs font-bold ${
+                          isFrequent ? 'bg-emerald-50 text-emerald-700' : 'bg-amber-50 text-amber-700'
+                        }`}
+                        >
+                          {item.group}
+                        </span>
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+    </section>
+  );
+}
+
+function AiUsageSummaryCard({ label, value, tone, subtext }) {
+  const toneClass = {
+    emerald: 'bg-emerald-50 text-emerald-700 border-emerald-100',
+    amber: 'bg-amber-50 text-amber-700 border-amber-100',
+    blue: 'bg-blue-50 text-blue-700 border-blue-100',
+    stone: 'bg-stone-50 text-stone-700 border-stone-100',
+  }[tone] ?? 'bg-stone-50 text-stone-700 border-stone-100';
+
+  return (
+    <div className={`rounded-2xl border p-4 ${toneClass}`}>
+      <div className="text-xs font-bold uppercase tracking-widest opacity-70">{label}</div>
+      <div className="mt-2 text-2xl font-bold">{formatNumber(value)}</div>
+      {subtext ? <div className="mt-1 text-xs font-semibold opacity-80">{subtext}</div> : null}
+    </div>
+  );
+}
+
+function GroupProgress({ label, value, total, barClass }) {
+  const percent = getPercent(value, total);
+
+  return (
+    <div>
+      <div className="mb-2 flex items-center justify-between text-sm">
+        <span className="font-semibold text-stone-700">{label}</span>
+        <span className="font-bold text-stone-900">{formatNumber(value)} user</span>
+      </div>
+      <div className="h-2.5 rounded-full bg-stone-100">
+        <div className={`h-2.5 rounded-full ${barClass}`} style={{ width: `${Math.max(4, percent)}%` }} />
+      </div>
+      <div className="mt-1 text-xs text-stone-400">{percent.toFixed(1)}%</div>
     </div>
   );
 }

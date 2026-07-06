@@ -20,10 +20,21 @@ import {
   fetchMockInterviewHistory,
   speakMockInterviewText,
   startMockInterviewSession,
+  submitMockInterviewFeedback,
   submitMockInterviewAnswer,
   transcribeMockInterviewVoice,
 } from "../services/userApi";
 import { useToast } from "../../../components/ui/ToastProvider";
+
+const INITIAL_FEEDBACK_FORM = {
+  overallRating: 5,
+  realismRating: 5,
+  questionQualityRating: 5,
+  aiFeedbackRating: 5,
+  likedMost: "",
+  improvementSuggestion: "",
+  additionalComment: "",
+};
 
 function isUsageExhaustedError(error) {
   const message = error?.message?.toLowerCase?.() ?? "";
@@ -44,6 +55,50 @@ function isUsageExhaustedError(error) {
     message.includes("gioi han su dung") ||
     message.includes("quota") ||
     message.includes("usage limit")
+  );
+}
+
+function RatingQuestion({ label, value, disabled, onChange }) {
+  return (
+    <div className="rounded-2xl border border-slate-100 bg-slate-50/60 p-4">
+      <p className="mb-3 text-sm font-semibold text-slate-800">{label}</p>
+      <div className="flex flex-wrap gap-2">
+        {[1, 2, 3, 4, 5].map((rating) => (
+          <button
+            key={rating}
+            type="button"
+            disabled={disabled}
+            onClick={() => onChange(rating)}
+            className={`h-9 w-9 rounded-xl border text-sm font-bold transition-all disabled:cursor-not-allowed ${
+              Number(value) === rating
+                ? "border-emerald-600 bg-emerald-600 text-white shadow-md shadow-emerald-600/20"
+                : "border-slate-200 bg-white text-slate-500 hover:border-emerald-200 hover:text-emerald-700"
+            }`}
+          >
+            {rating}
+          </button>
+        ))}
+      </div>
+    </div>
+  );
+}
+
+function FeedbackTextarea({ label, value, disabled, placeholder, onChange }) {
+  return (
+    <label className="block">
+      <span className="mb-2 block text-sm font-semibold text-slate-800">
+        {label}
+      </span>
+      <textarea
+        value={value}
+        disabled={disabled}
+        placeholder={placeholder}
+        onChange={(event) => onChange(event.target.value)}
+        rows={4}
+        maxLength={2000}
+        className="w-full resize-none rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm text-slate-700 outline-none transition-all placeholder:text-slate-400 focus:border-emerald-500 focus:bg-white disabled:bg-slate-100"
+      />
+    </label>
   );
 }
 
@@ -79,6 +134,9 @@ export default function MockInterviewPage() {
   const [answeredCount, setAnsweredCount] = useState(0);
   const [targetQuestionCount, setTargetQuestionCount] = useState(0);
   const [pendingVoiceMeta, setPendingVoiceMeta] = useState(null);
+  const [feedbackForm, setFeedbackForm] = useState(INITIAL_FEEDBACK_FORM);
+  const [isSubmittingFeedback, setIsSubmittingFeedback] = useState(false);
+  const [feedbackSubmitted, setFeedbackSubmitted] = useState(false);
 
   const primaryView = activeTab === "history" || activeTab === "historyDetail" ? "history" : "config";
 
@@ -355,6 +413,7 @@ export default function MockInterviewPage() {
   };
 
   const buildResultEntry = ({
+    sessionId,
     finalReport,
     transcriptItems,
     answered,
@@ -376,6 +435,7 @@ export default function MockInterviewPage() {
 
     return {
       id: Date.now(),
+      sessionId: sessionId ?? null,
       role,
       date: new Date().toLocaleDateString("vi-VN"),
       score,
@@ -401,6 +461,7 @@ export default function MockInterviewPage() {
   };
 
   const finalizeInterview = ({
+    sessionId,
     finalReport,
     transcriptItems,
     answered,
@@ -411,6 +472,7 @@ export default function MockInterviewPage() {
     setIsTranscribing(false);
     setIsSubmittingAnswer(false);
     const resultEntry = buildResultEntry({
+      sessionId,
       finalReport,
       transcriptItems,
       answered,
@@ -418,6 +480,8 @@ export default function MockInterviewPage() {
     });
     setHistory((prev) => [resultEntry, ...prev]);
     setLastResult(resultEntry);
+    setFeedbackForm(INITIAL_FEEDBACK_FORM);
+    setFeedbackSubmitted(false);
     setActiveTab("result");
     resetSessionState();
   };
@@ -451,6 +515,7 @@ export default function MockInterviewPage() {
       response?.status === "COMPLETED" || Boolean(response?.finalReport);
     if (isCompleted) {
       finalizeInterview({
+        sessionId: response?.sessionId,
         finalReport: response?.finalReport,
         transcriptItems: updatedTranscript,
         answered: response?.answeredQuestionCount,
@@ -705,6 +770,7 @@ export default function MockInterviewPage() {
     try {
       const completed = await completeMockInterviewSession(sessionIdToComplete);
       finalizeInterview({
+        sessionId: sessionIdToComplete,
         finalReport: completed?.finalReport,
         transcriptItems: transcriptSnapshot,
         answered: completed?.answeredQuestionCount ?? answeredToComplete,
@@ -719,6 +785,47 @@ export default function MockInterviewPage() {
       setActiveTab("config");
     } finally {
       setIsSubmittingAnswer(false);
+    }
+  };
+
+  const updateFeedbackField = (field, value) => {
+    setFeedbackForm((prev) => ({
+      ...prev,
+      [field]: value,
+    }));
+  };
+
+  const handleSubmitFeedback = async (event) => {
+    event.preventDefault();
+
+    if (!lastResult?.sessionId || feedbackSubmitted || isSubmittingFeedback) {
+      return;
+    }
+
+    setIsSubmittingFeedback(true);
+    try {
+      await submitMockInterviewFeedback(lastResult.sessionId, {
+        ...feedbackForm,
+        overallRating: Number(feedbackForm.overallRating),
+        realismRating: Number(feedbackForm.realismRating),
+        questionQualityRating: Number(feedbackForm.questionQualityRating),
+        aiFeedbackRating: Number(feedbackForm.aiFeedbackRating),
+      });
+      setFeedbackSubmitted(true);
+      showToast({
+        type: "success",
+        title: "Đã gửi feedback",
+        message: "Cảm ơn bạn đã giúp FitHire cải thiện Mock Interview.",
+      });
+    } catch (error) {
+      console.error(error);
+      showToast({
+        type: "error",
+        title: "Chưa gửi được feedback",
+        message: error?.message || "Vui lòng thử lại sau.",
+      });
+    } finally {
+      setIsSubmittingFeedback(false);
     }
   };
 
@@ -1015,9 +1122,15 @@ export default function MockInterviewPage() {
                     <span className="rounded-full border border-emerald-200 bg-white px-3 py-1 font-semibold">
                       {lastResult.date}
                     </span>
-                    <span className="rounded-full border border-emerald-200 bg-white px-3 py-1 font-semibold">
-                      Điểm số: {lastResult.score}%
-                    </span>
+                    {feedbackSubmitted ? (
+                      <span className="rounded-full border border-emerald-200 bg-white px-3 py-1 font-semibold">
+                        Điểm số: {lastResult.score}%
+                      </span>
+                    ) : (
+                      <span className="rounded-full border border-amber-200 bg-amber-50 px-3 py-1 font-semibold text-amber-700">
+                        Gửi feedback để mở đánh giá
+                      </span>
+                    )}
                     <span className="rounded-full border border-emerald-200 bg-white px-3 py-1 font-semibold">
                       {lastResult.duration}
                     </span>
@@ -1027,17 +1140,19 @@ export default function MockInterviewPage() {
                   </div>
                 </div>
                 <button
+                  disabled={!feedbackSubmitted}
                   onClick={() => {
                     setLastResult(null);
                     setPlan(null);
                     setActiveTab("config");
                   }}
-                  className="bg-[#00b14f] text-white px-8 py-5 rounded-2xl font-bold text-sm shadow-xl shadow-emerald-600/20 hover:bg-[#009b45] transition-all flex items-center gap-3 shrink-0"
+                  className="bg-[#00b14f] text-white px-8 py-5 rounded-2xl font-bold text-sm shadow-xl shadow-emerald-600/20 hover:bg-[#009b45] transition-all flex items-center gap-3 shrink-0 disabled:cursor-not-allowed disabled:opacity-50 disabled:hover:bg-[#00b14f]"
                 >
-                  Hoàn thành <CheckCircle2 size={18} />
+                  {feedbackSubmitted ? "Hoàn thành" : "Gửi feedback trước"} <CheckCircle2 size={18} />
                 </button>
               </div>
 
+              {feedbackSubmitted && (
               <div className="grid lg:grid-cols-2 gap-6">
                 <div className="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden flex flex-col max-h-[500px]">
                   <div className="px-5 py-3 border-b border-slate-100 bg-slate-50/50 flex items-center justify-between">
@@ -1148,6 +1263,98 @@ export default function MockInterviewPage() {
                   </div>
                 </div>
               </div>
+              )}
+
+              {!feedbackSubmitted && (
+              <div className="bg-white rounded-2xl border border-slate-200 shadow-sm p-6">
+                <div className="flex items-start justify-between gap-4 mb-5">
+                  <div>
+                    <p className="text-[10px] font-bold text-emerald-700 uppercase tracking-widest">
+                      Góp ý trải nghiệm
+                    </p>
+                    <h3 className="mt-1 text-lg font-bold text-slate-900">
+                      Bạn thấy Mock Interview hôm nay như thế nào?
+                    </h3>
+                    <p className="mt-1 text-sm text-slate-500">
+                      Một vài câu trả lời ngắn sẽ giúp FitHire cải thiện câu hỏi, giọng phỏng vấn và feedback AI.
+                    </p>
+                  </div>
+                  {feedbackSubmitted && (
+                    <span className="rounded-full bg-emerald-50 px-3 py-1 text-xs font-bold text-emerald-700 border border-emerald-100">
+                      Đã gửi
+                    </span>
+                  )}
+                </div>
+
+                <form onSubmit={handleSubmitFeedback} className="space-y-5">
+                  <div className="grid md:grid-cols-2 gap-4">
+                    <RatingQuestion
+                      label="Bạn hài lòng tổng thể đến mức nào?"
+                      value={feedbackForm.overallRating}
+                      disabled={feedbackSubmitted}
+                      onChange={(value) => updateFeedbackField("overallRating", value)}
+                    />
+                    <RatingQuestion
+                      label="Phiên phỏng vấn có giống thực tế không?"
+                      value={feedbackForm.realismRating}
+                      disabled={feedbackSubmitted}
+                      onChange={(value) => updateFeedbackField("realismRating", value)}
+                    />
+                    <RatingQuestion
+                      label="Câu hỏi có phù hợp với vị trí/cấp độ không?"
+                      value={feedbackForm.questionQualityRating}
+                      disabled={feedbackSubmitted}
+                      onChange={(value) => updateFeedbackField("questionQualityRating", value)}
+                    />
+                    <RatingQuestion
+                      label="Feedback từ AI có hữu ích không?"
+                      value={feedbackForm.aiFeedbackRating}
+                      disabled={feedbackSubmitted}
+                      onChange={(value) => updateFeedbackField("aiFeedbackRating", value)}
+                    />
+                  </div>
+
+                  <div className="grid md:grid-cols-3 gap-4">
+                    <FeedbackTextarea
+                      label="Điều bạn thích nhất"
+                      value={feedbackForm.likedMost}
+                      disabled={feedbackSubmitted}
+                      placeholder="Ví dụ: câu hỏi sát JD, feedback dễ hiểu..."
+                      onChange={(value) => updateFeedbackField("likedMost", value)}
+                    />
+                    <FeedbackTextarea
+                      label="Điều cần cải thiện"
+                      value={feedbackForm.improvementSuggestion}
+                      disabled={feedbackSubmitted}
+                      placeholder="Ví dụ: thêm câu hỏi follow-up, giọng tự nhiên hơn..."
+                      onChange={(value) => updateFeedbackField("improvementSuggestion", value)}
+                    />
+                    <FeedbackTextarea
+                      label="Góp ý thêm"
+                      value={feedbackForm.additionalComment}
+                      disabled={feedbackSubmitted}
+                      placeholder="Bạn muốn FitHire bổ sung gì?"
+                      onChange={(value) => updateFeedbackField("additionalComment", value)}
+                    />
+                  </div>
+
+                  <div className="flex justify-end">
+                    <button
+                      type="submit"
+                      disabled={!lastResult?.sessionId || feedbackSubmitted || isSubmittingFeedback}
+                      className="inline-flex items-center gap-2 rounded-xl bg-emerald-600 px-5 py-3 text-sm font-bold text-white shadow-lg shadow-emerald-600/20 hover:bg-emerald-700 disabled:opacity-60 disabled:hover:bg-emerald-600"
+                    >
+                      {isSubmittingFeedback
+                        ? "Đang gửi..."
+                        : feedbackSubmitted
+                          ? "Đã gửi feedback"
+                          : "Gửi feedback và xem đánh giá"}
+                      {!feedbackSubmitted && <Send size={16} />}
+                    </button>
+                  </div>
+                </form>
+              </div>
+              )}
             </motion.div>
           ) : activeTab === "history" ? (
             <motion.div

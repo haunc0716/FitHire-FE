@@ -3,10 +3,7 @@ import { getAuthSession } from '../../auth/services/authSession';
 const API_BASE_URL = (import.meta.env.VITE_API_BASE_URL ?? '').replace(/\/$/, '');
 
 function buildApiUrl(path) {
-  if (!path.startsWith('/')) {
-    return `${API_BASE_URL}/${path}`;
-  }
-  return `${API_BASE_URL}${path}`;
+  return path.startsWith('/') ? `${API_BASE_URL}${path}` : `${API_BASE_URL}/${path}`;
 }
 
 function buildAuthHeaders() {
@@ -14,6 +11,7 @@ function buildAuthHeaders() {
   if (!session?.accessToken || Number(session.expiresAt) <= Date.now()) {
     throw new Error('Phiên đăng nhập đã hết hạn. Vui lòng đăng nhập lại.');
   }
+
   return {
     Authorization: `${session.tokenType ?? 'Bearer'} ${session.accessToken}`,
     'Content-Type': 'application/json',
@@ -54,28 +52,8 @@ async function requestJson(path, options = {}) {
   return payload;
 }
 
-export function getAdminStatistics(params = {}) {
-  const query = new URLSearchParams(params).toString();
-  return requestJson(`/api/admin/statistics/dashboard${query ? `?${query}` : ''}`, {
-    method: 'GET',
-  });
-}
-
-export function getUserAiUsageSummaries() {
-  return requestJson('/api/admin/ai-token-usages/user-summaries', {
-    method: 'GET',
-  });
-}
-
-export function getAiFeatureUsageStats() {
-  return requestJson('/api/admin/ai-token-usages/feature-stats', {
-    method: 'GET',
-  });
-}
-
-export function getAiFeatureDailyUsageStats(days = 30) {
-  const query = new URLSearchParams({ days }).toString();
-  return requestJson(`/api/admin/ai-token-usages/feature-daily-stats?${query}`, {
+export function getMockInterviewFeedbacks() {
+  return requestJson('/api/admin/mock-interview-feedbacks', {
     method: 'GET',
   });
 }

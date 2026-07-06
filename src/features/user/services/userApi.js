@@ -227,6 +227,14 @@ export function completeMockInterviewSession(sessionId) {
   });
 }
 
+export function submitMockInterviewFeedback(sessionId, payload) {
+  return requestJson(`/api/mock-interview/sessions/${sessionId}/feedback`, {
+    method: 'POST',
+    headers: buildAuthHeaders(),
+    body: JSON.stringify(payload),
+  });
+}
+
 export function cancelMockInterviewSession(sessionId) {
   return requestJson(`/api/mock-interview/sessions/${sessionId}/cancel`, {
     method: 'POST',
