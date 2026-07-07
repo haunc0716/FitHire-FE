@@ -166,6 +166,14 @@ export function startMockInterviewSession(payload) {
   });
 }
 
+export function previewMockInterviewJd(payload) {
+  return requestJson('/api/mock-interview/jd/preview', {
+    method: 'POST',
+    headers: buildAuthHeaders(),
+    body: JSON.stringify(payload),
+  });
+}
+
 export function submitMockInterviewAnswer(sessionId, payload) {
   return requestJson(`/api/mock-interview/sessions/${sessionId}/answers`, {
     method: 'POST',
