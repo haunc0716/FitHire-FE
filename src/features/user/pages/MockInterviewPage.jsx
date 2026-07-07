@@ -12,12 +12,12 @@ import {
   Trash2,
   ChevronRight,
 } from "lucide-react";
-import { generateMockInterviewPlan } from "../services/userFeatureAdapters";
 import {
   cancelMockInterviewSession,
   completeMockInterviewSession,
   fetchMockInterviewDetail,
   fetchMockInterviewHistory,
+  previewMockInterviewJd,
   speakMockInterviewText,
   startMockInterviewSession,
   submitMockInterviewFeedback,
@@ -35,6 +35,95 @@ const INITIAL_FEEDBACK_FORM = {
   improvementSuggestion: "",
   additionalComment: "",
 };
+
+const JD_MIN_LENGTH = 50;
+const JD_MAX_LENGTH = 5000;
+
+function normalizeJdKeywordText(value) {
+  return (value ?? "")
+    .toString()
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .replace(/đ/g, "d")
+    .replace(/Đ/g, "D")
+    .toLowerCase();
+}
+
+const JD_REQUIREMENT_ITEMS = [
+  {
+    key: "position",
+    label: "Vị trí / vai trò",
+    test: (value) =>
+      /\b(developer|engineer|tester|qa|designer|analyst|manager|intern|fresher|junior|middle|senior|lead|frontend|backend|fullstack|data|devops|java|react|node|business analyst|ba)\b/i.test(
+        value
+      ) ||
+      /(vi tri|vai tro|tuyen|ung tuyen|lap trinh|kiem thu|phan tich|thiet ke|quan ly)/i.test(
+        value
+      ),
+  },
+  {
+    key: "responsibilities",
+    label: "Trách nhiệm chính",
+    test: (value) =>
+      /\b(responsibilities|responsible|develop|build|design|implement|maintain|test|analyze|manage|support|collaborate)\b/i.test(
+        value
+      ) ||
+      /(trach nhiem|cong viec|mo ta|phat trien|xay dung|thiet ke|trien khai|bao tri|kiem thu|phan tich|phoi hop)/i.test(
+        value
+      ),
+  },
+  {
+    key: "skills",
+    label: "Kỹ năng / yêu cầu",
+    test: (value) =>
+      /\b(requirements|skills|experience|proficient|knowledge|ability|familiar|years|communication|teamwork)\b/i.test(
+        value
+      ) ||
+      /(yeu cau|ky nang|kinh nghiem|thanh thao|hieu biet|co kha nang|uu tien|giao tiep|lam viec nhom)/i.test(
+        value
+      ),
+  },
+  {
+    key: "technology",
+    label: "Công nghệ / lĩnh vực",
+    test: (value) =>
+      /\b(java|spring|react|typescript|javascript|node|sql|postgres|mysql|mongodb|api|rest|aws|docker|kubernetes|git|figma|excel|python|machine learning|database)\b/i.test(
+        value
+      ),
+  },
+];
+
+function analyzeMockInterviewJd(value) {
+  const text = value?.trim?.() ?? "";
+  const searchableText = normalizeJdKeywordText(text);
+  const matched = JD_REQUIREMENT_ITEMS.filter((item) =>
+    item.test(searchableText)
+  ).map((item) => item.key);
+
+  return {
+    length: text.length,
+    matched,
+    missing: JD_REQUIREMENT_ITEMS.filter(
+      (item) => !matched.includes(item.key)
+    ),
+    isLongEnough: text.length >= JD_MIN_LENGTH,
+    isWithinLimit: text.length <= JD_MAX_LENGTH,
+  };
+}
+
+function getLocalJdValidationMessage(value) {
+  const analysis = analyzeMockInterviewJd(value);
+
+  if (!analysis.length) {
+    return "Vui lòng nhập JD trước khi bắt đầu phỏng vấn.";
+  }
+
+  if (!analysis.isWithinLimit) {
+    return `JD quá dài. Vui lòng giữ nội dung dưới ${JD_MAX_LENGTH} ký tự.`;
+  }
+
+  return "";
+}
 
 function isUsageExhaustedError(error) {
   const message = error?.message?.toLowerCase?.() ?? "";
@@ -107,6 +196,7 @@ export default function MockInterviewPage() {
   const [role, setRole] = useState("Frontend Developer");
   const [level, setLevel] = useState("Middle");
   const [jd, setJd] = useState("");
+  const [jdError, setJdError] = useState("");
   const [plan, setPlan] = useState(null);
   const [loading, setLoading] = useState(false);
   const [isInterviewing, setIsInterviewing] = useState(false);
@@ -139,6 +229,7 @@ export default function MockInterviewPage() {
   const [feedbackSubmitted, setFeedbackSubmitted] = useState(false);
 
   const primaryView = activeTab === "history" || activeTab === "historyDetail" ? "history" : "config";
+  const jdAnalysis = analyzeMockInterviewJd(jd);
 
   const videoRef = useRef(null);
   const transcriptEndRef = useRef(null);
@@ -336,28 +427,28 @@ export default function MockInterviewPage() {
     const code = error?.code;
 
     if (code === "STT_TIMEOUT") {
-      return "Dich vu STT dang phan hoi cham. Vui long thu lai sau it phut.";
+      return "Dịch vụ STT đang phản hồi chậm. Vui lòng thử lại sau ít phút.";
     }
     if (code === "STT_UNSUPPORTED_FORMAT") {
-      return "Dinh dang file audio chua duoc ho tro.";
+      return "Định dạng file audio chưa được hỗ trợ.";
     }
     if (code === "STT_AUDIO_TOO_SHORT") {
-      return "Audio qua ngan, vui long ghi am lau hon.";
+      return "Audio quá ngắn, vui lòng ghi âm lâu hơn.";
     }
     if (code === "STT_AUDIO_TOO_LARGE") {
-      return "Audio qua dai hoac dung luong qua lon.";
+      return "Audio quá dài hoặc dung lượng quá lớn.";
     }
     if (code === "STT_EMPTY_TRANSCRIPT") {
-      return "Khong nhan dien duoc noi dung giong noi.";
+      return "Không nhận diện được nội dung giọng nói.";
     }
     if (code === "STT_REQUEST_INVALID") {
-      return "File audio chua hop le hoac khong duoc ho tro.";
+      return "File audio chưa hợp lệ hoặc không được hỗ trợ.";
     }
     if (code === "STT_PROVIDER_ERROR") {
-      return "Khong the xu ly giong noi hien tai.";
+      return "Không thể xử lý giọng nói hiện tại.";
     }
 
-    return error?.message || "Gui cau tra loi voice that bai. Vui long thu lai.";
+    return error?.message || "Gửi câu trả lời voice thất bại. Vui lòng thử lại.";
   };
 
   const mapHistoryDetail = (detail, fallbackItem) => {
@@ -665,10 +756,52 @@ export default function MockInterviewPage() {
 
   const handleGenerate = async (e) => {
     e.preventDefault();
+    const validationMessage = getLocalJdValidationMessage(jd);
+    if (validationMessage) {
+      setJdError(validationMessage);
+      return;
+    }
+
+    setJdError("");
     setLoading(true);
     try {
-      const data = await generateMockInterviewPlan({ role, level, jd });
-      setPlan(data);
+      const preview = await previewMockInterviewJd({
+        level,
+        interviewType: role?.trim() || "mixed",
+        jd: jd.trim(),
+      });
+
+      if (!preview?.valid) {
+        const missingNote = preview?.missingFields?.length
+          ? ` Phần còn thiếu: ${preview.missingFields.join(", ")}.`
+          : "";
+        setPlan(null);
+        setJdError(
+          `${
+            preview?.suggestedFix ||
+            preview?.reason ||
+            "JD chưa đủ ngữ cảnh để tạo câu hỏi phỏng vấn. Vui lòng bổ sung thêm thông tin."
+          }${missingNote}`
+        );
+        return;
+      }
+
+      setPlan({
+        role: preview.detectedPosition?.trim() || role,
+        level: preview.detectedLevel?.trim() || level,
+        topics: preview.interviewTopics ?? [],
+        responsibilities: preview.detectedResponsibilities ?? [],
+        skills: preview.detectedSkills ?? [],
+        technologies: preview.detectedTechnologies ?? [],
+        score: preview.questionReadinessScore ?? 0,
+        questionCount: preview.estimatedSpecificQuestionCount ?? 0,
+      });
+    } catch (error) {
+      console.error(error);
+      setPlan(null);
+      setJdError(
+        error?.message || "Không thể phân tích JD. Vui lòng thử lại sau."
+      );
     } finally {
       setLoading(false);
     }
@@ -678,11 +811,13 @@ export default function MockInterviewPage() {
     if (isStartingInterview) {
       return;
     }
-    if (!jd?.trim()) {
-      setVoiceError("Vui lòng nhập JD trước khi bắt đầu phỏng vấn.");
+    const validationMessage = getLocalJdValidationMessage(jd);
+    if (validationMessage) {
+      setJdError(validationMessage);
       return;
     }
 
+    setJdError("");
     setVoiceError("");
     setIsStartingInterview(true);
     try {
@@ -733,6 +868,9 @@ export default function MockInterviewPage() {
           message:
             "Bạn đã dùng hết lượt luyện phỏng vấn trong gói hiện tại. Vui lòng nâng cấp gói hoặc chờ lượt được làm mới để tiếp tục.",
         });
+      }
+      if (error?.status === 400) {
+        setJdError(getVoiceApiErrorMessage(error));
       }
       setVoiceError(getVoiceApiErrorMessage(error));
     } finally {
@@ -1591,10 +1729,40 @@ export default function MockInterviewPage() {
                         </label>
                         <textarea
                           value={jd}
-                          onChange={(e) => setJd(e.target.value)}
+                          onChange={(e) => {
+                            setJd(e.target.value);
+                            if (jdError) {
+                              setJdError("");
+                            }
+                          }}
                           rows={4}
-                          className="w-full rounded-xl border border-slate-200 bg-zinc-50 px-4 py-2.5 text-sm text-slate-700 outline-none focus:border-emerald-500 focus:bg-white transition-all resize-none h-[140px]"
+                          maxLength={JD_MAX_LENGTH}
+                          placeholder="Nhập JD gồm vị trí, trách nhiệm chính, kỹ năng/yêu cầu và công nghệ liên quan."
+                          className={`w-full rounded-xl border bg-zinc-50 px-4 py-2.5 text-sm text-slate-700 outline-none focus:bg-white transition-all resize-none h-[140px] placeholder:text-slate-400 ${
+                            jdError
+                              ? "border-rose-300 focus:border-rose-500"
+                              : "border-slate-200 focus:border-emerald-500"
+                          }`}
                         />
+                        <div className="mt-2 flex items-center justify-between gap-3 text-[11px]">
+                          <span
+                            className={
+                              jdAnalysis.isLongEnough
+                                ? "font-semibold text-emerald-600"
+                                : "font-semibold text-amber-600"
+                            }
+                          >
+                            {jdAnalysis.length}/{JD_MAX_LENGTH} ký tự
+                          </span>
+                          <span className="text-slate-400">
+                            Gợi ý {JD_MIN_LENGTH}+ ký tự
+                          </span>
+                        </div>
+                        {jdError && (
+                          <p className="mt-2 rounded-xl border border-rose-100 bg-rose-50 px-3 py-2 text-xs font-medium text-rose-700">
+                            {jdError}
+                          </p>
+                        )}
                       </div>
                     </div>
 
@@ -1642,7 +1810,7 @@ export default function MockInterviewPage() {
                             className="text-emerald-600"
                           />
                           <span className="text-xs font-bold text-emerald-700 tracking-tight">
-                            Kịch bản sẵn sàng
+                            JD hợp lệ
                           </span>
                         </div>
                         <button
@@ -1650,7 +1818,7 @@ export default function MockInterviewPage() {
                           onClick={handleResetPlan}
                           className="inline-flex items-center gap-2 rounded-full bg-emerald-600 px-4 py-2 text-xs font-bold text-white shadow-lg shadow-emerald-600/30 hover:bg-emerald-700 transition-all"
                         >
-                          <Trash2 size={14} /> Quay lại tạo mới
+                          <Trash2 size={14} /> Chỉnh sửa JD
                         </button>
                       </div>
                       <h2 className="text-2xl font-bold text-slate-900 mb-1 tracking-tight">
@@ -1660,22 +1828,49 @@ export default function MockInterviewPage() {
                         Cấp độ: {plan.level}
                       </p>
 
-                      <div className="space-y-3 mb-8">
-                        {plan.stages.map((stage, idx) => (
-                          <div
-                            key={idx}
-                            className="flex items-center gap-4 bg-white/60 p-4 rounded-xl border border-white shadow-sm text-sm"
-                          >
-                            <span className="font-bold text-emerald-300">
-                              0{idx + 1}
-                            </span>
-                            <p className="text-slate-700 truncate">{stage}</p>
-                            <ChevronRight
-                              size={14}
-                              className="ml-auto text-emerald-100"
-                            />
-                          </div>
-                        ))}
+                      <div className="mb-5 grid grid-cols-2 gap-3">
+                        <div className="rounded-xl border border-emerald-100 bg-white/70 p-4">
+                          <p className="text-[11px] font-bold uppercase tracking-widest text-emerald-600">
+                            Độ sẵn sàng
+                          </p>
+                          <p className="mt-1 text-2xl font-black text-slate-900">
+                            {plan.score}%
+                          </p>
+                        </div>
+                        <div className="rounded-xl border border-emerald-100 bg-white/70 p-4">
+                          <p className="text-[11px] font-bold uppercase tracking-widest text-emerald-600">
+                            Câu hỏi cụ thể
+                          </p>
+                          <p className="mt-1 text-2xl font-black text-slate-900">
+                            {plan.questionCount || "--"}
+                          </p>
+                        </div>
+                      </div>
+
+                      <div className="mb-8">
+                        <h3 className="mb-3 text-sm font-bold text-slate-900">
+                          Kiến thức / kỹ năng sẽ phỏng vấn
+                        </h3>
+                        <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
+                          {(plan.topics?.length
+                            ? plan.topics
+                            : [
+                                "Kinh nghiệm liên quan đến JD",
+                                "Kỹ năng chuyên môn",
+                                "Tình huống làm việc thực tế",
+                              ]
+                          ).map((topic, idx) => (
+                            <div
+                              key={`${topic}-${idx}`}
+                              className="flex items-center gap-3 rounded-xl border border-white bg-white/70 p-3 text-sm font-semibold text-slate-700 shadow-sm"
+                            >
+                              <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-emerald-50 text-xs font-black text-emerald-600">
+                                {idx + 1}
+                              </span>
+                              <span className="line-clamp-2">{topic}</span>
+                            </div>
+                          ))}
+                        </div>
                       </div>
                     </div>
                     <button
@@ -1685,7 +1880,7 @@ export default function MockInterviewPage() {
                     >
                       {isStartingInterview
                         ? "Đang khởi tạo..."
-                        : "Bắt đầu ngay"}
+                        : "Bắt đầu phỏng vấn"}
                     </button>
                   </motion.div>
                 )}
