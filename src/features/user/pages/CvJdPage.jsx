@@ -192,7 +192,7 @@ export default function CvJdPage() {
     setHistoryError('');
 
     try {
-      const payload = await fetchCvScoringHistory({ page, size: 8 });
+      const payload = await fetchCvScoringHistory({ page, size: 3 });
       const items = toArray(payload?.content);
 
       setHistory(items);
@@ -429,24 +429,24 @@ export default function CvJdPage() {
                   ].join(' ')}
                 >
                   <div className="flex items-start justify-between gap-3">
-                    <div className="min-w-0">
-                      <p className="truncate text-sm font-semibold text-slate-800">{item.originalFileName || 'CV không tên'}</p>
+                    <div className="min-w-0 flex-1">
+                      <p className="truncate pr-1 text-sm font-semibold text-slate-800">{item.originalFileName || 'CV không tên'}</p>
                       <p className="mt-1 flex items-center gap-1 text-xs text-slate-500">
                         <Clock3 className="h-3.5 w-3.5" /> {formatDateTime(item.createdAt)}
                       </p>
-                      <div className="mt-1 flex items-center gap-2">
+                      <div className="mt-2 flex flex-wrap items-center gap-2">
                         <span className={`rounded-full px-2 py-0.5 text-[11px] font-semibold ${getDomainBadgeClass(item.detectedDomain)}`}>
                           {getDomainLabel(item.detectedDomain)}
                         </span>
                         <span className="text-[11px] font-medium text-slate-500">
                           Confidence: {formatConfidence(item.domainConfidence)}
                         </span>
-                        <span className="text-[11px] font-medium text-slate-500">
+                        <span className="max-w-full truncate text-[11px] font-medium text-slate-500">
                           {item.appliedRubric || '--'}
                         </span>
                       </div>
                     </div>
-                    <span className={`rounded-full px-2 py-0.5 text-xs font-bold ${getScoreBadgeClass(item.overallScore)}`}>
+                    <span className={`shrink-0 whitespace-nowrap rounded-full px-2 py-0.5 text-xs font-bold ${getScoreBadgeClass(item.overallScore)}`}>
                       {typeof item.overallScore === 'number' ? `${item.overallScore} điểm` : '--'}
                     </span>
                   </div>
