@@ -269,3 +269,18 @@ export function fetchMockInterviewDetail(sessionId) {
     headers: buildAuthHeaders(),
   });
 }
+
+export function fetchUserExperienceSurveyStatus() {
+  return requestJson('/api/user-experience-surveys/me/status', {
+    method: 'GET',
+    headers: buildAuthHeaders(),
+  });
+}
+
+export function submitUserExperienceSurvey(payload) {
+  return requestJson('/api/user-experience-surveys', {
+    method: 'POST',
+    headers: buildAuthHeaders(),
+    body: JSON.stringify(payload),
+  });
+}
