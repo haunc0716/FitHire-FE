@@ -35,7 +35,6 @@ const navigation = [
       { name: 'Quản lý gói dịch vụ', href: '/admin/plans', icon: Package },
       { name: 'Câu hỏi văn hóa', href: '/admin/assessment-questions', icon: ClipboardList },
       { name: 'Hỏi đáp người dùng', href: '/admin/questions', icon: MessageSquareText },
-      { name: 'Phản hồi phỏng vấn', href: '/admin/mock-interview-feedbacks', icon: MessageSquareText },
       { name: 'Khảo sát trải nghiệm', href: '/admin/surveys', icon: ClipboardCheck },
       { name: 'Gói dịch vụ & thanh toán', href: '/admin/billing', icon: CreditCard },
     ]

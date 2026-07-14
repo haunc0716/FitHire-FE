@@ -15,8 +15,6 @@ import {
   X,
 } from "lucide-react";
 import {
-  cancelMockInterviewSession,
-  completeMockInterviewSession,
   fetchMockInterviewDetail,
   fetchMockInterviewHistory,
   previewMockInterviewJd,
@@ -1139,54 +1137,6 @@ export default function MockInterviewPage() {
     }
   };
 
-  const stopInterview = async () => {
-    if (isSubmittingAnswer) {
-      return;
-    }
-
-    const sessionIdToComplete = activeSessionId;
-    const answeredToComplete = answeredCount;
-    const targetToComplete = targetQuestionCount;
-    const transcriptSnapshot = [...transcriptSnapshotRef.current];
-
-    if (!sessionIdToComplete || answeredToComplete <= 0) {
-      if (sessionIdToComplete) {
-        try {
-          await cancelMockInterviewSession(sessionIdToComplete);
-        } catch (cancelError) {
-          console.error(cancelError);
-        }
-      }
-      cleanupInterviewMedia();
-      setIsInterviewing(false);
-      setIsTranscribing(false);
-      resetSessionState();
-      setActiveTab("config");
-      return;
-    }
-
-    setIsSubmittingAnswer(true);
-    try {
-      const completed = await completeMockInterviewSession(sessionIdToComplete);
-      finalizeInterview({
-        sessionId: sessionIdToComplete,
-        finalReport: completed?.finalReport,
-        transcriptItems: transcriptSnapshot,
-        answered: completed?.answeredQuestionCount ?? answeredToComplete,
-        target: completed?.targetQuestionCount ?? targetToComplete,
-      });
-    } catch (error) {
-      console.error(error);
-      cleanupInterviewMedia();
-      setIsInterviewing(false);
-      setVoiceError(error.message || "Không thể kết thúc phiên phỏng vấn.");
-      resetSessionState();
-      setActiveTab("config");
-    } finally {
-      setIsSubmittingAnswer(false);
-    }
-  };
-
   const updateFeedbackField = (field, value) => {
     setFeedbackForm((prev) => ({
       ...prev,
@@ -1230,7 +1180,7 @@ export default function MockInterviewPage() {
       setShowExperienceSurvey(false);
       showToast({
         type: "success",
-        title: "?? nh?n thĐóng khảo sát",
+        title: "Đã nhận thưởng khảo sát",
         message: `Bạn vừa được cộng ${response?.rewardCvScans ?? 3} lượt chấm CV.`,
       });
     } catch (error) {
@@ -1242,7 +1192,7 @@ export default function MockInterviewPage() {
       }
       showToast({
         type: "error",
-        title: "Chưa gui duoc khao sat",
+        title: "Chưa gửi được khảo sát",
         message: error?.message || "Vui lòng thử lại sau.",
       });
     } finally {
@@ -1457,20 +1407,6 @@ export default function MockInterviewPage() {
                     <div className="w-1.5 h-1.5 bg-white rounded-full animate-pulse" />{" "}
                     Live
                   </div>
-                </div>
-                <div className="bg-white p-4 rounded-xl border border-slate-200 shadow-sm flex justify-between items-center">
-                  <div className="flex items-center gap-4">
-                    <div className="w-10 h-10 bg-emerald-50 rounded-lg flex items-center justify-center text-emerald-600 border border-emerald-100">
-                      <Mic2 size={20} />
-                    </div>
-                    <p className="text-xl font-bold">24:45</p>
-                  </div>
-                  <button
-                    onClick={stopInterview}
-                    className="bg-emerald-600 text-white px-8 py-2.5 rounded-xl text-xs font-bold uppercase shadow-md shadow-emerald-600/10"
-                  >
-                    Kết thúc
-                  </button>
                 </div>
               </div>
 
