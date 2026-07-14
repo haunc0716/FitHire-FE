@@ -26,7 +26,6 @@ const REPORT_SECTIONS = [
   { key: 'survey', label: 'Khảo sát trải nghiệm' },
   { key: 'kpi', label: 'Mức độ đạt KPI' },
   { key: 'transactions', label: 'Giao dịch gần đây' },
-  { key: 'evidence', label: 'Khung minh chứng' },
 ];
 
 function formatMoney(value, currency = 'VND') {
@@ -450,7 +449,9 @@ function PreviewMetric({ label, value, sub }) {
   );
 }
 
-function MetricCard({ label, value, icon: Icon, iconClass }) {
+function MetricCard({ label, value, icon, iconClass }) {
+  const Icon = icon;
+
   return (
     <div className="bg-white rounded-2xl border border-gray-100 shadow-[0_2px_10px_rgba(0,0,0,0.02)] p-5">
       <div className="flex items-center justify-between mb-3">
