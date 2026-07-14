@@ -1,5 +1,5 @@
 import React, { useEffect, useMemo, useState } from 'react';
-import { CreditCard, Download, ArrowUpRight, Loader2, MoreVertical, Check, X, Eye, ChevronLeft, ChevronRight } from 'lucide-react';
+import { CreditCard, ArrowUpRight, Loader2, MoreVertical, Check, X, Eye, ChevronLeft, ChevronRight } from 'lucide-react';
 import { getAdminPayments, getAdminPaymentById, markPaymentSuccess, markPaymentFailed } from '../services/paymentApi';
 import { useToast } from '../../../components/ui/ToastProvider';
 
@@ -132,10 +132,6 @@ export default function BillingPage() {
           <h1 className="text-2xl font-bold text-gray-900 font-display">Gói dịch vụ & thanh toán</h1>
           <p className="text-sm text-gray-500 mt-1">Theo dõi doanh thu, gói dịch vụ đang hoạt động và lịch sử thanh toán.</p>
         </div>
-        <button className="px-4 py-2 flex items-center gap-2 bg-[#00b14f] text-white text-sm font-bold rounded-xl hover:bg-[#009b45] transition-colors shadow-sm shadow-emerald-100">
-          <Download className="w-4 h-4" />
-          Tải báo cáo
-        </button>
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6">

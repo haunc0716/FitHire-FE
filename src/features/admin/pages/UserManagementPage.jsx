@@ -1,5 +1,5 @@
 import React, { useEffect, useMemo, useState } from 'react';
-import { Search, Filter, Download, Shield, User, CheckCircle2, XCircle, Loader2, Eye, RotateCcw, BadgeInfo } from 'lucide-react';
+import { Search, Filter, Shield, User, CheckCircle2, XCircle, Loader2, Eye, RotateCcw, BadgeInfo } from 'lucide-react';
 import { getAdminUserById, getAdminUsers, updateAdminUserStatus } from '../services/userApi';
 import { useToast } from '../../../components/ui/ToastProvider';
 
@@ -132,10 +132,6 @@ export default function UserManagementPage() {
           <h1 className="text-2xl font-bold text-gray-900 font-display">Quản lý người dùng</h1>
           <p className="text-sm text-gray-500 mt-1">Quản lý tài khoản, vai trò và trạng thái người dùng trên nền tảng.</p>
         </div>
-        <button className="px-4 py-2 flex items-center gap-2 bg-white border border-stone-200 text-stone-700 text-sm font-medium rounded-xl hover:bg-stone-50 transition-colors shadow-sm">
-          <Download className="w-4 h-4" />
-          Xuất CSV
-        </button>
       </div>
 
       <div className="bg-white rounded-2xl border border-stone-100 shadow-[0_2px_10px_rgba(0,0,0,0.02)] overflow-hidden">

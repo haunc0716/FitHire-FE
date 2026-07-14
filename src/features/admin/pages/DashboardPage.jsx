@@ -5,7 +5,6 @@ import {
   ArrowUpRight,
   Bot,
   CreditCard,
-  Download,
   FileBarChart2,
   Hourglass,
   Sparkles,
@@ -259,10 +258,6 @@ export default function DashboardPage() {
             <div className="inline-flex items-center justify-center rounded-2xl border border-stone-200 bg-stone-50 px-4 py-3 text-sm text-stone-600">
               Dữ liệu tổng quan hệ thống
             </div>
-            <button className="inline-flex items-center justify-center gap-2 rounded-2xl bg-slate-950 px-5 py-3 text-sm font-semibold text-white transition hover:bg-slate-800">
-              <Download className="h-4 w-4" />
-              Xuất báo cáo
-            </button>
           </div>
         </div>
       </section>

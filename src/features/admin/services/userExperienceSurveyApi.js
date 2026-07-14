@@ -9,7 +9,7 @@ function buildApiUrl(path) {
 function buildAuthHeaders() {
   const session = getAuthSession();
   if (!session?.accessToken || Number(session.expiresAt) <= Date.now()) {
-    throw new Error('Phi?n ??ng nh?p ?? h?t h?n. Vui l?ng ??ng nh?p l?i.');
+    throw new Error('Phiên đăng nhập đã hết hạn. Vui lòng đăng nhập lại.');
   }
 
   return {
@@ -40,13 +40,13 @@ async function requestJson(path, options = {}) {
       ...options,
     });
   } catch (error) {
-    if (error?.message?.includes('dang nhap')) throw error;
-    throw new Error('Kh?ng th? k?t n?i t?i m?y ch?. Vui l?ng th? l?i.');
+    if (error?.message?.includes('đăng nhập')) throw error;
+    throw new Error('Không thể kết nối tới máy chủ. Vui lòng thử lại.');
   }
 
   const payload = await parseJsonSafely(response);
   if (!response.ok) {
-    throw new Error(payload?.message || `Y?u c?u th?t b?i (HTTP ${response.status}).`);
+    throw new Error(payload?.message || `Yêu cầu thất bại (HTTP ${response.status}).`);
   }
 
   return payload;
