@@ -11,6 +11,8 @@ import {
   StopCircle,
   Trash2,
   ChevronRight,
+  Gift,
+  X,
 } from "lucide-react";
 import {
   cancelMockInterviewSession,
@@ -22,6 +24,8 @@ import {
   startMockInterviewSession,
   submitMockInterviewFeedback,
   submitMockInterviewAnswer,
+  fetchUserExperienceSurveyStatus,
+  submitUserExperienceSurvey,
   transcribeMockInterviewVoice,
 } from "../services/userApi";
 import { useToast } from "../../../components/ui/ToastProvider";
@@ -34,6 +38,27 @@ const INITIAL_FEEDBACK_FORM = {
   likedMost: "",
   improvementSuggestion: "",
   additionalComment: "",
+};
+
+const INITIAL_SURVEY_FORM = {
+  overallSatisfaction: 5,
+  recommendationLikelihood: 5,
+  cvAnalysisRating: 5,
+  cvAnalysisUsefulness: 5,
+  mockInterviewRating: 5,
+  mockInterviewUsefulness: 5,
+  careerRecommendationRating: 4,
+  careerRecommendationUsefulness: 4,
+  interfaceEase: 5,
+  featureDiscoverability: 5,
+  aiResponseSpeed: 5,
+  aiResultClarity: 5,
+  likedMost: "",
+  dissatisfaction: "",
+  desiredFeatures: "",
+  userSegment: "",
+  industry: "",
+  realInterviewExperience: "",
 };
 
 const JD_MIN_LENGTH = 50;
@@ -191,6 +216,214 @@ function FeedbackTextarea({ label, value, disabled, placeholder, onChange }) {
   );
 }
 
+function SurveySelect({ label, value, disabled, options, onChange }) {
+  return (
+    <label className="block">
+      <span className="mb-2 block text-sm font-semibold text-slate-800">
+        {label}
+      </span>
+      <select
+        value={value}
+        disabled={disabled}
+        onChange={(event) => onChange(event.target.value)}
+        className="w-full rounded-xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm text-slate-700 outline-none transition-all focus:border-emerald-500 focus:bg-white disabled:bg-slate-100"
+      >
+        <option value="">Không bắt buộc</option>
+        {options.map((option) => (
+          <option key={option} value={option}>
+            {option}
+          </option>
+        ))}
+      </select>
+    </label>
+  );
+}
+
+function UserExperienceSurveyModal({
+  form,
+  submitting,
+  onChange,
+  onClose,
+  onSubmit,
+}) {
+  const featureRatings = [
+    ["Chấm CV", "cvAnalysisRating", "cvAnalysisUsefulness"],
+    ["Phỏng vấn mô phỏng", "mockInterviewRating", "mockInterviewUsefulness"],
+    ["Gợi ý nghề nghiệp", "careerRecommendationRating", "careerRecommendationUsefulness"],
+  ];
+
+  return (
+    <div className="fixed inset-0 z-[80] flex items-center justify-center bg-slate-950/55 px-4 py-6 backdrop-blur-sm">
+      <motion.div
+        initial={{ opacity: 0, y: 20, scale: 0.98 }}
+        animate={{ opacity: 1, y: 0, scale: 1 }}
+        exit={{ opacity: 0, y: 20, scale: 0.98 }}
+        className="max-h-[92vh] w-full max-w-4xl overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-2xl"
+      >
+        <div className="flex items-start justify-between gap-4 border-b border-slate-100 px-6 py-5">
+          <div>
+            <div className="mb-2 inline-flex items-center gap-2 rounded-full border border-emerald-100 bg-emerald-50 px-3 py-1 text-xs font-bold text-emerald-700">
+              <Gift size={14} />
+              Thưởng 3 lượt chấm CV
+            </div>
+            <h2 className="text-xl font-bold text-slate-900">
+              Cảm ơn bạn đã trải nghiệm FitHire
+            </h2>
+            <p className="mt-1 text-sm text-slate-500">
+              Bạn có thể dành khoảng 1 phút để giúp chúng tôi cải thiện sản phẩm không?
+            </p>
+          </div>
+          <button
+            type="button"
+            onClick={onClose}
+            disabled={submitting}
+            className="rounded-xl border border-slate-200 p-2 text-slate-500 transition hover:bg-slate-50 disabled:opacity-60"
+            title="Đóng khảo sát"
+          >
+            <X size={18} />
+          </button>
+        </div>
+
+        <form onSubmit={onSubmit} className="max-h-[calc(92vh-112px)] overflow-y-auto p-6">
+          <div className="space-y-6">
+            <section className="grid gap-4 md:grid-cols-2">
+              <RatingQuestion
+                label="Mức độ hài lòng chung"
+                value={form.overallSatisfaction}
+                disabled={submitting}
+                onChange={(value) => onChange("overallSatisfaction", value)}
+              />
+              <RatingQuestion
+                label="Bạn có sẵn sàng giới thiệu FitHire cho bạn bè không?"
+                value={form.recommendationLikelihood}
+                disabled={submitting}
+                onChange={(value) => onChange("recommendationLikelihood", value)}
+              />
+            </section>
+
+            <section className="rounded-2xl border border-slate-100 bg-slate-50/70 p-4">
+              <h3 className="mb-4 text-sm font-bold text-slate-900">
+                Đánh giá từng tính năng
+              </h3>
+              <div className="space-y-3">
+                {featureRatings.map(([label, ratingKey, usefulnessKey]) => (
+                  <div
+                    key={label}
+                    className="grid gap-3 rounded-xl border border-slate-100 bg-white p-4 md:grid-cols-[1fr_240px_240px]"
+                  >
+                    <div className="text-sm font-bold text-slate-800">{label}</div>
+                    <RatingQuestion
+                      label="Đánh giá"
+                      value={form[ratingKey]}
+                      disabled={submitting}
+                      onChange={(value) => onChange(ratingKey, value)}
+                    />
+                    <RatingQuestion
+                      label="Hữu ích"
+                      value={form[usefulnessKey]}
+                      disabled={submitting}
+                      onChange={(value) => onChange(usefulnessKey, value)}
+                    />
+                  </div>
+                ))}
+              </div>
+            </section>
+
+            <section className="rounded-2xl border border-slate-100 bg-white p-4">
+              <h3 className="mb-4 text-sm font-bold text-slate-900">
+                Tính dễ sử dụng
+              </h3>
+              <div className="grid gap-3 md:grid-cols-2">
+                {[
+                  ["Giao diện dễ sử dụng", "interfaceEase"],
+                  ["Các chức năng dễ tìm", "featureDiscoverability"],
+                  ["AI phản hồi nhanh", "aiResponseSpeed"],
+                  ["Kết quả AI dễ hiểu", "aiResultClarity"],
+                ].map(([label, key]) => (
+                  <RatingQuestion
+                    key={key}
+                    label={label}
+                    value={form[key]}
+                    disabled={submitting}
+                    onChange={(value) => onChange(key, value)}
+                  />
+                ))}
+              </div>
+            </section>
+
+            <section className="grid gap-4 md:grid-cols-3">
+              <FeedbackTextarea
+                label="Bạn thích nhất điều gì ở FitHire?"
+                value={form.likedMost}
+                disabled={submitting}
+                placeholder="Điều gì làm bạn thấy hữu ích nhất?"
+                onChange={(value) => onChange("likedMost", value)}
+              />
+              <FeedbackTextarea
+                label="Điều gì khiến bạn chưa hài lòng?"
+                value={form.dissatisfaction}
+                disabled={submitting}
+                placeholder="Khó khăn, chậm, khó hiểu..."
+                onChange={(value) => onChange("dissatisfaction", value)}
+              />
+              <FeedbackTextarea
+                label="Bạn muốn FitHire bổ sung tính năng gì?"
+                value={form.desiredFeatures}
+                disabled={submitting}
+                placeholder="Tính năng bạn muốn có trong tương lai"
+                onChange={(value) => onChange("desiredFeatures", value)}
+              />
+            </section>
+
+            <section className="grid gap-4 md:grid-cols-3">
+              <SurveySelect
+                label="Bạn là"
+                value={form.userSegment}
+                disabled={submitting}
+                options={["Sinh viên", "Fresher", "Junior", "Người đi làm"]}
+                onChange={(value) => onChange("userSegment", value)}
+              />
+              <SurveySelect
+                label="Ngành"
+                value={form.industry}
+                disabled={submitting}
+                options={["Software Engineering", "AI", "Data", "Business", "Marketing", "Khác"]}
+                onChange={(value) => onChange("industry", value)}
+              />
+              <SurveySelect
+                label="Bạn đã từng phỏng vấn thật chưa?"
+                value={form.realInterviewExperience}
+                disabled={submitting}
+                options={["Chưa", "1-2 lần", "3-5 lần", "Trên 5 lần"]}
+                onChange={(value) => onChange("realInterviewExperience", value)}
+              />
+            </section>
+          </div>
+
+          <div className="mt-6 flex flex-col-reverse gap-3 border-t border-slate-100 pt-5 sm:flex-row sm:justify-end">
+            <button
+              type="button"
+              onClick={onClose}
+              disabled={submitting}
+              className="rounded-xl border border-slate-200 px-5 py-3 text-sm font-bold text-slate-600 transition hover:bg-slate-50 disabled:opacity-60"
+            >
+              Để sau
+            </button>
+            <button
+              type="submit"
+              disabled={submitting}
+              className="inline-flex items-center justify-center gap-2 rounded-xl bg-emerald-600 px-5 py-3 text-sm font-bold text-white shadow-lg shadow-emerald-600/20 transition hover:bg-emerald-700 disabled:opacity-60"
+            >
+              {submitting ? "Đang gửi..." : "Gửi khảo sát và nhận thưởng"}
+              {!submitting && <Gift size={16} />}
+            </button>
+          </div>
+        </form>
+      </motion.div>
+    </div>
+  );
+}
+
 export default function MockInterviewPage() {
   const { showToast } = useToast();
   const [role, setRole] = useState("Frontend Developer");
@@ -227,6 +460,10 @@ export default function MockInterviewPage() {
   const [feedbackForm, setFeedbackForm] = useState(INITIAL_FEEDBACK_FORM);
   const [isSubmittingFeedback, setIsSubmittingFeedback] = useState(false);
   const [feedbackSubmitted, setFeedbackSubmitted] = useState(false);
+  const [surveyForm, setSurveyForm] = useState(INITIAL_SURVEY_FORM);
+  const [showExperienceSurvey, setShowExperienceSurvey] = useState(false);
+  const [isSubmittingSurvey, setIsSubmittingSurvey] = useState(false);
+  const [hasSubmittedExperienceSurvey, setHasSubmittedExperienceSurvey] = useState(false);
 
   const primaryView = activeTab === "history" || activeTab === "historyDetail" ? "history" : "config";
   const jdAnalysis = analyzeMockInterviewJd(jd);
@@ -572,9 +809,33 @@ export default function MockInterviewPage() {
     setHistory((prev) => [resultEntry, ...prev]);
     setLastResult(resultEntry);
     setFeedbackForm(INITIAL_FEEDBACK_FORM);
-    setFeedbackSubmitted(false);
+    setFeedbackSubmitted(true);
     setActiveTab("result");
     resetSessionState();
+    maybeOpenExperienceSurvey(sessionId);
+  };
+
+  const maybeOpenExperienceSurvey = async (sessionId) => {
+    if (hasSubmittedExperienceSurvey) {
+      return;
+    }
+
+    try {
+      const status = await fetchUserExperienceSurveyStatus();
+      if (status?.submitted) {
+        setHasSubmittedExperienceSurvey(true);
+        setShowExperienceSurvey(false);
+        return;
+      }
+
+      setSurveyForm({
+        ...INITIAL_SURVEY_FORM,
+        mockInterviewSessionId: sessionId ?? null,
+      });
+      setShowExperienceSurvey(true);
+    } catch (error) {
+      console.error(error);
+    }
   };
 
   const applyAnswerResponse = (response, answerText) => {
@@ -736,7 +997,7 @@ export default function MockInterviewPage() {
 
       const transcriptText = response?.transcript?.trim?.() ?? "";
       if (!transcriptText) {
-        setVoiceError("Khong nhan dien duoc noi dung giong noi.");
+        setVoiceError("Không nhận diện được nội dung giọng nói.");
         return;
       }
 
@@ -933,6 +1194,62 @@ export default function MockInterviewPage() {
     }));
   };
 
+  const updateSurveyField = (field, value) => {
+    setSurveyForm((prev) => ({
+      ...prev,
+      [field]: value,
+    }));
+  };
+
+  const handleSubmitExperienceSurvey = async (event) => {
+    event.preventDefault();
+
+    if (isSubmittingSurvey || hasSubmittedExperienceSurvey) {
+      return;
+    }
+
+    setIsSubmittingSurvey(true);
+    try {
+      const response = await submitUserExperienceSurvey({
+        ...surveyForm,
+        overallSatisfaction: Number(surveyForm.overallSatisfaction),
+        recommendationLikelihood: Number(surveyForm.recommendationLikelihood),
+        cvAnalysisRating: Number(surveyForm.cvAnalysisRating),
+        cvAnalysisUsefulness: Number(surveyForm.cvAnalysisUsefulness),
+        mockInterviewRating: Number(surveyForm.mockInterviewRating),
+        mockInterviewUsefulness: Number(surveyForm.mockInterviewUsefulness),
+        careerRecommendationRating: Number(surveyForm.careerRecommendationRating),
+        careerRecommendationUsefulness: Number(surveyForm.careerRecommendationUsefulness),
+        interfaceEase: Number(surveyForm.interfaceEase),
+        featureDiscoverability: Number(surveyForm.featureDiscoverability),
+        aiResponseSpeed: Number(surveyForm.aiResponseSpeed),
+        aiResultClarity: Number(surveyForm.aiResultClarity),
+      });
+
+      setHasSubmittedExperienceSurvey(true);
+      setShowExperienceSurvey(false);
+      showToast({
+        type: "success",
+        title: "?? nh?n thĐóng khảo sát",
+        message: `Bạn vừa được cộng ${response?.rewardCvScans ?? 3} lượt chấm CV.`,
+      });
+    } catch (error) {
+      console.error(error);
+      if (error?.status === 409) {
+        setHasSubmittedExperienceSurvey(true);
+        setShowExperienceSurvey(false);
+        return;
+      }
+      showToast({
+        type: "error",
+        title: "Chưa gui duoc khao sat",
+        message: error?.message || "Vui lòng thử lại sau.",
+      });
+    } finally {
+      setIsSubmittingSurvey(false);
+    }
+  };
+
   const handleSubmitFeedback = async (event) => {
     event.preventDefault();
 
@@ -953,7 +1270,7 @@ export default function MockInterviewPage() {
       showToast({
         type: "success",
         title: "Đã gửi feedback",
-        message: "Cảm ơn bạn đã giúp FitHire cải thiện Mock Interview.",
+        message: "Cảm ơn bạn đã giúp FitHire cải thiện Phỏng vấn mô phỏng.",
       });
     } catch (error) {
       console.error(error);
@@ -1060,6 +1377,18 @@ export default function MockInterviewPage() {
 
   return (
     <div className="relative min-h-screen bg-[#f8f9fa] overflow-hidden font-body text-slate-800 pb-16">
+      <AnimatePresence>
+        {showExperienceSurvey && (
+          <UserExperienceSurveyModal
+            form={surveyForm}
+            submitting={isSubmittingSurvey}
+            onChange={updateSurveyField}
+            onClose={() => setShowExperienceSurvey(false)}
+            onSubmit={handleSubmitExperienceSurvey}
+          />
+        )}
+      </AnimatePresence>
+
       {/* Background Bubbles (Rainbow effect from CV Manager) */}
       <div className="absolute top-0 left-0 h-[500px] w-[500px] -translate-x-1/3 -translate-y-1/4 rounded-full bg-emerald-200/40 blur-[120px] z-0 pointer-events-none" />
       <div className="absolute top-40 right-0 h-[400px] w-[400px] translate-x-1/3 rounded-full bg-indigo-200/30 blur-[100px] z-0 pointer-events-none" />
@@ -1411,7 +1740,7 @@ export default function MockInterviewPage() {
                       Góp ý trải nghiệm
                     </p>
                     <h3 className="mt-1 text-lg font-bold text-slate-900">
-                      Bạn thấy Mock Interview hôm nay như thế nào?
+                      Bạn thấy Phỏng vấn mô phỏng hôm nay như thế nào?
                     </h3>
                     <p className="mt-1 text-sm text-slate-500">
                       Một vài câu trả lời ngắn sẽ giúp FitHire cải thiện câu hỏi, giọng phỏng vấn và feedback AI.

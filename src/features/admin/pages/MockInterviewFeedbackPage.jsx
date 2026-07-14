@@ -53,7 +53,7 @@ function RatingDetail({ question, value }) {
 }
 
 function PriorityBadge({ priority }) {
-  const isHigh = priority === 'High';
+  const isHigh = priority === 'Cao';
 
   return (
     <span
@@ -108,7 +108,7 @@ export default function MockInterviewFeedbackPage() {
       .catch((loadError) => {
         console.error(loadError);
         if (!isMounted) return;
-        setError(loadError?.message || 'Không tải được feedback Mock Interview.');
+        setError(loadError?.message || 'Không tải được phản hồi phỏng vấn mô phỏng.');
       })
       .finally(() => {
         if (!isMounted) return;
@@ -130,21 +130,21 @@ export default function MockInterviewFeedbackPage() {
   return (
     <div className="space-y-6">
       <div>
-        <h1 className="text-2xl font-bold text-gray-900">Feedback Mock Interview</h1>
-        <p className="mt-1 text-sm text-gray-500">Theo dõi trải nghiệm người dùng và các đề xuất cải thiện Mock Interview.</p>
+        <h1 className="text-2xl font-bold text-gray-900">Phản hồi phỏng vấn mô phỏng</h1>
+        <p className="mt-1 text-sm text-gray-500">Theo dõi trải nghiệm người dùng và các đề xuất cải thiện phỏng vấn mô phỏng.</p>
       </div>
 
       {isLoading ? (
         <div className="flex items-center gap-3 text-sm text-gray-500">
-          <Loader2 className="h-4 w-4 animate-spin" /> Đang tải feedback...
+          <Loader2 className="h-4 w-4 animate-spin" /> Đang tải phản hồi...
         </div>
       ) : (
         <>
           <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-4">
-            <MetricCard label="Tổng feedback" value={stats.totalFeedbacks} icon={MessageSquareText} iconClass="text-emerald-500" />
+            <MetricCard label="Tổng phản hồi" value={stats.totalFeedbacks} icon={MessageSquareText} iconClass="text-emerald-500" />
             <MetricCard label="Người dùng góp ý" value={stats.uniqueUsers} icon={Users} iconClass="text-blue-500" />
-            <MetricCard label="Điểm Hài lòng trung bình" value={`${formatNumber(stats.averageOverall)}/5`} icon={Star} iconClass="text-amber-500" />
-            <MetricCard label="Điểm AI feedback hữu ích" value={`${formatNumber(stats.averageAiFeedback)}/5`} icon={TrendingUp} iconClass="text-rose-500" />
+            <MetricCard label="Điểm hài lòng TB" value={`${formatNumber(stats.averageOverall)}/5`} icon={Star} iconClass="text-amber-500" />
+            <MetricCard label="Điểm phản hồi AI hữu ích" value={`${formatNumber(stats.averageAiFeedback)}/5`} icon={TrendingUp} iconClass="text-rose-500" />
           </div>
 
           {error ? (
@@ -155,19 +155,19 @@ export default function MockInterviewFeedbackPage() {
 
           <div className="overflow-hidden rounded-2xl border border-gray-100 bg-white shadow-[0_2px_10px_rgba(0,0,0,0.02)]">
             <div className="flex flex-wrap items-center justify-between gap-3 border-b border-gray-100 px-7 py-5">
-              <h2 className="text-base font-bold text-gray-900">Danh sách feedback mới nhất</h2>
-              <span className="text-xs font-semibold text-gray-400">Tối đa 100 record</span>
+              <h2 className="text-base font-bold text-gray-900">Danh sách phản hồi mới nhất</h2>
+              <span className="text-xs font-semibold text-gray-400">Tối đa 100 bản ghi</span>
             </div>
 
             {feedbacks.length === 0 ? (
-              <div className="px-6 py-10 text-center text-sm text-gray-500">Chưa có feedback nào.</div>
+              <div className="px-6 py-10 text-center text-sm text-gray-500">Chưa có phản hồi nào.</div>
             ) : (
               <div className="overflow-x-auto">
                 <div className="min-w-[980px]">
                   <div className="grid grid-cols-[1.45fr_1.25fr_0.75fr_0.75fr_0.6fr] gap-6 border-b border-gray-100 bg-gray-50 px-7 py-3 text-xs font-bold uppercase tracking-wide text-gray-400">
                     <div>Người dùng</div>
                     <div>Phiên phỏng vấn</div>
-                    <div>Ưu tiên loại</div>
+                    <div>Mức ưu tiên</div>
                     <div>Ngày gửi</div>
                     <div>Chi tiết</div>
                   </div>
@@ -175,8 +175,8 @@ export default function MockInterviewFeedbackPage() {
                   <div className="divide-y divide-gray-100">
                     {feedbacks.map((item) => {
                       const averageRating = feedbackAverage(item);
-                      const priority = averageRating < 3 ? 'High' : 'Normal';
-                      const isHighPriority = priority === 'High';
+                      const priority = averageRating < 3 ? 'Cao' : 'Bình thường';
+                      const isHighPriority = priority === 'Cao';
                       const isExpanded = expandedFeedbackId === item.feedbackId;
 
                       return (
@@ -190,13 +190,13 @@ export default function MockInterviewFeedbackPage() {
                         >
                           <div className="grid grid-cols-[1.45fr_1.25fr_0.75fr_0.75fr_0.6fr] gap-6 px-7 py-5 text-sm">
                             <div className="min-w-0">
-                              <div className="truncate font-bold text-gray-900">{item.userFullName || `User #${item.userId}`}</div>
+                              <div className="truncate font-bold text-gray-900">{item.userFullName || `Người dùng #${item.userId}`}</div>
                               <div className="mt-1 truncate text-xs text-gray-500">{item.userEmail || '--'}</div>
                             </div>
 
                             <div className="min-w-0">
-                              <div className="truncate font-bold text-gray-900">{item.interviewType || 'Mock Interview'}</div>
-                              <div className="mt-1 text-xs text-gray-500">{item.level || '--'} · AI score {item.overallScore ?? '--'}%</div>
+                              <div className="truncate font-bold text-gray-900">{item.interviewType || 'Phỏng vấn mô phỏng'}</div>
+                              <div className="mt-1 text-xs text-gray-500">{item.level || '--'} · Điểm AI {item.overallScore ?? '--'}%</div>
                               <div className="mt-1 text-xs text-gray-400">Hoàn thành: {formatDateTime(item.completedAt)}</div>
                             </div>
 
@@ -212,7 +212,7 @@ export default function MockInterviewFeedbackPage() {
                               onClick={() => setExpandedFeedbackId(isExpanded ? null : item.feedbackId)}
                               className="inline-flex h-10 w-fit items-center gap-2 rounded-xl border border-emerald-100 bg-white px-4 text-xs font-bold text-emerald-700 shadow-sm transition-all hover:border-emerald-200 hover:bg-emerald-50"
                             >
-                              Details
+                              Chi tiết
                               <ChevronDown className={`h-4 w-4 transition-transform ${isExpanded ? 'rotate-180' : ''}`} />
                             </button>
                           </div>
@@ -222,7 +222,7 @@ export default function MockInterviewFeedbackPage() {
                               <div className="grid gap-5 lg:grid-cols-[1.15fr_1fr]">
                                 <div>
                                   <div className="mb-3 flex items-center justify-between">
-                                    <p className="text-xs font-bold uppercase tracking-wide text-gray-400">Rating</p>
+                                    <p className="text-xs font-bold uppercase tracking-wide text-gray-400">Đánh giá</p>
                                     <p className="text-xs font-semibold text-gray-400">Trung bình {formatNumber(averageRating)}/5</p>
                                   </div>
                                   <div className="grid gap-3">
@@ -239,7 +239,7 @@ export default function MockInterviewFeedbackPage() {
                                       value={item.questionQualityRating}
                                     />
                                     <RatingDetail
-                                      question="Feedback từ AI có hữu ích không?"
+                                      question="Phản hồi từ AI có hữu ích không?"
                                       value={item.aiFeedbackRating}
                                     />
                                   </div>
