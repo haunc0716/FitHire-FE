@@ -59,10 +59,21 @@ export default function CulturalFitPage() {
   const [isLoading, setIsLoading] = useState(false);
   const [result, setResult] = useState(null);
   const RESULT_CACHE_KEY = 'fitHire_culturalFit_result';
+  const CULTURE_CACHE_KEY = 'fitHire_culturalFit';
   const hasFreeCvReward = Boolean(profile?.freeCvScansGranted);
   const freeCvBalance = Number(profile?.freeCvScansBalance ?? 0);
 
   const getCultureMeta = (cultureKey) => (cultureKey ? CULTURE_DESCRIPTIONS[cultureKey] : null);
+
+  const clearCachedResult = () => {
+    try {
+      localStorage.removeItem(RESULT_CACHE_KEY);
+      localStorage.removeItem(CULTURE_CACHE_KEY);
+    } catch (_) {
+      // ignore
+    }
+    window.dispatchEvent(new Event('culturalFitUpdated'));
+  };
 
   const renderCultureCard = (label, cultureKey, meta, extraClassName = '') => (
     <div
@@ -101,6 +112,16 @@ export default function CulturalFitPage() {
           return;
         }
 
+        const hasCompletedAssessment = profileResult.status === 'fulfilled'
+          && Boolean(profileResult.value?.culturalFitCompleted);
+
+        if (!hasCompletedAssessment) {
+          clearCachedResult();
+          setResult(null);
+          setStep('welcome');
+          return;
+        }
+
         try {
           const cached = localStorage.getItem(RESULT_CACHE_KEY);
           if (cached) {
@@ -112,9 +133,7 @@ export default function CulturalFitPage() {
           // ignore
         }
 
-        if (profileResult.status === 'fulfilled' && profileResult.value?.culturalFitCompleted) {
-          setStep('welcome');
-        }
+        setStep('welcome');
       })
       .catch(() => null);
 
@@ -181,7 +200,7 @@ export default function CulturalFitPage() {
 
       const primaryCulture = res?.primaryCulture ?? res?.resultPrimary;
       if (primaryCulture) {
-        localStorage.setItem('fitHire_culturalFit', primaryCulture);
+        localStorage.setItem(CULTURE_CACHE_KEY, primaryCulture);
         window.dispatchEvent(new Event('culturalFitUpdated'));
       }
       if (profile) {

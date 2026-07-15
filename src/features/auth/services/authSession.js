@@ -1,4 +1,12 @@
 const AUTH_SESSION_KEY = 'fithire.auth.session';
+const USER_SCOPED_CACHE_KEYS = [
+  'fitHire_culturalFit',
+  'fitHire_culturalFit_result',
+];
+
+function clearUserScopedCache() {
+  USER_SCOPED_CACHE_KEYS.forEach((key) => localStorage.removeItem(key));
+}
 
 export function resolveHomeByRole(role) {
   return role === 'ADMIN' ? '/admin' : '/';
@@ -8,6 +16,8 @@ export function saveAuthSession(authPayload) {
   if (!authPayload || !authPayload.accessToken) {
     return null;
   }
+
+  clearUserScopedCache();
 
   const expiresInSeconds = Number(authPayload.expiresInSeconds) || 0;
   const expiresAt = Date.now() + expiresInSeconds * 1000;
@@ -50,5 +60,6 @@ export function getSessionRole(session) {
 }
 
 export function clearAuthSession() {
+  clearUserScopedCache();
   localStorage.removeItem(AUTH_SESSION_KEY);
 }
