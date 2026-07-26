@@ -24,15 +24,13 @@ function formatDate(value) {
 
 function extractUserLabel(transaction) {
   const candidate =
+    transaction?.userFullName ||
     transaction?.user?.fullName ||
     transaction?.user?.name ||
     transaction?.user?.displayName ||
     transaction?.userName ||
-    transaction?.userFullName ||
     transaction?.customerName ||
     transaction?.buyerName ||
-    transaction?.accountName ||
-    transaction?.email ||
     transaction?.userEmail ||
     transaction?.user?.email ||
     transaction?.metadata?.userName ||
@@ -41,6 +39,10 @@ function extractUserLabel(transaction) {
   if (candidate) return candidate;
   if (transaction?.userId) return `Người dùng #${transaction.userId}`;
   return `Khách hàng #${transaction?.id ?? ''}`.trim();
+}
+
+function extractUserEmail(transaction) {
+  return transaction?.userEmail || transaction?.user?.email || '';
 }
 
 function extractPlanLabel(transaction) {
@@ -209,7 +211,12 @@ export default function BillingPage() {
                   {paginatedTransactions.map((trx) => (
                     <tr key={trx.id} className="hover:bg-stone-50/50 transition-colors">
                       <td className="px-6 py-4 font-bold text-stone-900">{trx.id}</td>
-                      <td className="px-6 py-4 text-stone-600 font-medium">{extractUserLabel(trx)}</td>
+                      <td className="px-6 py-4">
+                        <div className="font-medium text-stone-600">{extractUserLabel(trx)}</div>
+                        {extractUserEmail(trx) ? (
+                          <div className="mt-0.5 text-xs text-stone-400">{extractUserEmail(trx)}</div>
+                        ) : null}
+                      </td>
                       <td className="px-6 py-4 text-stone-500">{extractPlanLabel(trx)}</td>
                       <td className="px-6 py-4 font-bold text-stone-900">{formatMoney(trx.amount ?? trx.totalAmount ?? trx.price, trx.currency)}</td>
                       <td className="px-6 py-4 text-stone-400 text-xs">{formatDate(trx.createdAt || trx.paidAt || trx.updatedAt)}</td>
@@ -317,6 +324,9 @@ export default function BillingPage() {
                   <div className="rounded-2xl bg-stone-50 p-4 col-span-2">
                     <div className="text-stone-400">Người dùng</div>
                     <div className="font-semibold text-stone-900">{extractUserLabel(selectedTransaction)}</div>
+                    {extractUserEmail(selectedTransaction) ? (
+                      <div className="mt-1 text-xs text-stone-500">{extractUserEmail(selectedTransaction)}</div>
+                    ) : null}
                   </div>
                   <div className="rounded-2xl bg-stone-50 p-4 col-span-2">
                     <div className="text-stone-400">Gói</div>
