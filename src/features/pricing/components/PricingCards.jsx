@@ -133,6 +133,10 @@ function resolveTierLevel(item) {
   return resolveTierLevelByCode(item?.code || item?.subscriptionCode);
 }
 
+function normalizeCode(value) {
+  return String(value || '').trim().toUpperCase();
+}
+
 function formatCurrency(value) {
   const amount = Number(value ?? 0);
   return new Intl.NumberFormat('vi-VN').format(amount);
@@ -201,7 +205,9 @@ const PricingCards = () => {
         return new Date(item.endDate).getTime() > now;
       });
 
-    const activeCodes = activeSubscriptions.map((item) => item.subscriptionCode);
+    const activeCodes = activeSubscriptions
+      .map((item) => normalizeCode(item.subscriptionCode))
+      .filter(Boolean);
     setActivePlanCodes([...new Set(activeCodes)]);
 
     const fallbackCurrent = [...activeSubscriptions]
@@ -340,9 +346,12 @@ const PricingCards = () => {
           const isBusy = busyPlanCode === plan.code;
           const planTierLevel = resolveTierLevel(plan);
           const isTierManagedPlan = planTierLevel !== null;
+          const planCode = normalizeCode(plan.code);
+          const currentSubscriptionCode = normalizeCode(currentSubscription?.subscriptionCode || currentSubscription?.code);
+          const hasActiveSamePlan = activePlanCodes.includes(planCode) || currentSubscriptionCode === planCode;
           const isCurrentPlan = isTierManagedPlan
-            ? currentTierLevel !== null && planTierLevel === currentTierLevel
-            : plan.code !== 'LUOT_LE' && activePlanCodes.includes(plan.code);
+            ? hasActiveSamePlan || (currentTierLevel !== null && planTierLevel === currentTierLevel)
+            : hasActiveSamePlan;
 
           let ctaText = plan.ctaLabel;
           let isPlanUnavailable = isCurrentPlan;
