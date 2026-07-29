@@ -1,4 +1,5 @@
 const AUTH_SESSION_KEY = 'fithire.auth.session';
+const NEVER_EXPIRES_AT = Number.MAX_SAFE_INTEGER;
 const USER_SCOPED_CACHE_KEYS = [
   'fitHire_culturalFit',
   'fitHire_culturalFit_result',
@@ -20,13 +21,11 @@ export function saveAuthSession(authPayload) {
   clearUserScopedCache();
 
   const expiresInSeconds = Number(authPayload.expiresInSeconds) || 0;
-  const expiresAt = Date.now() + expiresInSeconds * 1000;
-
   const session = {
     accessToken: authPayload.accessToken,
     tokenType: authPayload.tokenType ?? 'Bearer',
     expiresInSeconds,
-    expiresAt,
+    expiresAt: NEVER_EXPIRES_AT,
     user: authPayload.user ?? null,
   };
 
@@ -45,14 +44,17 @@ export function getAuthSession() {
     if (!parsed?.accessToken) {
       return null;
     }
-    return parsed;
+    return {
+      ...parsed,
+      expiresAt: NEVER_EXPIRES_AT,
+    };
   } catch {
     return null;
   }
 }
 
 export function isSessionValid(session) {
-  return Boolean(session?.accessToken && Number(session?.expiresAt) > Date.now());
+  return Boolean(session?.accessToken);
 }
 
 export function getSessionRole(session) {

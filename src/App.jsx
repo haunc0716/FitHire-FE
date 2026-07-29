@@ -1,5 +1,5 @@
-﻿import React, { Suspense, useEffect, useRef } from 'react';
-import { BrowserRouter as Router, Routes, Route, useLocation, useNavigate } from 'react-router-dom';
+﻿import React, { Suspense } from 'react';
+import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 const HomePage = React.lazy(() => import('./features/landing/pages/HomePage'));
 const FeaturesPage = React.lazy(() => import('./features/landing/pages/FeaturesPage'));
 const PricingPage = React.lazy(() => import('./features/pricing/pages/PricingPage'));
@@ -35,11 +35,8 @@ const ChangePasswordPage = React.lazy(() => import('./features/user/pages/Change
 const PaymentHistoryPage = React.lazy(() => import('./features/payments/pages/PaymentHistoryPage'));
 const PayOSReturnPage = React.lazy(() => import('./features/payments/pages/PayOSReturnPage'));
 
-import { clearAuthSession, getAuthSession, isSessionValid } from './features/auth/services/authSession';
 import { ToastProvider } from './components/ui/ToastProvider';
 import ScrollToTop from './components/layout/ScrollToTop';
-
-const IDLE_TIMEOUT_MS = 20 * 60 * 1000;
 
 const RouteFallback = () => (
   <div className="min-h-screen bg-warm-bg flex items-center justify-center p-6">
@@ -52,65 +49,11 @@ const RouteFallback = () => (
   </div>
 );
 
-function IdleLogoutWatcher() {
-  const navigate = useNavigate();
-  const location = useLocation();
-  const timerRef = useRef(null);
-  const lastResetRef = useRef(0);
-
-  useEffect(() => {
-    const resetTimer = () => {
-      const now = Date.now();
-      // Only reset timer at most once every 2 seconds to save performance
-      if (now - lastResetRef.current < 2000) return;
-      lastResetRef.current = now;
-
-      if (timerRef.current) {
-        clearTimeout(timerRef.current);
-      }
-
-      const session = getAuthSession();
-      if (!isSessionValid(session)) {
-        return;
-      }
-
-      timerRef.current = setTimeout(() => {
-        clearAuthSession();
-        navigate('/login', { replace: true });
-      }, IDLE_TIMEOUT_MS);
-    };
-
-    const events = ['mousedown', 'keydown', 'scroll', 'touchstart', 'click'];
-    // Removed mousemove as it's too frequent and usually mousedown/scroll are enough to detect activity
-    events.forEach((eventName) => window.addEventListener(eventName, resetTimer, { passive: true }));
-
-    const handleVisibility = () => {
-      if (!document.hidden) {
-        resetTimer();
-      }
-    };
-
-    document.addEventListener('visibilitychange', handleVisibility);
-    resetTimer();
-
-    return () => {
-      if (timerRef.current) {
-        clearTimeout(timerRef.current);
-      }
-      events.forEach((eventName) => window.removeEventListener(eventName, resetTimer));
-      document.removeEventListener('visibilitychange', handleVisibility);
-    };
-  }, [location.pathname, navigate]);
-
-  return null;
-}
-
 export default function App() {
   return (
     <Router>
       <ScrollToTop />
       <ToastProvider>
-        <IdleLogoutWatcher />
         <Suspense fallback={<RouteFallback />}>
           <Routes>
             <Route path="/" element={<HomePage />} />
