@@ -4,6 +4,14 @@ import { getAdminPayments, getAdminPaymentById, markPaymentSuccess, markPaymentF
 import { useToast } from '../../../components/ui/ToastProvider';
 
 const PAGE_SIZE = 10;
+const STATUS_OPTIONS = [
+  { value: 'ALL', label: 'Tất cả trạng thái' },
+  { value: 'SUCCESS', label: 'Thành công' },
+  { value: 'COMPLETED', label: 'Hoàn tất' },
+  { value: 'PENDING', label: 'Đang chờ' },
+  { value: 'CANCELLED', label: 'Đã huỷ' },
+  { value: 'FAILED', label: 'Thất bại' },
+];
 
 function toPaymentItems(data) {
   return Array.isArray(data) ? data : data?.items || data?.content || [];
@@ -76,6 +84,7 @@ export default function BillingPage() {
   const [selectedTransaction, setSelectedTransaction] = useState(null);
   const [detailLoading, setDetailLoading] = useState(false);
   const [currentPage, setCurrentPage] = useState(1);
+  const [statusFilter, setStatusFilter] = useState('ALL');
 
   const fetchTransactions = async () => {
     setIsLoading(true);
@@ -90,7 +99,7 @@ export default function BillingPage() {
   };
 
   useEffect(() => { fetchTransactions(); }, []);
-  useEffect(() => { setCurrentPage(1); }, [transactions.length]);
+  useEffect(() => { setCurrentPage(1); }, [transactions.length, statusFilter]);
 
   const stats = useMemo(() => {
     const total = transactions.length;
@@ -99,11 +108,16 @@ export default function BillingPage() {
     return { total, completed, pending };
   }, [transactions]);
 
-  const totalPages = Math.max(1, Math.ceil(transactions.length / PAGE_SIZE));
+  const filteredTransactions = useMemo(() => {
+    if (statusFilter === 'ALL') return transactions;
+    return transactions.filter((trx) => String(trx.status || '').toUpperCase() === statusFilter);
+  }, [transactions, statusFilter]);
+
+  const totalPages = Math.max(1, Math.ceil(filteredTransactions.length / PAGE_SIZE));
   const paginatedTransactions = useMemo(() => {
     const start = (currentPage - 1) * PAGE_SIZE;
-    return transactions.slice(start, start + PAGE_SIZE);
-  }, [transactions, currentPage]);
+    return filteredTransactions.slice(start, start + PAGE_SIZE);
+  }, [filteredTransactions, currentPage]);
 
   const handleUpdateStatus = async (paymentId, success) => {
     setUpdatingId(paymentId);
@@ -190,12 +204,23 @@ export default function BillingPage() {
       </div>
 
       <div className="bg-white rounded-2xl border border-stone-100 shadow-[0_2px_10px_rgba(0,0,0,0.02)] overflow-hidden">
-        <div className="p-5 border-b border-stone-100 bg-stone-50/30 flex items-center justify-between gap-4">
+        <div className="p-5 border-b border-stone-100 bg-stone-50/30 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
           <h2 className="text-base font-bold text-stone-900">Giao dịch gần đây</h2>
-          <button onClick={fetchTransactions} className="inline-flex items-center gap-2 px-3 py-2 text-sm font-semibold text-stone-700 border border-stone-200 rounded-xl hover:bg-stone-50 transition-colors">
-            <Loader2 className={`w-4 h-4 ${isLoading ? 'animate-spin' : ''}`} />
-            Làm mới
-          </button>
+          <div className="flex flex-col gap-2 sm:flex-row sm:items-center">
+            <select
+              value={statusFilter}
+              onChange={(event) => setStatusFilter(event.target.value)}
+              className="h-10 rounded-xl border border-stone-200 bg-white px-3 text-sm font-semibold text-stone-700 outline-none transition-colors hover:bg-stone-50 focus:border-emerald-300 focus:ring-2 focus:ring-emerald-100"
+            >
+              {STATUS_OPTIONS.map((option) => (
+                <option key={option.value} value={option.value}>{option.label}</option>
+              ))}
+            </select>
+            <button onClick={fetchTransactions} className="inline-flex h-10 items-center justify-center gap-2 px-3 text-sm font-semibold text-stone-700 border border-stone-200 rounded-xl hover:bg-stone-50 transition-colors">
+              <Loader2 className={`w-4 h-4 ${isLoading ? 'animate-spin' : ''}`} />
+              Làm mới
+            </button>
+          </div>
         </div>
         <div className="overflow-x-auto">
           {isLoading ? (
@@ -205,6 +230,11 @@ export default function BillingPage() {
             </div>
           ) : (
             <>
+              {filteredTransactions.length === 0 ? (
+                <div className="px-6 py-12 text-center text-sm font-medium text-stone-500">
+                  Không có giao dịch nào với trạng thái đã chọn.
+                </div>
+              ) : (
               <table className="w-full text-sm text-left">
                 <thead className="text-xs text-stone-500 uppercase bg-stone-50/50 border-b border-stone-100">
                   <tr>
@@ -268,10 +298,11 @@ export default function BillingPage() {
                   ))}
                 </tbody>
               </table>
+              )}
 
               <div className="flex items-center justify-between gap-4 border-t border-stone-100 px-6 py-4">
                 <p className="text-xs font-medium text-stone-500">
-                  Trang {currentPage}/{totalPages} · Hiển thị {paginatedTransactions.length} / {transactions.length} giao dịch
+                  Trang {currentPage}/{totalPages} · Hiển thị {paginatedTransactions.length} / {filteredTransactions.length} giao dịch
                 </p>
                 <div className="flex items-center gap-2">
                   <button
