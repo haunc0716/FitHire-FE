@@ -58,6 +58,16 @@ function extractPlanLabel(transaction) {
   );
 }
 
+function extractSenderAccountNumber(transaction) {
+  return (
+    transaction?.senderAccountNumber ||
+    transaction?.counterAccountNumber ||
+    transaction?.metadata?.senderAccountNumber ||
+    transaction?.metadata?.counterAccountNumber ||
+    ''
+  );
+}
+
 export default function BillingPage() {
   const { showToast } = useToast();
   const [transactions, setTransactions] = useState([]);
@@ -200,6 +210,7 @@ export default function BillingPage() {
                   <tr>
                     <th className="px-6 py-4 font-bold">Mã giao dịch</th>
                     <th className="px-6 py-4 font-bold">Người dùng</th>
+                    <th className="px-6 py-4 font-bold">STK người gửi</th>
                     <th className="px-6 py-4 font-bold">Gói</th>
                     <th className="px-6 py-4 font-bold">Số tiền</th>
                     <th className="px-6 py-4 font-bold">Ngày</th>
@@ -217,6 +228,7 @@ export default function BillingPage() {
                           <div className="mt-0.5 text-xs text-stone-400">{extractUserEmail(trx)}</div>
                         ) : null}
                       </td>
+                      <td className="px-6 py-4 font-semibold text-stone-700">{extractSenderAccountNumber(trx) || 'Chưa có'}</td>
                       <td className="px-6 py-4 text-stone-500">{extractPlanLabel(trx)}</td>
                       <td className="px-6 py-4 font-bold text-stone-900">{formatMoney(trx.amount ?? trx.totalAmount ?? trx.price, trx.currency)}</td>
                       <td className="px-6 py-4 text-stone-400 text-xs">{formatDate(trx.createdAt || trx.paidAt || trx.updatedAt)}</td>
@@ -327,6 +339,14 @@ export default function BillingPage() {
                     {extractUserEmail(selectedTransaction) ? (
                       <div className="mt-1 text-xs text-stone-500">{extractUserEmail(selectedTransaction)}</div>
                     ) : null}
+                  </div>
+                  <div className="rounded-2xl bg-stone-50 p-4">
+                    <div className="text-stone-400">STK người gửi</div>
+                    <div className="font-semibold text-stone-900">{extractSenderAccountNumber(selectedTransaction) || 'Chưa có'}</div>
+                  </div>
+                  <div className="rounded-2xl bg-stone-50 p-4">
+                    <div className="text-stone-400">Ngân hàng người gửi</div>
+                    <div className="font-semibold text-stone-900">{selectedTransaction.senderBankName || 'Chưa có'}</div>
                   </div>
                   <div className="rounded-2xl bg-stone-50 p-4 col-span-2">
                     <div className="text-stone-400">Gói</div>

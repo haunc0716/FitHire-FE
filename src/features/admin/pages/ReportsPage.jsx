@@ -71,6 +71,10 @@ function extractPlanLabel(payment) {
   );
 }
 
+function extractSenderAccountNumber(payment) {
+  return payment?.senderAccountNumber || payment?.counterAccountNumber || '';
+}
+
 function toDateInputValue(date) {
   return date.toISOString().slice(0, 10);
 }
@@ -139,6 +143,7 @@ export default function ReportsPage() {
   }, []);
 
   const stats = useMemo(() => {
+    const customerUsers = users.filter((user) => String(user?.role || '').toUpperCase() === 'USER');
     const activeSubs = subscriptions.filter((s) => s.status === 'ACTIVE' || s.status === 'PENDING').length;
     const successPayments = payments.filter((p) => ['SUCCESS', 'COMPLETED'].includes(String(p.status).toUpperCase()));
     const totalRevenue = successPayments.reduce((sum, p) => {
@@ -147,7 +152,7 @@ export default function ReportsPage() {
     }, 0);
 
     return {
-      totalUsers: users.length,
+      totalUsers: customerUsers.length,
       activeSubs,
       totalPayments: payments.length,
       totalRevenue,
@@ -374,6 +379,7 @@ export default function ReportsPage() {
                     <tr>
                       <th className="px-6 py-3 font-bold">Mã</th>
                       <th className="px-6 py-3 font-bold">Gói</th>
+                      <th className="px-6 py-3 font-bold">STK người gửi</th>
                       <th className="px-6 py-3 font-bold">Số tiền</th>
                       <th className="px-6 py-3 font-bold">Trạng thái</th>
                       <th className="px-6 py-3 font-bold">Ngày</th>
@@ -384,6 +390,7 @@ export default function ReportsPage() {
                       <tr key={payment.id} className="hover:bg-gray-50">
                         <td className="px-6 py-4 font-semibold text-gray-900">{payment.id}</td>
                         <td className="px-6 py-4 text-gray-600">{extractPlanLabel(payment)}</td>
+                        <td className="px-6 py-4 font-semibold text-gray-700">{extractSenderAccountNumber(payment) || 'Chưa có'}</td>
                         <td className="px-6 py-4 font-semibold text-gray-900">{formatMoney(payment.amount ?? payment.totalAmount ?? payment.price)}</td>
                         <td className="px-6 py-4 text-gray-600">{payment.status || 'KHÔNG RÕ'}</td>
                         <td className="px-6 py-4 text-gray-500 text-xs">{formatDate(payment.createdAt || payment.paidAt || payment.updatedAt)}</td>
