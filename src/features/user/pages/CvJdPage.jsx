@@ -1,5 +1,5 @@
 ﻿import React, { useCallback, useEffect, useMemo, useState } from 'react';
-import { motion } from 'framer-motion';
+import { motion as Motion } from 'framer-motion';
 import {
   AlertCircle,
   ArrowRight,
@@ -307,10 +307,11 @@ function StepItem({ step, title, description, active, completed }) {
 
 export default function CvJdPage() {
   const [selectedFile, setSelectedFile] = useState(null);
+  const [jobDescription, setJobDescription] = useState('');
   const [isScoring, setIsScoring] = useState(false);
   const [result, setResult] = useState(null);
   const [scoreError, setScoreError] = useState('');
-  const [detailCache, setDetailCache] = useState({});
+  const [, setDetailCache] = useState({});
 
   const [history, setHistory] = useState([]);
   const [historyPage, setHistoryPage] = useState(0);
@@ -417,8 +418,9 @@ export default function CvJdPage() {
   }, [loadDetail, loadHistory]);
 
   useEffect(() => {
-    setResultLanguageView('vi');
-  }, [result?.sessionId]);
+    const sourceLanguage = getLanguageInfo(result?.detectedLanguage).code;
+    setResultLanguageView(result?.localizedContent && sourceLanguage !== 'vi' ? 'source' : 'vi');
+  }, [result?.detectedLanguage, result?.localizedContent, result?.sessionId]);
 
   const handleFileChange = (event) => {
     const nextFile = event.target.files?.[0] ?? null;
@@ -433,13 +435,17 @@ export default function CvJdPage() {
       setScoreError('Vui lòng chọn file CV để bắt đầu chấm điểm.');
       return;
     }
+    if (!jobDescription.trim()) {
+      setScoreError('Vui lòng nhập mô tả công việc (JD) để chấm điểm mức độ phù hợp.');
+      return;
+    }
 
     setIsScoring(true);
     setScoreError('');
     setDetailError('');
 
     try {
-      const payload = await scoreCv(selectedFile);
+      const payload = await scoreCv(selectedFile, jobDescription.trim());
       setResult(payload);
 
       if (payload?.sessionId) {
@@ -466,6 +472,7 @@ export default function CvJdPage() {
   const weaknesses = toArray(result?.weaknesses);
   const suggestions = toArray(result?.suggestions).length > 0 ? toArray(result?.suggestions) : toArray(result?.improvements);
   const missingKeywords = toArray(result?.missingKeywords);
+  const matchedKeywords = toArray(result?.matchedKeywords);
   const missingSections = toArray(result?.missingSections);
   const detectedSkills = toArray(result?.detectedSkills);
   const localizedContent = result?.localizedContent ?? null;
@@ -490,6 +497,7 @@ export default function CvJdPage() {
     ? toArray(localizedContent?.detectedSkills)
     : detectedSkills;
   const totalScore = typeof result?.totalScore === 'number' ? result.totalScore : result?.overallScore;
+  const isV2Result = Number(result?.scoringVersion) >= 2;
   const detectedDomain = result?.detectedDomain;
   const domainConfidence = result?.domainConfidence;
   const appliedRubric = result?.appliedRubric;
@@ -560,6 +568,24 @@ export default function CvJdPage() {
               </div>
             ) : null}
 
+            <label className="mt-5 block">
+              <span className="text-sm font-semibold text-slate-700">2. Mô tả công việc (JD)</span>
+              <textarea
+                value={jobDescription}
+                onChange={(event) => {
+                  setJobDescription(event.target.value);
+                  setScoreError('');
+                }}
+                rows={9}
+                maxLength={12000}
+                placeholder="Dán yêu cầu công việc, kỹ năng bắt buộc, kinh nghiệm, học vấn và các tiêu chí ưu tiên..."
+                className="mt-2 w-full resize-y rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm leading-relaxed text-slate-700 outline-none transition focus:border-emerald-400 focus:bg-white focus:ring-2 focus:ring-emerald-100"
+              />
+              <span className="mt-1 block text-right text-xs text-slate-400">
+                {jobDescription.length}/12000
+              </span>
+            </label>
+
             {scoreError ? (
               <p className="mt-4 flex items-start gap-2 rounded-xl border border-rose-200 bg-rose-50 px-3 py-2 text-sm text-rose-700">
                 <AlertCircle className="mt-0.5 h-4 w-4 shrink-0" />
@@ -569,7 +595,7 @@ export default function CvJdPage() {
 
             <button
               type="submit"
-              disabled={!selectedFile || isScoring}
+              disabled={!selectedFile || !jobDescription.trim() || isScoring}
               className="mt-6 inline-flex w-full items-center justify-center gap-2 rounded-xl bg-slate-900 px-4 py-3 text-sm font-semibold text-white transition hover:bg-slate-800 disabled:cursor-not-allowed disabled:opacity-50"
             >
               {isScoring ? (
@@ -745,7 +771,7 @@ export default function CvJdPage() {
             ) : null}
 
             {!isScoring && !detailLoading && result ? (
-              <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} className="space-y-6">
+              <Motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} className="space-y-6">
                 <div className="rounded-2xl border border-emerald-100 bg-emerald-50/70 p-5">
                   <div className="flex flex-wrap items-center gap-2">
                     <p className="text-xs font-semibold uppercase tracking-wide text-emerald-700">{copy.cvScore}</p>
@@ -765,6 +791,7 @@ export default function CvJdPage() {
                   </div>
                 </div>
 
+                {!isV2Result ? (
                 <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
                   <div className="rounded-xl border border-slate-200 bg-white p-3">
                     <p className="text-xs font-semibold uppercase tracking-wide text-slate-500">{copy.format}</p>
@@ -783,6 +810,33 @@ export default function CvJdPage() {
                     <p className="mt-1 text-lg font-bold text-slate-900">{typeof result?.contentScore === 'number' ? result.contentScore : '--'}</p>
                   </div>
                 </div>
+                ) : null}
+
+                {isV2Result && details.length > 0 ? (
+                  <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-3">
+                    {details.map((detail) => {
+                      const maxScore = Number(detail?.maxScore) || 0;
+                      const score = Number(detail?.score) || 0;
+                      const percentage = maxScore > 0 ? Math.round((score / maxScore) * 100) : 0;
+                      return (
+                        <div key={detail.criteriaKey} className="rounded-2xl border border-slate-200 bg-white p-4">
+                          <div className="flex items-start justify-between gap-3">
+                            <p className="text-sm font-semibold text-slate-700">{detail.criteriaName}</p>
+                            <p className="whitespace-nowrap text-sm font-bold text-slate-900">
+                              {score}/{maxScore}
+                            </p>
+                          </div>
+                          <div className="mt-3 h-2 overflow-hidden rounded-full bg-slate-100">
+                            <div
+                              className="h-full rounded-full bg-emerald-500 transition-all"
+                              style={{ width: `${Math.max(0, Math.min(100, percentage))}%` }}
+                            />
+                          </div>
+                        </div>
+                      );
+                    })}
+                  </div>
+                ) : null}
 
                 <div className="grid gap-4 lg:grid-cols-2">
                   <div className="rounded-2xl border border-emerald-100 bg-white p-4">
@@ -816,8 +870,20 @@ export default function CvJdPage() {
                   </div>
                 </div>
 
-                {(activeMissingKeywords.length > 0 || activeMissingSections.length > 0 || activeDetectedSkills.length > 0) ? (
-                  <div className="grid gap-4 lg:grid-cols-3">
+                {(matchedKeywords.length > 0 || activeMissingKeywords.length > 0 || activeMissingSections.length > 0 || activeDetectedSkills.length > 0) ? (
+                  <div className="grid gap-4 md:grid-cols-2">
+                    {matchedKeywords.length > 0 ? (
+                      <div className="rounded-2xl border border-emerald-100 bg-emerald-50/40 p-4">
+                        <p className="mb-2 text-sm font-semibold text-emerald-700">Từ khóa phù hợp</p>
+                        <div className="flex flex-wrap gap-2">
+                          {matchedKeywords.map((item, index) => (
+                            <span key={`matched-keyword-${index}`} className="rounded-full bg-white px-2.5 py-1 text-xs font-semibold text-emerald-700">
+                              {item}
+                            </span>
+                          ))}
+                        </div>
+                      </div>
+                    ) : null}
                     <div className="rounded-2xl border border-amber-100 bg-amber-50/40 p-4">
                       <p className="mb-2 text-sm font-semibold text-amber-700">{copy.missingKeywords}</p>
                       {activeMissingKeywords.length === 0 ? (
@@ -830,7 +896,7 @@ export default function CvJdPage() {
                         </ul>
                       )}
                     </div>
-                    <div className="rounded-2xl border border-rose-100 bg-rose-50/40 p-4">
+                    {!isV2Result ? <div className="rounded-2xl border border-rose-100 bg-rose-50/40 p-4">
                       <p className="mb-2 text-sm font-semibold text-rose-700">{copy.missingSections}</p>
                       {activeMissingSections.length === 0 ? (
                         <p className="text-sm text-slate-500">{copy.noData}</p>
@@ -841,7 +907,7 @@ export default function CvJdPage() {
                           ))}
                         </ul>
                       )}
-                    </div>
+                    </div> : null}
                     <div className="rounded-2xl border border-blue-100 bg-blue-50/40 p-4">
                       <p className="mb-2 text-sm font-semibold text-blue-700">{copy.detectedSkills}</p>
                       {activeDetectedSkills.length === 0 ? (
@@ -886,7 +952,11 @@ export default function CvJdPage() {
                           {details.map((detail, index) => (
                             <tr key={`${detail.criteriaKey || 'criteria'}-${index}`}>
                               <td className="px-4 py-3 text-sm font-medium text-slate-800">{detail.criteriaName || detail.criteriaKey || '--'}</td>
-                              <td className="px-4 py-3 text-sm text-slate-700">{typeof detail.score === 'number' ? detail.score : '--'}</td>
+                              <td className="px-4 py-3 text-sm text-slate-700">
+                                {typeof detail.score === 'number'
+                                  ? `${detail.score}${typeof detail.maxScore === 'number' ? `/${detail.maxScore}` : ''}`
+                                  : '--'}
+                              </td>
                               <td className="px-4 py-3 text-sm text-slate-600">{detail.feedback || detail.suggestion || '--'}</td>
                             </tr>
                           ))}
@@ -895,7 +965,7 @@ export default function CvJdPage() {
                     </div>
                   </div>
                 ) : null}
-              </motion.div>
+              </Motion.div>
             ) : null}
           </div>
         </div>
