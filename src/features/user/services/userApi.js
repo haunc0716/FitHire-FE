@@ -127,9 +127,10 @@ export function fetchMyCvs() {
   });
 }
 
-export function scoreCv(file) {
+export function scoreCv(file, jobDescription = '') {
   const formData = new FormData();
   formData.append('file', file);
+  formData.append('jobDescription', jobDescription);
 
   return requestJson('/api/cv-scoring', {
     method: 'POST',
